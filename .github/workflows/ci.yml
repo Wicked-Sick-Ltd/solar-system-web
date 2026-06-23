@@ -23,7 +23,7 @@ jobs:
         # The locked dependency graph (symfony 8.1) requires PHP >= 8.4.1.
         php: ['8.4']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -33,7 +33,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
@@ -60,7 +60,7 @@ jobs:
     name: assets build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
