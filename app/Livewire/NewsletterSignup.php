@@ -53,7 +53,7 @@ final class NewsletterSignup extends Component
                 SubscribeResult::AlreadySubscribed => 'subscribed',
             };
         } catch (MailchimpException $e) {
-Log::warning('Newsletter signup failed');
+            Log::warning('Newsletter signup failed');
             $this->state = 'error';
         }
     }

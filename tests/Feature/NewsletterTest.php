@@ -141,3 +141,20 @@ it('rate-limits repeated attempts from one address', function () {
     }
     $c->set('email', 'p6@example.com')->call('subscribe')->assertHasErrors(['email']);
 });
+
+it('resubscribes an unsubscribed member by requesting pending status explicitly', function () {
+    Http::fake([
+        'https://us21.api.mailchimp.com/3.0/lists/aud42/members/*' => Http::sequence()
+            ->push(['status' => 'unsubscribed'], 200)
+            ->push(['status' => 'pending'], 200),
+        '*' => Http::response(['results' => []]),
+    ]);
+
+    Livewire::test(NewsletterSignup::class)
+        ->set('email', 'proto@example.com')
+        ->call('subscribe')
+        ->assertSet('state', 'pending');
+
+    Http::assertSentCount(2);
+    Http::assertSent(fn ($r) => $r->method() === 'PUT' && ($r['status'] ?? null) === 'pending');
+});
