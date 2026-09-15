@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Wrong number on the site?
+    url: https://github.com/Wicked-Sick-Ltd/solar-system-db/issues/new?template=data_correction.yml
+    about: Catalogue data lives in solar-system-db. Propose the correction there, with a source.
+  - name: Security issue
+    url: https://github.com/Wicked-Sick-Ltd/solar-system-web/blob/main/SECURITY.md
+    about: Please report privately to hello@wickedsick.com rather than opening an issue.
