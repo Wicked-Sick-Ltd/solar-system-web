@@ -1,0 +1,32 @@
+name: Bug report
+description: Something on the site is broken or behaves wrongly
+labels: [bug]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Page URL
+      placeholder: https://sol.wickedsick.com/objects/planet-saturn
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you saw, what you expected. Screenshots welcome.
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Browser and device
+      placeholder: Safari 19 on iPhone, Firefox 143 on Linux, …
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: This is about the website, not a wrong value in the data (data corrections go to solar-system-db)
+          required: true
+        - label: This is not a security issue (those go to hello@wickedsick.com, see SECURITY.md)
+          required: true
