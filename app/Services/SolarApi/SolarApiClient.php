@@ -11,10 +11,12 @@ use App\Services\SolarApi\Data\Paginated;
 use App\Services\SolarApi\Data\Position;
 use App\Services\SolarApi\Data\Ring;
 use App\Services\SolarApi\Data\SearchResult;
+use App\Services\SolarApi\Data\SkyPosition;
 use App\Services\SolarApi\Data\Source;
 use App\Services\SolarApi\Data\Stats;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
@@ -199,6 +201,35 @@ class SolarApiClient
         );
 
         return is_array($data) ? Position::fromArray($data) : null;
+    }
+
+    /**
+     * Where an object appears in Earth's sky. With a lat/lon the response also
+     * carries the observer's view (alt/az, rise/set). Null on 404 so the page
+     * section simply doesn't render (e.g. before the backend deploys /sky).
+     *
+     * Times and coordinates are rounded so the short cache actually hits:
+     * geocentric calls to the hour, observer calls to 5 minutes and 0.1°.
+     */
+    public function sky(string $idOrName, ?string $datetime = null, ?float $lat = null, ?float $lon = null): ?SkyPosition
+    {
+        $observer = $lat !== null && $lon !== null;
+        $when = $datetime !== null
+            ? CarbonImmutable::parse($datetime)->utc()
+            : CarbonImmutable::now('UTC');
+        $when = $observer
+            ? $when->subMinutes($when->minute % 5)->startOfMinute()
+            : $when->startOfHour();
+
+        $query = ['date' => $when->toIso8601ZuluString()];
+        if ($observer) {
+            $query['lat'] = round((float) $lat, 1);
+            $query['lon'] = round((float) $lon, 1);
+        }
+
+        $data = $this->cachedGet('/sky/'.$this->encodePath($idOrName), $query, $this->ttl['positions']);
+
+        return is_array($data) ? SkyPosition::fromArray($data) : null;
     }
 
     /**

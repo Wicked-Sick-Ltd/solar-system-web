@@ -102,6 +102,62 @@
             </section>
         @endif
 
+        {{-- In the sky --}}
+        @if ($sky)
+            <section class="mt-10" aria-labelledby="sky-heading">
+                <h2 id="sky-heading" class="mb-3 text-sm font-semibold uppercase tracking-[0.16em]" style="color: var(--accent);">{{ __('In the sky') }}</h2>
+                <div class="surface grid gap-8 p-6 lg:grid-cols-2">
+                    <div>
+                        <dl class="grid grid-cols-2 gap-x-6 gap-y-3">
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Right ascension') }}</dt>
+                                <dd class="font-serif text-xl tabular-nums" style="color: var(--text);">{{ $sky->raHms ?? '—' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Declination') }}</dt>
+                                <dd class="font-serif text-xl tabular-nums" style="color: var(--text);">{{ $sky->decDms ?? '—' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Constellation') }}</dt>
+                                <dd class="font-serif text-xl" style="color: var(--text);">
+                                    @if ($sky->constellationUrl())
+                                        <a class="link-quiet" href="{{ $sky->constellationUrl() }}" rel="noopener" target="_blank">{{ $sky->constellationName }}</a>
+                                    @else
+                                        {{ $sky->constellationName ?? '—' }}
+                                    @endif
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Distance from Earth') }}</dt>
+                                <dd class="font-serif text-xl tabular-nums" style="color: var(--text);">{{ Format::au($sky->distanceFromEarthAu, 2) ?? '—' }}</dd>
+                            </div>
+                            <div class="col-span-2">
+                                <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Elongation from the Sun') }}</dt>
+                                <dd class="text-base" style="color: var(--text);">
+                                    <span class="font-serif text-xl tabular-nums">{{ Format::degrees($sky->elongationDeg) ?? '—' }}</span>
+                                    @if ($sky->elongationReading())
+                                        <span style="color: var(--muted);">— {{ $sky->elongationReading() }}</span>
+                                    @endif
+                                </dd>
+                            </div>
+                        </dl>
+                        @if ($sky->visibleFrom)
+                            <p class="mt-4 text-sm" style="color: var(--text);">{{ $sky->visibleFrom }}</p>
+                        @endif
+                        @if ($sky->resolvedFrom)
+                            <p class="mt-2 text-xs" style="color: var(--color-faint);">{{ __('Shown at its parent\'s position — a moon sits within a fraction of a degree of its planet.') }}</p>
+                        @endif
+                    </div>
+                    <div class="border-t pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0" style="border-color: var(--border);">
+                        <livewire:sky-observer :object-id="$object->id" :key="'sky-'.$object->id" />
+                    </div>
+                </div>
+                @if ($sky->accuracyNote)
+                    <p class="mt-3 text-xs leading-relaxed" style="color: var(--color-faint); max-width: 70ch;">{{ $sky->accuracyNote }}</p>
+                @endif
+            </section>
+        @endif
+
         {{-- Property cards --}}
         <div class="mt-10 grid gap-6 lg:grid-cols-2">
             @if ($hasOrbital)
