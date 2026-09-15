@@ -18,6 +18,8 @@ final readonly class ObjectDetail
     /**
      * @param  list<string>  $classifications
      * @param  list<Source>  $sources
+     * @param  list<array{designation:string,kind:string}>  $designations
+     * @param  list<CloseApproach>  $closeApproaches
      */
     public function __construct(
         public string $id,
@@ -35,6 +37,12 @@ final readonly class ObjectDetail
         public ?VisualProperties $visual,
         public array $classifications,
         public array $sources,
+        public ?Discovery $discovery = null,
+        public array $designations = [],
+        public array $closeApproaches = [],
+        public ?int $closeApproachCount = null,
+        public ?Atmosphere $atmosphere = null,
+        public ?bool $impactMonitored = null,
     ) {}
 
     /** @param array<string,mixed> $d */
@@ -63,7 +71,38 @@ final readonly class ObjectDetail
                 static fn (array $s) => Source::fromArray($s),
                 array_filter((array) ($d['sources'] ?? []), 'is_array'),
             )),
+            discovery: is_array($d['discovery'] ?? null) && $d['discovery'] !== [] ? Discovery::fromArray($d['discovery']) : null,
+            designations: array_values(array_map(
+                static fn (array $x) => ['designation' => (string) $x['designation'], 'kind' => (string) ($x['kind'] ?? 'alternate')],
+                array_filter((array) ($d['designations'] ?? []), static fn ($x) => is_array($x) && isset($x['designation'])),
+            )),
+            closeApproaches: array_values(array_map(
+                static fn (array $c) => CloseApproach::fromArray($c),
+                array_filter((array) ($d['close_approaches'] ?? []), 'is_array'),
+            )),
+            closeApproachCount: self::int($d, 'close_approach_count'),
+            atmosphere: is_array($d['atmosphere'] ?? null) && $d['atmosphere'] !== [] ? Atmosphere::fromArray($d['atmosphere']) : null,
+            impactMonitored: is_array($d['impact_monitoring'] ?? null) ? (bool) ($d['impact_monitoring']['flagged'] ?? false) : null,
         );
+    }
+
+    /**
+     * Designations other than the display name and the id, for an "also known as" line.
+     *
+     * @return list<string>
+     */
+    public function aliases(): array
+    {
+        $out = [];
+        foreach ($this->designations as $x) {
+            $v = $x['designation'];
+            if ($v === $this->name || $v === $this->id || $v === $this->designation || str_starts_with($v, 'ast-') || str_starts_with($v, 'NAIF ') || str_starts_with($v, 'satellite: ')) {
+                continue;
+            }
+            $out[$v] = true;
+        }
+
+        return array_keys($out);
     }
 
     public function slug(): string
