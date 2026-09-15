@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Mailchimp\MailchimpClient;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,6 +27,9 @@ final class SetResponseHeaders
      * Routes with no Livewire round-trips — safe to serve cookie-less and cache
      * at the edge. Interactive pages (filters, search, sort, pagination) are
      * deliberately excluded: they need the session for CSRF on wire:* updates.
+     *
+     * When Mailchimp is configured the shared footer mounts a Livewire signup
+     * form, so these routes need the session too and are skipped at runtime.
      */
     private const CACHEABLE_ROUTES = ['home', 'planets.index', 'about', 'api', 'dwarf-planets'];
 
@@ -63,6 +67,12 @@ final class SetResponseHeaders
         }
 
         if (! in_array($request->route()?->getName(), self::CACHEABLE_ROUTES, true)) {
+            return;
+        }
+
+        // Livewire wire:submit needs the session CSRF token; cookie-less edge
+        // cache would serve a token that cannot match the visitor's session.
+        if (app(MailchimpClient::class)->isConfigured()) {
             return;
         }
 

@@ -64,4 +64,12 @@ return [
         ],
     ],
 
+    // Mailchimp Marketing API — newsletter signups (double opt-in). The data
+    // centre prefix is derived from the key's "-usNN" suffix. Leave the key
+    // unset to hide the signup form entirely.
+    'mailchimp' => [
+        'api_key' => env('MAILCHIMP_API_KEY'),
+        'audience_id' => env('MAILCHIMP_AUDIENCE_ID'),
+    ],
+
 ];

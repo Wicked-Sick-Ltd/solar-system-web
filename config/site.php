@@ -24,4 +24,14 @@ return [
     // Manifest of the nightly published database (whole catalogue, one SQLite file).
     'download_url' => env('SOLAR_DOWNLOAD_URL', 'https://s3.wickedsick.com/solar-system-db/latest.json'),
     'contact_email' => env('CONTACT_EMAIL', 'hello@wickedsick.com'),
+
+    // Legal entity named in the privacy policy.
+    'operator' => env('SITE_OPERATOR', 'Wicked Sick Ltd'),
+
+    // Google Analytics 4. Leave unset to ship no analytics at all. When set,
+    // gtag is only loaded client-side after the visitor accepts analytics
+    // cookies (see resources/views/components/cookie-banner.blade.php).
+    'analytics' => [
+        'ga_measurement_id' => env('GA_MEASUREMENT_ID'),
+    ],
 ];
