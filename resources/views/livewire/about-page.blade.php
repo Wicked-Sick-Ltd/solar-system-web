@@ -39,6 +39,12 @@
             <a class="underline" style="color: var(--link);" href="{{ \App\Support\Links::apiDocs() }}" rel="noopener" target="_blank">{{ __('interactive API documentation') }}</a>.
         </p>
 
+        <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Download the whole database') }}</h2>
+        <p>
+            {{ __('Everything behind this site — every body in the JPL Small-Body Database with every published field, discoveries, close approaches, satellites and the NASA fact sheets — is rebuilt nightly and published as one compressed SQLite file with a manifest, checksum and licence.') }}
+            <a class="underline" style="color: var(--link);" href="{{ config('site.download_url') }}" rel="noopener" target="_blank">{{ __('Get the latest manifest') }}</a>.
+        </p>
+
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Credits & source code') }}</h2>
         <p>
             {{ __('The catalogue and API are open source.') }}
