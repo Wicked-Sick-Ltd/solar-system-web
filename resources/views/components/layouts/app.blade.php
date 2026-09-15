@@ -20,6 +20,7 @@
     </script>
 
     <x-seo />
+    <x-analytics />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -38,6 +39,7 @@
     </main>
 
     <x-site-footer />
+    <x-cookie-banner />
 
     @livewireScripts
 </body>

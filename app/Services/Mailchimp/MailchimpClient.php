@@ -1,0 +1,112 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Mailchimp;
+
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+
+/**
+ * Thin client over the Mailchimp Marketing API for newsletter signups.
+ *
+ * Uses the idempotent "add or update" member endpoint with double opt-in, so
+ * Mailchimp owns the confirmation email and no address is stored locally.
+ */
+final readonly class MailchimpClient
+{
+    public function __construct(
+        private ?string $apiKey,
+        private ?string $audienceId,
+    ) {}
+
+    public static function fromConfig(): self
+    {
+        /** @var array{api_key?: string|null, audience_id?: string|null} $cfg */
+        $cfg = (array) config('services.mailchimp', []);
+
+        return new self($cfg['api_key'] ?? null, $cfg['audience_id'] ?? null);
+    }
+
+    public function isConfigured(): bool
+    {
+        return $this->apiKey !== null && $this->apiKey !== ''
+            && $this->audienceId !== null && $this->audienceId !== ''
+            && $this->dataCentre() !== null;
+    }
+
+    /** @throws MailchimpException when Mailchimp rejects the address or is unreachable */
+    public function subscribe(string $email): SubscribeResult
+    {
+        if (! $this->isConfigured()) {
+            throw new MailchimpException('Mailchimp is not configured.');
+        }
+
+        $hash = md5(strtolower(trim($email)));
+        $url = sprintf('https://%s.api.mailchimp.com/3.0/lists/%s/members/%s', $this->dataCentre(), $this->audienceId, $hash);
+
+        $response = $this->putMember($url, [
+            'email_address' => $email,
+            'status_if_new' => 'pending',
+            'tags' => ['sol.wickedsick.com'],
+        ]);
+
+        $status = $response->json('status');
+
+        if ($status === 'subscribed') {
+            return SubscribeResult::AlreadySubscribed;
+        }
+
+        // status_if_new is ignored for existing members. Unsubscribed / cleaned
+        // / archived addresses stay as they are unless we set status explicitly.
+        if ($status !== 'pending') {
+            $response = $this->putMember($url, [
+                'email_address' => $email,
+                'status' => 'pending',
+            ]);
+            $status = $response->json('status');
+        }
+
+        return match ($status) {
+            'subscribed' => SubscribeResult::AlreadySubscribed,
+            'pending' => SubscribeResult::Pending,
+            default => throw new MailchimpException((string) ($response->json('detail') ?? 'Mailchimp rejected the request.')),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     *
+     * @throws MailchimpException when Mailchimp rejects the address or is unreachable
+     */
+    private function putMember(string $url, array $payload): Response
+    {
+        try {
+            $response = Http::withBasicAuth('anystring', (string) $this->apiKey)
+                ->acceptJson()
+                ->timeout(8)
+                ->put($url, $payload);
+        } catch (ConnectionException $e) {
+            throw new MailchimpException('Mailchimp unreachable: '.$e->getMessage(), previous: $e);
+        }
+
+        if ($response->failed()) {
+            throw new MailchimpException((string) ($response->json('detail') ?? 'Mailchimp rejected the request.'));
+        }
+
+        return $response;
+    }
+
+    /** The "usNN" suffix of the API key selects the data centre host. */
+    private function dataCentre(): ?string
+    {
+        if ($this->apiKey === null || ! str_contains($this->apiKey, '-')) {
+            return null;
+        }
+
+        $dc = substr($this->apiKey, strrpos($this->apiKey, '-') + 1);
+
+        return preg_match('/^[a-z]{2}\d{1,2}$/', $dc) === 1 ? $dc : null;
+    }
+}
