@@ -159,6 +159,14 @@ final class Format
         }
     }
 
+    /** 16-point compass label for an azimuth measured from north through east. */
+    public static function bearing(float $azimuthDeg): string
+    {
+        $points = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
+        return $points[(int) floor((fmod($azimuthDeg, 360) + 360 + 11.25) / 22.5) % 16];
+    }
+
     public static function relative(?CarbonInterface $when): ?string
     {
         return $when?->diffForHumans();

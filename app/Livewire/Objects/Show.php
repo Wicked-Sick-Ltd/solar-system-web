@@ -81,6 +81,18 @@ final class Show extends Component
             }
         }
 
+        // Where it appears in the sky. Moons report their parent's position;
+        // the Sun is special-cased by the backend. A 404 (or any API error)
+        // just hides the section.
+        $sky = null;
+        if ($object->orbital?->isPropagatable() || $object->objectType === 'moon' || $object->id === 'sun') {
+            try {
+                $sky = $api->sky($object->id);
+            } catch (SolarApiException) {
+                // leave $sky null
+            }
+        }
+
         if ($object->isPlanetLike()) {
             try {
                 $moons = $this->sortMoons($api->moons($object->id));
@@ -103,6 +115,7 @@ final class Show extends Component
             'object' => $object,
             'apiDown' => false,
             'position' => $position,
+            'sky' => $sky,
             'moons' => $moons,
             'rings' => $rings,
             'parent' => $parent,

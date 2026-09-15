@@ -49,6 +49,8 @@ function fakeSolar(): void
             str_contains($path, '/search') => Http::response(['query' => 'x', 'results' => [
                 ['id' => 'dwarf-ceres', 'name' => 'Ceres', 'designation' => '(1) Ceres', 'object_type' => 'dwarf_planet'],
             ]]),
+            str_contains($path, '/sky/missing-sky') => Http::response(['detail' => 'not found'], 404),
+            str_contains($path, '/sky/') => Http::response(skyPayload(observer: isset($request['lat']))),
             // The backend has no ephemeris for Pluto (mirrors production).
             str_contains($path, '/positions/dwarf-pluto') => Http::response(['detail' => 'No object found'], 404),
             str_contains($path, '/positions/') => Http::response([
@@ -159,5 +161,28 @@ function plutoDetail(): array
         'sources' => [
             ['table_name' => 'physical_properties', 'source_name' => 'NASA Planetary Fact Sheet', 'source_url' => 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/'],
         ],
+    ];
+}
+
+/** A /sky/{id} response; Saturn in Aquarius, seen from London at 21:00 UTC when observer=true. */
+function skyPayload(bool $observer = false): array
+{
+    return [
+        'name' => 'Saturn', 'designation' => null, 'input_datetime' => '2026-09-15T21:00:00Z',
+        'resolved_from' => null, 'jd' => 2461299.375,
+        'ra_deg' => 348.02, 'ra_hours' => 23.2, 'ra_hms' => '23h 12m 04s',
+        'dec_deg' => -6.9, 'dec_dms' => '-06° 54′ 00″',
+        'distance_from_earth_au' => 8.82, 'distance_from_sun_au' => 9.61, 'elongation_deg' => 171.3,
+        'constellation' => ['abbr' => 'Aqr', 'name' => 'Aquarius'],
+        'hemisphere' => 'equatorial', 'visible_from' => 'Visible from both hemispheres.',
+        'observer' => $observer ? [
+            'lat' => 51.5, 'lon' => -0.12,
+            'altitude_deg' => 24.6, 'azimuth_deg' => 285.0, 'is_up' => true,
+            'sun_altitude_deg' => -21.7, 'is_dark' => true,
+            'rise_utc' => '2026-09-15T18:41:00Z', 'transit_utc' => '2026-09-16T00:12:00Z', 'set_utc' => '2026-09-16T05:44:00Z',
+            'circumpolar' => false, 'never_rises' => false,
+        ] : null,
+        'frame' => 'equatorial J2000, geocentric; alt/az topocentric; two-body propagation',
+        'accuracy_note' => 'Two-body approximation, good to about a degree for the planets.',
     ];
 }
