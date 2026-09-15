@@ -45,8 +45,14 @@ final readonly class VisualProperties
     public function hasAny(): bool
     {
         return $this->geometricAlbedo !== null
+            || $this->bondAlbedo !== null
             || $this->absoluteMagnitudeH !== null
-            || $this->spectralType !== null;
+            || $this->colourBV !== null
+            || $this->spectralType !== null
+            || $this->spectralTypeTholen !== null
+            || $this->colourUB !== null
+            || $this->magnitudeV10 !== null
+            || $this->cometM1 !== null;
     }
 
     /** A safe, validated hex colour for rendering, or null. */

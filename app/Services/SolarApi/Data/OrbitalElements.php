@@ -101,9 +101,11 @@ final readonly class OrbitalElements
         };
     }
 
+    /** Anything the "Orbit quality" card renders (MOID lives on the orbital card, not here). */
     public function hasQualityData(): bool
     {
-        return $this->conditionCode !== null || $this->dataArcDays !== null || $this->nObsUsed !== null || $this->moidAu !== null;
+        return $this->conditionCode !== null || $this->dataArcDays !== null || $this->nObsUsed !== null
+            || $this->firstObs !== null || $this->lastObs !== null || $this->rmsArcsec !== null || $this->solutionDate !== null;
     }
 
     public function isPropagatable(): bool

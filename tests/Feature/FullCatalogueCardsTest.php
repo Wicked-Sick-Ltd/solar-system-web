@@ -41,3 +41,12 @@ it('links the whole-database download from the footer and the about page', funct
     $this->get('/about')->assertOk()->assertSee('Download the whole database')->assertSee(config('site.download_url'), escape: false);
     $this->get('/')->assertOk()->assertSee(config('site.download_url'), escape: false);
 });
+
+it('opens the visual card for comet photometry alone and gates orbit quality on quality fields only', function () {
+    $v = \App\Services\SolarApi\Data\VisualProperties::fromArray(['comet_m1' => 5.5]);
+    expect($v->hasAny())->toBeTrue();
+    $o = \App\Services\SolarApi\Data\OrbitalElements::fromArray(['moid_au' => 0.01]);
+    expect($o->hasQualityData())->toBeFalse();
+    $o = \App\Services\SolarApi\Data\OrbitalElements::fromArray(['last_obs' => '2024-06-30']);
+    expect($o->hasQualityData())->toBeTrue();
+});

@@ -71,7 +71,11 @@ final readonly class PhysicalProperties
         return $this->radiusKm !== null
             || $this->massKg !== null
             || $this->densityGCm3 !== null
-            || $this->rotationPeriodHours !== null;
+            || $this->rotationPeriodHours !== null
+            || $this->gmKm3S2 !== null
+            || $this->extentKm !== null
+            || $this->axialTiltDeg !== null
+            || $this->surfaceGravityMS2 !== null;
     }
 
     /** Mean diameter in km, where a radius is known. */
