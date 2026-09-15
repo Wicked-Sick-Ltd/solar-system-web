@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+use App\Services\SolarApi\Data\OrbitalElements;
+use App\Services\SolarApi\Data\VisualProperties;
 
 beforeEach(fn () => fakeSolar());
 
@@ -43,10 +45,10 @@ it('links the whole-database download from the footer and the about page', funct
 });
 
 it('opens the visual card for comet photometry alone and gates orbit quality on quality fields only', function () {
-    $v = \App\Services\SolarApi\Data\VisualProperties::fromArray(['comet_m1' => 5.5]);
+    $v = VisualProperties::fromArray(['comet_m1' => 5.5]);
     expect($v->hasAny())->toBeTrue();
-    $o = \App\Services\SolarApi\Data\OrbitalElements::fromArray(['moid_au' => 0.01]);
+    $o = OrbitalElements::fromArray(['moid_au' => 0.01]);
     expect($o->hasQualityData())->toBeFalse();
-    $o = \App\Services\SolarApi\Data\OrbitalElements::fromArray(['last_obs' => '2024-06-30']);
+    $o = OrbitalElements::fromArray(['last_obs' => '2024-06-30']);
     expect($o->hasQualityData())->toBeTrue();
 });
