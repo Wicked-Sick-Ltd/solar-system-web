@@ -29,3 +29,6 @@ Thumbs.db
 /solar-system-db
 # Superseded handover filename — kept as BRIEF.md instead.
 /solar-system-frontend-handover.md
+
+# Claude Code agent worktrees
+.claude/worktrees/
