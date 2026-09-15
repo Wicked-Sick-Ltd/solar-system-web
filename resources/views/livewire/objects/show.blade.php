@@ -1,6 +1,7 @@
 @php
     use App\Support\Format;
     use App\Support\ObjectType;
+    use App\Support\PlutoDistance;
 @endphp
 <div>
     @if ($apiDown)
@@ -61,6 +62,11 @@
 
         @if ($object->notes)
             <p class="mt-6 text-base leading-relaxed" style="color: var(--text); max-width: var(--container-prose);">{{ $object->notes }}</p>
+        @endif
+
+        {{-- Pluto only: the pub-quiz dedication, with the distance in AU --}}
+        @if (PlutoDistance::appliesTo($object))
+            <x-proto-callout :distance="PlutoDistance::for($object, $position)" />
         @endif
 
         {{-- Where is it now --}}
