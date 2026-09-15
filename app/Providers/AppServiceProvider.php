@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Mailchimp\MailchimpClient;
 use App\Services\SolarApi\SolarApiClient;
 use App\Support\Seo;
 use Illuminate\Support\Facades\URL;
@@ -20,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Per-request page metadata, read by the layout's <head>.
         $this->app->scoped(Seo::class);
+
+        // Newsletter signups. Built from config each request so tests can
+        // toggle the credentials with config().
+        $this->app->bind(MailchimpClient::class, fn () => MailchimpClient::fromConfig());
     }
 
     /**
