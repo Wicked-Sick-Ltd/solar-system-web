@@ -132,3 +132,11 @@ smoke test of every route, including the backend-down degradation path.
 
 - Conventional Commits; one PR per route or concern.
 - `./vendor/bin/pint` to format.
+
+## Contributing
+
+Issues and PRs are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for local
+setup and the checks CI runs. Wrong *data* belongs in
+[`solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db). For
+security problems please follow [SECURITY.md](SECURITY.md) rather than opening
+an issue. MIT licensed ([LICENSE](LICENSE)).
