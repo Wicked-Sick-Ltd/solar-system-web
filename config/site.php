@@ -21,5 +21,7 @@ return [
     // External references surfaced in the footer and the /about + /api pages.
     'backend_repo' => 'https://github.com/wizzouk2/solar-system-db',
     'api_docs_url' => env('API_DOCS_URL'), // backend /docs; falls back to base_url host
+    // Manifest of the nightly published database (whole catalogue, one SQLite file).
+    'download_url' => env('SOLAR_DOWNLOAD_URL', 'https://s3.wickedsick.com/solar-system-db/latest.json'),
     'contact_email' => env('CONTACT_EMAIL', 'hello@wickedsick.com'),
 ];

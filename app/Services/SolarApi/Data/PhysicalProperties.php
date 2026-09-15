@@ -20,6 +20,20 @@ final readonly class PhysicalProperties
         public ?float $axialTiltDeg,
         public ?float $surfaceGravityMS2,
         public ?float $escapeVelocityKmS,
+        public ?float $gmKm3S2 = null,
+        public ?float $volumeKm3 = null,
+        public ?float $ellipticity = null,
+        public ?float $momentOfInertia = null,
+        public ?float $j2 = null,
+        public ?string $magneticField = null,
+        public ?float $lengthOfDayHours = null,
+        public ?float $synodicPeriodDays = null,
+        public ?float $meanOrbitalVelocityKmS = null,
+        public ?float $meanTemperatureK = null,
+        public ?float $blackBodyTemperatureK = null,
+        public ?float $solarIrradianceWM2 = null,
+        public ?string $extentKm = null,
+        public ?string $poleRaDec = null,
     ) {}
 
     /** @param array<string,mixed> $d */
@@ -35,6 +49,20 @@ final readonly class PhysicalProperties
             axialTiltDeg: self::float($d, 'axial_tilt_deg'),
             surfaceGravityMS2: self::float($d, 'surface_gravity_m_s2'),
             escapeVelocityKmS: self::float($d, 'escape_velocity_km_s'),
+            gmKm3S2: self::float($d, 'gm_km3_s2'),
+            volumeKm3: self::float($d, 'volume_km3'),
+            ellipticity: self::float($d, 'ellipticity'),
+            momentOfInertia: self::float($d, 'moment_of_inertia'),
+            j2: self::float($d, 'j2'),
+            magneticField: self::str($d, 'magnetic_field'),
+            lengthOfDayHours: self::float($d, 'length_of_day_hours'),
+            synodicPeriodDays: self::float($d, 'synodic_period_days'),
+            meanOrbitalVelocityKmS: self::float($d, 'mean_orbital_velocity_km_s'),
+            meanTemperatureK: self::float($d, 'mean_temperature_k'),
+            blackBodyTemperatureK: self::float($d, 'black_body_temperature_k'),
+            solarIrradianceWM2: self::float($d, 'solar_irradiance_w_m2'),
+            extentKm: self::str($d, 'extent_km'),
+            poleRaDec: self::str($d, 'pole_ra_dec'),
         );
     }
 

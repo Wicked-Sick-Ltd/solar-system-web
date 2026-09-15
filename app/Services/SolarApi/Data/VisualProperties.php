@@ -17,6 +17,11 @@ final readonly class VisualProperties
         public ?float $colourBV,
         public ?string $spectralType,
         public ?string $dominantColourHex,
+        public ?string $spectralTypeTholen = null,
+        public ?float $colourUB = null,
+        public ?float $magnitudeV10 = null,
+        public ?float $cometM1 = null,
+        public ?float $cometK1 = null,
     ) {}
 
     /** @param array<string,mixed> $d */
@@ -29,6 +34,11 @@ final readonly class VisualProperties
             colourBV: self::float($d, 'colour_b_v'),
             spectralType: self::str($d, 'spectral_type'),
             dominantColourHex: self::str($d, 'dominant_colour_hex'),
+            spectralTypeTholen: self::str($d, 'spectral_type_tholen'),
+            colourUB: self::float($d, 'colour_u_b'),
+            magnitudeV10: self::float($d, 'magnitude_v10'),
+            cometM1: self::float($d, 'comet_m1'),
+            cometK1: self::float($d, 'comet_k1'),
         );
     }
 
