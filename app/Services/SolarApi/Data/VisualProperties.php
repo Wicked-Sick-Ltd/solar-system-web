@@ -46,7 +46,12 @@ final readonly class VisualProperties
     {
         return $this->geometricAlbedo !== null
             || $this->absoluteMagnitudeH !== null
-            || $this->spectralType !== null;
+            || $this->spectralType !== null
+            || $this->spectralTypeTholen !== null
+            || $this->colourUB !== null
+            || $this->magnitudeV10 !== null
+            || $this->cometM1 !== null
+            || $this->cometK1 !== null;
     }
 
     /** A safe, validated hex colour for rendering, or null. */
