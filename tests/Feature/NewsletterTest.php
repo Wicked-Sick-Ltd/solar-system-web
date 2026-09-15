@@ -36,6 +36,20 @@ it('renders the signup form in the footer when configured', function () {
     $this->get('/')->assertOk()->assertSee('newsletter-form', escape: false);
 });
 
+it('does not edge-cache pages when the signup form is present', function (string $uri) {
+    fakeSolar();
+
+    $cacheControl = (string) $this->get($uri)->assertOk()->headers->get('Cache-Control');
+
+    expect($cacheControl)->not->toContain('public');
+})->with([
+    'home' => '/',
+    'planets' => '/planets',
+    'about' => '/about',
+    'api' => '/api',
+    'dwarf-planets' => '/dwarf-planets',
+]);
+
 it('subscribes a valid address with double opt-in and confirms', function () {
     fakeMailchimp();
 
@@ -62,6 +76,28 @@ it('tells an existing subscriber they are already on the list', function () {
         ->assertSet('state', 'subscribed')
         ->assertSee('already');
 });
+
+it('restarts double opt-in for a previously listed address', function (string $existing) {
+    Http::fake([
+        'https://us21.api.mailchimp.com/3.0/lists/aud42/members/*' => Http::sequence()
+            ->push(['status' => $existing])
+            ->push(['status' => 'pending']),
+        '*' => Http::response(['results' => []]),
+    ]);
+
+    Livewire::test(NewsletterSignup::class)
+        ->set('email', 'proto@example.com')
+        ->call('subscribe')
+        ->assertSet('state', 'pending')
+        ->assertSee('Check your inbox');
+
+    Http::assertSent(fn ($request) => $request->method() === 'PUT'
+        && ($request['status_if_new'] ?? null) === 'pending'
+        && ! isset($request['status']));
+
+    Http::assertSent(fn ($request) => $request->method() === 'PUT'
+        && ($request['status'] ?? null) === 'pending');
+})->with(['unsubscribed', 'cleaned', 'archived']);
 
 it('rejects an invalid address without calling Mailchimp', function () {
     fakeMailchimp();
