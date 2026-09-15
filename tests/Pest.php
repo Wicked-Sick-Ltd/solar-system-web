@@ -31,6 +31,7 @@ function fakeSolar(): void
         return match (true) {
             str_contains($path, '/objects/missing-object') => Http::response(['detail' => 'not found'], 404),
             str_contains($path, '/objects/planet-saturn') => Http::response(saturnDetail()),
+            str_contains($path, '/objects/ast-20099942-apophis') => Http::response(apophisDetail()),
             str_contains($path, '/objects/dwarf-pluto') => Http::response(plutoDetail()),
             // Any other single-object detail request echoes a valid record back,
             // so the date-deterministic "featured today" pick always resolves.
@@ -99,6 +100,8 @@ function objectRows(int $n): array
             'name' => "Object {$i}",
             'object_type' => 'asteroid',
             'radius_km' => 10 + $i,
+            'mass_kg' => 1.0e20 * ($i + 1),
+            'density_g_cm3' => 1.5 + $i / 10,
             'semi_major_axis_au' => 2.5,
             'orbital_period_days' => 1500,
         ];
@@ -139,6 +142,46 @@ function saturnDetail(): array
         'sources' => [
             ['table_name' => 'physical_properties', 'source_name' => 'NASA Planetary Fact Sheet', 'source_url' => 'https://nssdc.gsfc.nasa.gov/'],
         ],
+        // v2 blocks
+        'discovery' => ['discovered_on' => null, 'discoverer' => null, 'site' => null, 'citation' => null, 'source' => 'seed'],
+        'designations' => [['designation' => 'Saturn', 'kind' => 'name'], ['designation' => 'NAIF 699', 'kind' => 'alternate']],
+        'close_approaches' => [],
+        'close_approach_count' => 0,
+        'atmosphere' => [
+            'surface_pressure_bar' => 1000.0, 'pressure_note' => '>>1000 bars', 'temperature_k' => 134.0, 'scale_height_km' => 59.5,
+            'mean_molecular_weight' => 2.07, 'wind_note' => 'Up to 400 m/s',
+            'composition' => [['species' => 'Molecular hydrogen (H2)', 'fraction' => 96.3, 'unit' => '%'], ['species' => 'Helium (He)', 'fraction' => 3.25, 'unit' => '%']],
+        ],
+        'impact_monitoring' => null,
+    ];
+}
+
+/** An Apollo NEO with the full v2 detail: orbit quality, discovery citation, close approaches. */
+function apophisDetail(): array
+{
+    return [
+        'id' => 'ast-20099942-apophis', 'name' => 'Apophis', 'designation' => '99942 Apophis (2004 MN4)', 'object_type' => 'asteroid', 'parent_id' => 'sun',
+        'orbital' => [
+            'semi_major_axis_au' => 0.9227, 'eccentricity' => 0.1914, 'inclination_deg' => 3.34, 'orbital_period_days' => 323.7,
+            'perihelion_au' => 0.746, 'aphelion_au' => 1.099, 'epoch' => '2461200.5', 'frame' => 'J2000',
+            'orbit_class_code' => 'APO', 'orbit_class_name' => 'Apollo', 'moid_au' => 0.000254, 'tisserand_jupiter' => 6.464,
+            'condition_code' => 0, 'data_arc_days' => 7412.0, 'first_obs' => '2004-03-15', 'last_obs' => '2024-06-30',
+            'n_obs_used' => 8121, 'rms_arcsec' => 0.319, 'solution_date' => '2024-07-02 10:11:12', 'producer' => 'Davide Farnocchia',
+        ],
+        'physical' => ['radius_km' => 0.17, 'rotation_period_hours' => 30.56, 'slope_g' => 0.24],
+        'visual' => ['absolute_magnitude_h' => 19.09, 'geometric_albedo' => 0.35, 'spectral_type' => 'Sq', 'spectral_type_tholen' => null],
+        'classifications' => ['NEO', 'PHA', 'Apollo', 'Named'],
+        'sources' => [],
+        'discovery' => ['discovered_on' => '2004-06-19', 'discoverer' => 'R. A. Tucker, D. J. Tholen, F. Bernardi', 'site' => 'Kitt Peak',
+            'citation' => 'Apophis is the Egyptian god of evil and destruction.', 'source' => 'JPL SBDB (lookup)'],
+        'designations' => [['designation' => '99942', 'kind' => 'number'], ['designation' => 'Apophis', 'kind' => 'name'], ['designation' => '2004 MN4', 'kind' => 'provisional']],
+        'close_approaches' => [
+            ['body' => 'Earth', 'cd_iso' => '2029-04-13T21:46:00Z', 'dist_au' => 0.000254, 'dist_min_au' => 0.000253, 'dist_max_au' => 0.000255, 'v_rel_km_s' => 7.42, 't_sigma' => '< 00:01'],
+            ['body' => 'Earth', 'cd_iso' => '2036-03-30T00:00:00Z', 'dist_au' => 0.3, 'dist_min_au' => 0.29, 'dist_max_au' => 0.31, 'v_rel_km_s' => 5.1, 't_sigma' => '00:14'],
+        ],
+        'close_approach_count' => 98,
+        'atmosphere' => null,
+        'impact_monitoring' => ['flagged' => 0, 'source' => 'JPL SBDB (lookup)'],
     ];
 }
 

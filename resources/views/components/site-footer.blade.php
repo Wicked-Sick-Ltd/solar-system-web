@@ -39,6 +39,7 @@
             <ul class="mt-3 space-y-2 text-sm">
                 <li><a class="link-quiet" href="{{ config('site.backend_repo') }}" rel="noopener" target="_blank">{{ __('Backend repository') }}</a></li>
                 <li><a class="link-quiet" href="{{ \App\Support\Links::apiDocs() }}" rel="noopener" target="_blank">{{ __('API documentation') }}</a></li>
+                <li><a class="link-quiet" href="{{ config('site.download_url') }}" rel="noopener" target="_blank">{{ __('Download the whole database') }}</a></li>
             </ul>
         </nav>
     </div>
