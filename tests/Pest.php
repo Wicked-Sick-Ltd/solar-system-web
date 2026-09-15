@@ -31,6 +31,7 @@ function fakeSolar(): void
         return match (true) {
             str_contains($path, '/objects/missing-object') => Http::response(['detail' => 'not found'], 404),
             str_contains($path, '/objects/planet-saturn') => Http::response(saturnDetail()),
+            str_contains($path, '/objects/dwarf-pluto') => Http::response(plutoDetail()),
             // Any other single-object detail request echoes a valid record back,
             // so the date-deterministic "featured today" pick always resolves.
             (bool) preg_match('#/objects/[^/]+$#', $path) => Http::response(objectDetail(basename($path))),
@@ -48,6 +49,8 @@ function fakeSolar(): void
             str_contains($path, '/search') => Http::response(['query' => 'x', 'results' => [
                 ['id' => 'dwarf-ceres', 'name' => 'Ceres', 'designation' => '(1) Ceres', 'object_type' => 'dwarf_planet'],
             ]]),
+            // The backend has no ephemeris for Pluto (mirrors production).
+            str_contains($path, '/positions/dwarf-pluto') => Http::response(['detail' => 'No object found'], 404),
             str_contains($path, '/positions/') => Http::response([
                 'name' => 'Saturn', 'input_date' => '2026-06-01', 'distance_from_sun_au' => 9.47,
                 'true_anomaly_deg' => 273.6, 'x_au' => 9.4, 'y_au' => 1.1, 'z_au' => -0.39, 'jd' => 2461192.5,
@@ -133,6 +136,28 @@ function saturnDetail(): array
         'classifications' => [],
         'sources' => [
             ['table_name' => 'physical_properties', 'source_name' => 'NASA Planetary Fact Sheet', 'source_url' => 'https://nssdc.gsfc.nasa.gov/'],
+        ],
+    ];
+}
+
+/** Mirrors the production record: physical + visual blocks, but no orbital elements. */
+function plutoDetail(): array
+{
+    return [
+        'id' => 'dwarf-pluto',
+        'name' => 'Pluto',
+        'designation' => '(134340) Pluto',
+        'object_type' => 'dwarf_planet',
+        'parent_id' => 'sun',
+        'discoverer' => 'Clyde Tombaugh',
+        'discovery_date' => '1930-02-18',
+        'wikipedia_url' => 'https://en.wikipedia.org/wiki/Pluto',
+        'orbital' => null,
+        'physical' => ['radius_km' => 1188.3, 'mass_kg' => 1.303e22, 'density_g_cm3' => 1.854],
+        'visual' => ['geometric_albedo' => 0.52, 'dominant_colour_hex' => '#CFA88B'],
+        'classifications' => [],
+        'sources' => [
+            ['table_name' => 'physical_properties', 'source_name' => 'NASA Planetary Fact Sheet', 'source_url' => 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/'],
         ],
     ];
 }
