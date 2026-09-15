@@ -44,3 +44,10 @@ it('keeps bare years intact and formats full dates', function () {
 it('formats whole counts with separators', function () {
     expect(Format::count(15546))->toBe('15,546');
 });
+
+it('labels azimuths with 16-point compass bearings', function () {
+    expect(Format::bearing(0.0))->toBe('N')
+        ->and(Format::bearing(22.5))->toBe('NNE')
+        ->and(Format::bearing(285.0))->toBe('WNW')
+        ->and(Format::bearing(359.0))->toBe('N');
+});

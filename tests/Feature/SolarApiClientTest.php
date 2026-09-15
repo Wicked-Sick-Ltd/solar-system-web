@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Data\ObjectSummary;
+use App\Services\SolarApi\Data\SkyPosition;
 use App\Services\SolarApi\Data\Stats;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
 use App\Services\SolarApi\SolarApiClient;
@@ -83,4 +84,24 @@ it('computes a position for a propagatable body', function () {
     $position = client()->position('planet-saturn', '2026-06-01');
 
     expect($position?->distanceFromSunAu)->toBe(9.47);
+});
+
+it('fetches a sky position and maps the observer block', function () {
+    fakeSolar();
+
+    $sky = app(SolarApiClient::class)->sky('planet-saturn', '2026-09-15T21:00:00Z', 51.5, -0.12);
+
+    expect($sky)->toBeInstanceOf(SkyPosition::class)
+        ->and($sky->raHms)->toBe('23h 12m 04s')
+        ->and($sky->constellationName)->toBe('Aquarius')
+        ->and($sky->observer?->isUp)->toBeTrue()
+        ->and($sky->observer?->riseUtc)->toBe('2026-09-15T18:41:00Z');
+
+    Http::assertSent(fn ($r) => str_contains($r->url(), '/sky/planet-saturn') && (float) $r['lat'] === 51.5);
+});
+
+it('returns null for a sky 404 so the panel simply hides', function () {
+    fakeSolar();
+
+    expect(app(SolarApiClient::class)->sky('missing-sky'))->toBeNull();
 });
