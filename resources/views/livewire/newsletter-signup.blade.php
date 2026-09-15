@@ -31,7 +31,7 @@
                     <p id="newsletter-error" class="mt-1 text-xs" style="color: #ffb4b4;">{{ $message }}</p>
                 @enderror
                 @if ($state === 'error')
-                    <p class="mt-1 text-xs" style="color: #ffb4b4;">{{ __('Sorry — we could not sign you up just now. Please try again later.') }}</p>
+<p role="alert" class="mt-1 text-xs" style="color: #ffb4b4;">{{ __('Sorry — we could not sign you up just now. Please try again later.') }}</p>
                 @endif
             </div>
             <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium" wire:loading.attr="disabled"
