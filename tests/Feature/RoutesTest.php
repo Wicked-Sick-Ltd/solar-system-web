@@ -23,7 +23,14 @@ it('renders every public P0 route', function (string $uri) {
     'orrery' => '/orrery',
     'about' => '/about',
     'api' => '/api',
+    'privacy' => '/privacy',
 ]);
+
+it('links the homepage moons card to the filtered catalogue', function () {
+    $this->get('/')
+        ->assertOk()
+        ->assertSee(route('objects.index', ['type' => 'moon']), escape: false);
+});
 
 it('plots bodies on the orrery for a given date', function () {
     $this->get('/orrery?date=2026-06-01')
