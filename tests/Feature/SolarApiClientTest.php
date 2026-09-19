@@ -8,6 +8,7 @@ use App\Services\SolarApi\Data\SkyPosition;
 use App\Services\SolarApi\Data\Stats;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
 use App\Services\SolarApi\SolarApiClient;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(fn () => fakeSolar());
@@ -85,6 +86,39 @@ it('computes a position for a propagatable body', function () {
 
     expect($position?->distanceFromSunAu)->toBe(9.47);
 });
+
+it('only requests cold and soft-stale positions in a batch', function () {
+    $date = '2026-06-01';
+    $cacheKey = static fn (string $id): string => 'solar:'.sha1("/positions/{$id}?".http_build_query(['date' => $date]));
+
+    Cache::put($cacheKey('planet-saturn'), [
+        'value' => ['name' => 'Cached Saturn', 'distance_from_sun_au' => 9.47],
+        'soft' => time() + 300,
+    ], 1800);
+    Cache::put($cacheKey('planet-earth'), [
+        'value' => ['name' => 'Stale Earth', 'distance_from_sun_au' => 999],
+        'soft' => time() - 1,
+    ], 1800);
+
+    $positions = client()->positionsBatch(
+        ['planet-saturn', 'planet-earth', 'planet-mars'],
+        $date,
+    );
+
+    expect($positions['planet-saturn']?->name)->toBe('Cached Saturn')
+        ->and($positions['planet-earth']?->name)->toBe('Earth')
+        ->and($positions['planet-earth']?->distanceFromSunAu)->toBe(1.0043887509911655)
+        ->and($positions['planet-mars']?->name)->toBe('Saturn');
+
+    Http::assertSentCount(2);
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/positions/planet-saturn'));
+});
+
+it('throws SolarApiUnavailableException when a positions batch cannot reach the backend', function () {
+    fakeSolarDown();
+
+    client()->positionsBatch(['planet-earth'], '2026-06-01');
+})->throws(SolarApiUnavailableException::class);
 
 it('fetches a sky position and maps the observer block', function () {
     fakeSolar();

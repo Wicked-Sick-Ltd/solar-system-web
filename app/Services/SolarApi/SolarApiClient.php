@@ -18,6 +18,7 @@ use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -244,36 +245,35 @@ class SolarApiClient
     {
         $ids = array_values(array_unique($ids));
         $out = [];
-        $missing = [];
+        $pending = [];
 
         foreach ($ids as $id) {
-            $key = $this->cacheKey('/positions/'.$id, ['date' => $date]);
+            $path = '/positions/'.$this->encodePath($id);
+            $query = ['date' => $date];
+            $key = $this->cacheKey($path, $query);
             $entry = Cache::get($key);
-            if (is_array($entry) && array_key_exists('soft', $entry)) {
+
+            if (is_array($entry) && array_key_exists('soft', $entry) && $entry['soft'] > time()) {
                 $out[$id] = $entry['value'];
             } else {
-                $missing[$id] = $key;
+                $pending[$id] = compact('path', 'query', 'key');
             }
         }
 
-        if ($missing !== []) {
+        if ($pending !== []) {
             $responses = Http::pool(fn ($pool) => array_map(
-                fn (string $id) => $pool->as($id)
-                    ->baseUrl($this->baseUrl)
-                    ->timeout($this->timeout)
-                    ->acceptJson()
-                    ->get('/positions/'.$this->encodePath($id), ['date' => $date]),
-                array_keys($missing),
+                fn (string $id) => $this->configureRequest($pool->as($id))
+                    ->get($pending[$id]['path'], $pending[$id]['query']),
+                array_keys($pending),
             ));
 
-            foreach ($missing as $id => $key) {
-                $response = $responses[$id] ?? null;
-                // A pooled connection failure arrives as a Throwable, not a throw.
-                $value = ($response instanceof Response && $response->successful())
-                    ? $response->json()
-                    : null;
+            foreach ($pending as $id => $request) {
+                $value = $this->responseValue(
+                    $responses[$id] ?? new ConnectionException('Solar API returned no response'),
+                    $request['path'],
+                );
 
-                Cache::put($key, ['value' => $value, 'soft' => time() + $this->ttl['positions']], $this->ttl['positions'] * 6);
+                $this->putCached($request['key'], $value, $this->ttl['positions']);
                 $out[$id] = $value;
             }
         }
@@ -365,7 +365,7 @@ class SolarApiClient
     {
         $value = $this->request($path, $query);
 
-        Cache::put($key, ['value' => $value, 'soft' => time() + $ttl], $ttl * 6);
+        $this->putCached($key, $value, $ttl);
 
         return $value;
     }
@@ -381,15 +381,30 @@ class SolarApiClient
     private function request(string $path, array $query = []): ?array
     {
         try {
-            $response = Http::baseUrl($this->baseUrl)
-                ->timeout($this->timeout)
-                ->acceptJson()
-                ->retry(1, 150, throw: false)
-                ->get($path, $query);
+            $response = $this->configureRequest(Http::withOptions([]))->get($path, $query);
         } catch (ConnectionException $e) {
-            Log::warning('Solar API unreachable', ['path' => $path, 'error' => $e->getMessage()]);
+            return $this->responseValue($e, $path);
+        }
 
-            throw new SolarApiUnavailableException("Solar API unreachable: {$e->getMessage()}", previous: $e);
+        return $this->responseValue($response, $path);
+    }
+
+    private function configureRequest(PendingRequest $request): PendingRequest
+    {
+        return $request
+            ->baseUrl($this->baseUrl)
+            ->timeout($this->timeout)
+            ->acceptJson()
+            ->retry(1, 150, throw: false);
+    }
+
+    /** @return array<mixed>|null */
+    private function responseValue(Response|Throwable $response, string $path): ?array
+    {
+        if ($response instanceof Throwable) {
+            Log::warning('Solar API unreachable', ['path' => $path, 'error' => $response->getMessage()]);
+
+            throw new SolarApiUnavailableException("Solar API unreachable: {$response->getMessage()}", previous: $response);
         }
 
         if ($response->status() === 404) {
@@ -405,6 +420,11 @@ class SolarApiClient
         $json = $response->json();
 
         return is_array($json) ? $json : null;
+    }
+
+    private function putCached(string $key, mixed $value, int $ttl): void
+    {
+        Cache::put($key, ['value' => $value, 'soft' => time() + $ttl], $ttl * 6);
     }
 
     // ------------------------------------------------------------------
