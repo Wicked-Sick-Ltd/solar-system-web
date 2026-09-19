@@ -62,7 +62,7 @@ final class Home extends Component
         return self::FEATURED_POOL[$index];
     }
 
-    /** @return list<array{label:string,route:string,count:?int,blurb:string}> */
+    /** @return list<array{label:string,route:string,params?:array<string,string>,count:?int,blurb:string}> */
     private function sections(?Stats $stats): array
     {
         return [
@@ -70,7 +70,7 @@ final class Home extends Component
                 'blurb' => __('The eight worlds of the Sun, from scorched Mercury to deep-blue Neptune.')],
             ['label' => __('Dwarf planets'), 'route' => 'dwarf-planets', 'count' => $stats?->dwarfPlanets(),
                 'blurb' => __('Ceres, Pluto and the icy worlds of the outer system.')],
-            ['label' => __('Moons'), 'route' => 'objects.index', 'count' => $stats?->moons(),
+            ['label' => __('Moons'), 'route' => 'objects.index', 'params' => ['type' => 'moon'], 'count' => $stats?->moons(),
                 'blurb' => __('Hundreds of natural satellites, from Luna to the shepherd moons of Saturn.')],
             ['label' => __('Asteroids'), 'route' => 'asteroids', 'count' => $stats?->asteroids(),
                 'blurb' => __('Rocky remnants of the early solar system, including the near-Earth objects.')],
