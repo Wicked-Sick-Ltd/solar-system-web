@@ -28,6 +28,12 @@ function fakeSolar(): void
         $url = $request->url();
         $path = parse_url($url, PHP_URL_PATH) ?? '';
 
+        // Only the Solar API is faked here; third-party hosts (what3words,
+        // Mailchimp) fall through to whatever fake the test registered.
+        if (str_contains((string) parse_url($url, PHP_URL_HOST), 'what3words.com')) {
+            return null;
+        }
+
         return match (true) {
             str_contains($path, '/objects/missing-object') => Http::response(['detail' => 'not found'], 404),
             str_contains($path, '/objects/planet-saturn') => Http::response(saturnDetail()),
