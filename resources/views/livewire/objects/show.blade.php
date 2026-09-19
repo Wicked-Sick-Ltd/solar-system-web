@@ -15,7 +15,6 @@
             $hasVisual = $object->visual?->hasAny();
         @endphp
 
-        {{-- Breadcrumb --}}
         <nav class="mb-6 flex flex-wrap items-center gap-1.5 text-sm" style="color: var(--muted);" aria-label="{{ __('Breadcrumb') }}">
             <a class="link-quiet" href="{{ route('home') }}">{{ __('Home') }}</a>
             <span aria-hidden="true">/</span>
@@ -24,7 +23,6 @@
             <span style="color: var(--text);">{{ $object->name }}</span>
         </nav>
 
-        {{-- Title block --}}
         <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
             <div aria-hidden="true" class="shrink-0">
                 <span class="block h-20 w-20 rounded-full sm:h-24 sm:w-24"
@@ -339,7 +337,6 @@
             </section>
         @endif
 
-        {{-- Atmosphere --}}
         @if ($object->atmosphere?->hasAny())
             @php $atm = $object->atmosphere; @endphp
             <section class="mt-10" aria-labelledby="atm-heading">
