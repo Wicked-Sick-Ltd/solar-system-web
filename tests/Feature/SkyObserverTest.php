@@ -36,3 +36,17 @@ it('forgets the location', function () {
         ->assertSet('lat', null)
         ->assertSee('Get precise data for my location');
 });
+
+it('offers a paste box and a guide to finding coordinates', function () {
+    Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->assertSee('Paste coordinates')
+        ->assertSee('How do I find my coordinates?')
+        ->assertSee('right-click the spot you want', false)
+        ->assertSee('press and hold the spot to drop a pin', false);
+});
+
+it('hides the coordinate entry helpers once a location is set', function () {
+    Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->call('setLocation', 51.5, -0.12)
+        ->assertDontSee('How do I find my coordinates?');
+});

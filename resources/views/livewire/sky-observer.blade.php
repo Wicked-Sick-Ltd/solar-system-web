@@ -66,7 +66,32 @@
         </div>
         <p class="mt-2 text-xs" style="color: var(--color-faint);" x-show="geoError" x-text="geoError" x-cloak></p>
 
-        <form class="mt-3 flex flex-wrap items-end gap-2" x-show="manual" x-cloak @submit.prevent="submitManual()">
+        <div class="mt-3" x-show="manual" x-cloak>
+            <form class="flex flex-wrap items-end gap-2" @submit.prevent="submitPaste()">
+                <label class="text-xs" style="color: var(--muted);">{{ __('Paste coordinates') }}
+                    <input type="text" x-model="pasted" @paste.stop inputmode="decimal"
+                           placeholder="51.5074, -0.1278" autocomplete="off"
+                           class="mt-1 block w-56 rounded-lg border px-2 py-1.5 text-sm" style="background-color: var(--bg-elevated); border-color: var(--border); color: var(--text);">
+                </label>
+                <button type="submit" class="rounded-lg border px-3 py-1.5 text-sm" style="border-color: var(--border); color: var(--text);">{{ __('Use these') }}</button>
+            </form>
+            <p class="mt-2 text-xs" style="color: #ffb4b4;" x-show="pasteError" x-text="pasteError" x-cloak></p>
+
+            <details class="mt-3">
+                <summary class="cursor-pointer text-xs underline" style="color: var(--muted);">{{ __('How do I find my coordinates?') }}</summary>
+                <div class="mt-2 text-xs leading-relaxed" style="color: var(--color-faint); max-width: 48ch;">
+                    <p class="font-medium" style="color: var(--muted);">{{ __('On a computer') }}</p>
+                    <p>{{ __('Open Google Maps, right-click the spot you want, then click the numbers at the top of the menu. That copies them ready to paste above.') }}</p>
+                    <p class="mt-2 font-medium" style="color: var(--muted);">{{ __('On a phone') }}</p>
+                    <p>{{ __('Open Google Maps, press and hold the spot to drop a pin, then read the coordinates shown in the search bar.') }}</p>
+                    <p class="mt-2">{{ __('Two decimal places is plenty — that is roughly a kilometre, and more than enough for rise and set times.') }}</p>
+                </div>
+            </details>
+
+            <p class="mt-3 text-xs" style="color: var(--color-faint);">{{ __('Or enter them separately:') }}</p>
+        </div>
+
+        <form class="mt-2 flex flex-wrap items-end gap-2" x-show="manual" x-cloak @submit.prevent="submitManual()">
             <label class="text-xs" style="color: var(--muted);">{{ __('Latitude') }}
                 <input type="number" step="0.01" min="-90" max="90" x-model.number="lat" required
                        class="mt-1 block w-28 rounded-lg border px-2 py-1.5 text-sm" style="background-color: var(--bg-elevated); border-color: var(--border); color: var(--text);">
@@ -93,6 +118,7 @@
 <script>
     Alpine.data('skyObserver', () => ({
         busy: false, manual: false, geoError: '', lat: null, lon: null,
+        pasted: '', pasteError: '',
         KEY: 'observer_location',
         init() {
             try {
@@ -119,6 +145,28 @@
                 () => { this.busy = false; this.geoError = @js(__('Location not available — type coordinates instead.')); this.manual = true; },
                 { timeout: 10000, maximumAge: 600000 }
             );
+        },
+        // Google Maps copies a location as "51.507400, -0.127800". Accept that
+        // verbatim, plus space- or slash-separated variants and a stray N/S/E/W
+        // suffix, so people can paste rather than retype into two boxes.
+        parsePair(raw) {
+            var t = String(raw || '').trim().replace(/[()]/g, '');
+            var m = t.match(/^(-?\d{1,3}(?:\.\d+)?)\s*([NnSs])?\s*[,;/\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*([EeWw])?$/);
+            if (!m) return null;
+            var lat = parseFloat(m[1]), lon = parseFloat(m[3]);
+            if (m[2] && m[2].toLowerCase() === 's') lat = -Math.abs(lat);
+            if (m[4] && m[4].toLowerCase() === 'w') lon = -Math.abs(lon);
+            if (!isFinite(lat) || !isFinite(lon)) return null;
+            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+            return { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 };
+        },
+        submitPaste() {
+            this.pasteError = '';
+            var p = this.parsePair(this.pasted);
+            if (!p) { this.pasteError = @js(__('That does not look like a latitude and longitude. Try something like 51.5074, -0.1278.')); return; }
+            this.lat = p.lat; this.lon = p.lon;
+            this.remember(p.lat, p.lon);
+            $wire.setLocation(p.lat, p.lon);
         },
         submitManual() {
             if (typeof this.lat !== 'number' || typeof this.lon !== 'number') return;
