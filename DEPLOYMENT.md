@@ -22,7 +22,7 @@ Copy `.env.example` to `.env` and set at least:
 | `APP_URL`      | yes      | Public URL — drives canonical URLs, OG tags, sitemap, JSON-LD         |
 | `APP_ENV`      | yes      | `production`                                                          |
 | `APP_DEBUG`    | yes      | `false` in production                                                 |
-| `API_BASE_URL` | yes      | Backend REST root, e.g. `https://sol.wickedsick.com/api/v1`           |
+| `API_BASE_URL` | yes      | Backend REST root, e.g. `https://api.sol.wickedsick.com/api/v1`       |
 | `SOLAR_API_TIMEOUT` | no  | HTTP timeout in seconds (default 8)                                   |
 | `CACHE_STORE`  | no       | `file` is fine; `redis` recommended if available (better SWR)         |
 | `SESSION_DRIVER` | no     | `file`                                                                |
@@ -60,7 +60,7 @@ cache + queue and **Ceph S3** for OG cards.
 **2. Create the site**
 
 - New Site → `sol.wickedsick.com`, project type **PHP/Laravel**, web directory **`/public`**.
-- Repository: `WizzoUK2/solar-system-web`, branch `main`.
+- Repository: `Wicked-Sick-Ltd/solar-system-web`, branch `main`.
 - **SSL**: Let's Encrypt for `sol.wickedsick.com`.
 
 **3. Deploy script** — paste [`deploy.sh`](deploy.sh) into the site's Deploy
