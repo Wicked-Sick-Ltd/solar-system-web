@@ -4,7 +4,6 @@
                    :lead="__('Every body in the catalogue, filterable by type, parent, size and near-Earth status. Filters live in the URL, so any view you reach is a shareable link.')" />
 
     <div class="grid gap-8 lg:grid-cols-[16rem_1fr]">
-        {{-- Filters --}}
         <aside class="lg:sticky lg:top-20 lg:self-start" aria-label="{{ __('Filters') }}">
             <div class="surface space-y-5 p-5">
                 <div class="flex items-center justify-between">
@@ -44,7 +43,6 @@
             </div>
         </aside>
 
-        {{-- Results --}}
         <div>
             @if ($apiDown)
                 <x-api-down :section="__('The object catalogue')" />
@@ -66,7 +64,6 @@
                     @endforeach
                 </div>
 
-                {{-- Pagination --}}
                 <nav class="mt-8 flex items-center justify-between" aria-label="{{ __('Page navigation') }}">
                     @if ($results->hasPrevious())
                         <button type="button" wire:click="$set('page', {{ $page - 1 }})"
