@@ -72,4 +72,10 @@ return [
         'audience_id' => env('MAILCHIMP_AUDIENCE_ID'),
     ],
 
+    // what3words v3 API — converts "///filled.count.soap" to coordinates for the
+    // observer panel. Leave unset to hide the what3words option entirely.
+    'what3words' => [
+        'key' => env('W3W_API_KEY'),
+    ],
+
 ];
