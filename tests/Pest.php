@@ -33,6 +33,7 @@ function fakeSolar(): void
             str_contains($path, '/objects/planet-saturn') => Http::response(saturnDetail()),
             str_contains($path, '/objects/ast-20099942-apophis') => Http::response(apophisDetail()),
             str_contains($path, '/objects/dwarf-pluto') => Http::response(plutoDetail()),
+            str_contains($path, '/objects/moon-luna') => Http::response(lunaDetail()),
             // Any other single-object detail request echoes a valid record back,
             // so the date-deterministic "featured today" pick always resolves.
             (bool) preg_match('#/objects/[^/]+$#', $path) => Http::response(objectDetail(basename($path))),
@@ -54,6 +55,11 @@ function fakeSolar(): void
             str_contains($path, '/sky/') => Http::response(skyPayload(observer: isset($request['lat']))),
             // The backend has no ephemeris for Pluto (mirrors production).
             str_contains($path, '/positions/dwarf-pluto') => Http::response(['detail' => 'No object found'], 404),
+            // Earth's heliocentric position (2026-09-19) — the relative-position figure always fetches it.
+            str_contains($path, '/positions/planet-earth') => Http::response([
+                'name' => 'Earth', 'input_date' => '2026-09-19', 'distance_from_sun_au' => 1.0043887509911655,
+                'true_anomaly_deg' => 253.86, 'x_au' => 1.0028213281111156, 'y_au' => -0.056090525073772546, 'z_au' => 0.0, 'jd' => 2461302.5,
+            ]),
             str_contains($path, '/positions/') => Http::response([
                 'name' => 'Saturn', 'input_date' => '2026-06-01', 'distance_from_sun_au' => 9.47,
                 'true_anomaly_deg' => 273.6, 'x_au' => 9.4, 'y_au' => 1.1, 'z_au' => -0.39, 'jd' => 2461192.5,
@@ -182,6 +188,16 @@ function apophisDetail(): array
         'close_approach_count' => 98,
         'atmosphere' => null,
         'impact_monitoring' => ['flagged' => 0, 'source' => 'JPL SBDB (lookup)'],
+    ];
+}
+
+/** Earth's Moon: a moon whose orbital elements are geocentric, so heliocentric plots use the parent. */
+function lunaDetail(): array
+{
+    return [
+        'id' => 'moon-luna', 'name' => 'Moon', 'designation' => 'Luna', 'object_type' => 'moon', 'parent_id' => 'planet-earth',
+        'orbital' => ['semi_major_axis_au' => 0.00257, 'eccentricity' => 0.0549, 'orbital_period_days' => 27.32, 'centre' => 'planet-earth'],
+        'physical' => ['radius_km' => 1737.4], 'visual' => [], 'classifications' => [], 'sources' => [],
     ];
 }
 
