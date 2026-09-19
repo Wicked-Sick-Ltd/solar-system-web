@@ -68,16 +68,43 @@ final class Show extends Component
 
         $this->applySeo($object);
 
+        $parent = null;
+        if ($object->hasParent()) {
+            try {
+                $parent = $api->object($object->parentId);
+            } catch (SolarApiException) {
+                // parent link just won't render
+            }
+        }
+
         // Position (where is it now) and child listings — each degrades alone.
+        // The figure needs the object AND Earth for the same date, fetched as
+        // one batch so the second body costs no extra round trip. A moon's
+        // elements are about its parent, not the Sun, so a moon is plotted
+        // at its parent's heliocentric position and the caption says so.
         $position = null;
+        $earth = null;
+        $plotBody = null;   // the ObjectDetail whose orbit is drawn
+        $plotNote = null;
         $moons = [];
         $rings = [];
 
-        if ($object->orbital?->isPropagatable()) {
+        if ($object->objectType === 'moon') {
+            if ($parent?->orbital?->isPropagatable()) {
+                $plotBody = $parent;
+                $plotNote = __(':moon is shown at its parent, :parent.', ['moon' => $object->name, 'parent' => $parent->name]);
+            }
+        } elseif ($object->orbital?->isPropagatable()) {
+            $plotBody = $object;
+        }
+
+        if ($plotBody !== null) {
             try {
-                $position = $api->position($object->id, now()->utc()->toDateString());
+                $batch = $api->positionsBatch([$plotBody->id, 'planet-earth'], now()->utc()->toDateString());
+                $position = $batch[$plotBody->id] ?? null;
+                $earth = $batch['planet-earth'] ?? null;
             } catch (SolarApiException) {
-                // leave $position null; the panel simply won't render
+                // leave both null; the panel simply won't render
             }
         }
 
@@ -102,19 +129,13 @@ final class Show extends Component
             }
         }
 
-        $parent = null;
-        if ($object->hasParent()) {
-            try {
-                $parent = $api->object($object->parentId);
-            } catch (SolarApiException) {
-                // parent link just won't render
-            }
-        }
-
         return view('livewire.objects.show', [
             'object' => $object,
             'apiDown' => false,
             'position' => $position,
+            'earth' => $earth,
+            'plotBody' => $plotBody,
+            'plotNote' => $plotNote,
             'sky' => $sky,
             'moons' => $moons,
             'rings' => $rings,

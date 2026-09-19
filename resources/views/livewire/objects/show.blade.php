@@ -71,6 +71,9 @@
 
         {{-- Where is it now --}}
         @if ($position)
+            @php
+                $isEarthPage = ($plotBody?->id ?? null) === 'planet-earth';
+            @endphp
             <section class="mt-10" aria-labelledby="position-heading">
                 <h2 id="position-heading" class="mb-3 text-sm font-semibold uppercase tracking-[0.16em]" style="color: var(--accent);">{{ __('Where is it now') }}</h2>
                 <div class="surface grid gap-6 p-6 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -84,6 +87,12 @@
                                 <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('True anomaly') }}</dt>
                                 <dd class="font-serif text-xl tabular-nums" style="color: var(--text);">{{ Format::degrees($position->trueAnomalyDeg) }}</dd>
                             </div>
+                            @if ($earth && ! $isEarthPage)
+                                <div>
+                                    <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Distance from Earth') }}</dt>
+                                    <dd class="font-serif text-xl tabular-nums" style="color: var(--text);">{{ Format::au(\App\Support\OrbitPlot::distanceAu($position, $earth)) }}</dd>
+                                </div>
+                            @endif
                             <div>
                                 <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('As of') }}</dt>
                                 <dd class="text-sm" style="color: var(--text);">{{ Format::date($position->inputDate) }}</dd>
@@ -93,11 +102,17 @@
                             <p class="mt-4 text-xs leading-relaxed" style="color: var(--color-faint); max-width: 60ch;">{{ $position->accuracyNote }}</p>
                         @endif
                     </div>
-                    <div class="justify-self-center sm:justify-self-end">
-                        <x-orbit-diagram :eccentricity="$object->orbital?->eccentricity ?? 0"
-                                         :true-anomaly="$position->trueAnomalyDeg"
-                                         :label="__('Orbit of :name', ['name' => $object->name])" />
-                    </div>
+                    @if ($earth && $plotBody)
+                        <div class="justify-self-center sm:justify-self-end">
+                            <x-relative-position :name="$plotBody->name"
+                                                 :position="$position"
+                                                 :earth="$earth"
+                                                 :elements="$plotBody->orbital"
+                                                 :colour="$plotBody->visual?->dominantColourHex"
+                                                 :is-earth="$isEarthPage"
+                                                 :note="$plotNote" />
+                        </div>
+                    @endif
                 </div>
             </section>
         @endif
