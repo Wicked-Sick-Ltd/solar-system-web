@@ -48,7 +48,7 @@ jobs:
 
       - name: Start the backend API
         run: |
-          git clone --depth 1 https://github.com/WizzoUK2/solar-system-db.git backend
+          git clone --depth 1 https://github.com/Wicked-Sick-Ltd/solar-system-db.git backend
           python -m pip install --quiet "fastapi" "uvicorn[standard]" "slowapi"
           cd backend && API_PORT=8003 nohup python api/main.py > /tmp/api.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8003/healthz >/dev/null && break; sleep 1; done

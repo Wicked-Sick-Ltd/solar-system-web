@@ -19,7 +19,7 @@ return [
     'link' => '#7AB8FF',   // cool blue — links / active states
 
     // External references surfaced in the footer and the /about + /api pages.
-    'backend_repo' => 'https://github.com/wizzouk2/solar-system-db',
+    'backend_repo' => 'https://github.com/Wicked-Sick-Ltd/solar-system-db',
     'api_docs_url' => env('API_DOCS_URL'), // backend /docs; falls back to base_url host
     // Manifest of the nightly published database (whole catalogue, one SQLite file).
     'download_url' => env('SOLAR_DOWNLOAD_URL', 'https://s3.wickedsick.com/solar-system-db/latest.json'),
