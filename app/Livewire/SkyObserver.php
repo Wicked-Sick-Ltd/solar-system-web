@@ -7,6 +7,9 @@ namespace App\Livewire;
 use App\Services\SolarApi\Data\SkyPosition;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Services\What3Words\What3WordsClient;
+use App\Services\What3Words\What3WordsException;
+use App\Support\LocationParser;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -28,6 +31,9 @@ final class SkyObserver extends Component
 
     public bool $failed = false;
 
+    /** The pasted location text (coordinates, a Google Maps link, or a what3words address). */
+    public string $text = '';
+
     public function mount(string $objectId): void
     {
         $this->objectId = $objectId;
@@ -43,6 +49,45 @@ final class SkyObserver extends Component
             'lat' => ['required', 'numeric', 'between:-90,90'],
             'lon' => ['required', 'numeric', 'between:-180,180'],
         ]);
+    }
+
+    /**
+     * One paste box, three inputs: decimal or DMS coordinates, a Google Maps
+     * link, or a what3words address (only when a key is configured — the
+     * words are sent to what3words to convert them, which the panel says).
+     */
+    public function setFromText(string $text, ?What3WordsClient $w3w = null): void
+    {
+        $this->text = trim($text);
+        $this->resetErrorBag('text');
+        $w3w ??= app(What3WordsClient::class);
+
+        if (($words = LocationParser::what3words($this->text)) !== null) {
+            if (! $w3w->enabled()) {
+                $this->addError('text', __('what3words addresses aren\'t available here — paste coordinates instead.'));
+
+                return;
+            }
+            try {
+                $coords = $w3w->toCoordinates($words);
+            } catch (What3WordsException $e) {
+                $this->addError('text', $e->getMessage());
+
+                return;
+            }
+            $this->setLocation($coords['lat'], $coords['lon']);
+
+            return;
+        }
+
+        $coords = LocationParser::parse($this->text);
+        if ($coords === null) {
+            $this->addError('text', __('Sorry, we couldn\'t read that. Try "51.51, -0.13", a Google Maps link, or ///three.word.address.'));
+
+            return;
+        }
+
+        $this->setLocation($coords['lat'], $coords['lon']);
     }
 
     public function forget(): void
@@ -65,6 +110,9 @@ final class SkyObserver extends Component
             $this->failed = $this->failed || ! $sky instanceof SkyPosition || $sky->observer === null;
         }
 
-        return view('livewire.sky-observer', ['sky' => $sky]);
+        return view('livewire.sky-observer', [
+            'sky' => $sky,
+            'what3words' => app(What3WordsClient::class)->enabled(),
+        ]);
     }
 }
