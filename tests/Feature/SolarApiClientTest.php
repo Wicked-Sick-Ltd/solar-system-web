@@ -18,6 +18,12 @@ function client(): SolarApiClient
     return app(SolarApiClient::class);
 }
 
+/** The cache key positionsBatch() reads and writes for one body on one date. */
+function positionKey(string $id, string $date): string
+{
+    return 'solar:'.sha1("/positions/{$id}?".http_build_query(['date' => $date]));
+}
+
 it('maps an object list into typed DTOs', function () {
     $page = client()->objects(['type' => 'asteroid'], 24, 0);
 
@@ -89,13 +95,12 @@ it('computes a position for a propagatable body', function () {
 
 it('only requests cold and soft-stale positions in a batch', function () {
     $date = '2026-06-01';
-    $cacheKey = static fn (string $id): string => 'solar:'.sha1("/positions/{$id}?".http_build_query(['date' => $date]));
 
-    Cache::put($cacheKey('planet-saturn'), [
+    Cache::put(positionKey('planet-saturn', $date), [
         'value' => ['name' => 'Cached Saturn', 'distance_from_sun_au' => 9.47],
         'soft' => time() + 300,
     ], 1800);
-    Cache::put($cacheKey('planet-earth'), [
+    Cache::put(positionKey('planet-earth', $date), [
         'value' => ['name' => 'Stale Earth', 'distance_from_sun_au' => 999],
         'soft' => time() - 1,
     ], 1800);
@@ -114,11 +119,53 @@ it('only requests cold and soft-stale positions in a batch', function () {
     Http::assertNotSent(fn ($request) => str_contains($request->url(), '/positions/planet-saturn'));
 });
 
-it('throws SolarApiUnavailableException when a positions batch cannot reach the backend', function () {
+it('returns nulls instead of throwing when a positions batch cannot reach the backend', function () {
     fakeSolarDown();
 
-    client()->positionsBatch(['planet-earth'], '2026-06-01');
-})->throws(SolarApiUnavailableException::class);
+    // The orrery plots what it has; one unreachable batch must not 500 the page.
+    $positions = client()->positionsBatch(['planet-earth', 'planet-mars'], '2026-06-01');
+
+    expect($positions)->toBe(['planet-earth' => null, 'planet-mars' => null]);
+});
+
+it('keeps fresh cached positions when the rest of the batch is unreachable', function () {
+    $date = '2026-06-01';
+    fakeSolarDown();                                  // flushes the cache, so seed after it
+
+    Cache::put(positionKey('planet-saturn', $date), [
+        'value' => ['name' => 'Cached Saturn', 'distance_from_sun_au' => 9.47],
+        'soft' => time() + 300,
+    ], 1800);
+
+    $positions = client()->positionsBatch(['planet-saturn', 'planet-earth'], $date);
+
+    expect($positions['planet-saturn']?->name)->toBe('Cached Saturn')
+        ->and($positions['planet-earth'])->toBeNull();
+});
+
+it('nulls a body whose position errors without dropping the rest of the batch', function () {
+    $positions = client()->positionsBatch(['broken-body', 'dwarf-pluto', 'planet-earth'], '2026-06-01');
+
+    expect($positions['broken-body'])->toBeNull()          // 500 from the backend
+        ->and($positions['dwarf-pluto'])->toBeNull()       // 404: no ephemeris
+        ->and($positions['planet-earth']?->name)->toBe('Earth');
+});
+
+it('serves a soft-stale position when its refresh fails, and keeps it cached', function () {
+    $date = '2026-06-01';
+    $key = positionKey('broken-body', $date);
+
+    Cache::put($key, [
+        'value' => ['name' => 'Stale Body', 'distance_from_sun_au' => 5.0],
+        'soft' => time() - 1,
+    ], 1800);
+
+    $positions = client()->positionsBatch(['broken-body'], $date);
+
+    // The stale copy still plots, and the failure is not cached over it.
+    expect($positions['broken-body']?->name)->toBe('Stale Body')
+        ->and(Cache::get($key)['value']['name'])->toBe('Stale Body');
+});
 
 it('fetches a sky position and maps the observer block', function () {
     fakeSolar();
