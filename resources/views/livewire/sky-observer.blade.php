@@ -62,26 +62,47 @@
                 <span x-show="!busy">{{ __('Get precise data for my location') }}</span>
                 <span x-show="busy" x-cloak>{{ __('Locating…') }}</span>
             </button>
-            <button type="button" class="link-quiet text-sm underline" @click="manual = !manual">{{ __('or type coordinates') }}</button>
+            <button type="button" class="link-quiet text-sm underline" @click="manual = !manual" :aria-expanded="manual">{{ __('or enter a location') }}</button>
         </div>
         <p class="mt-2 text-xs" style="color: var(--color-faint);" x-show="geoError" x-text="geoError" x-cloak></p>
 
-        <form class="mt-3 flex flex-wrap items-end gap-2" x-show="manual" x-cloak @submit.prevent="submitManual()">
-            <label class="text-xs" style="color: var(--muted);">{{ __('Latitude') }}
-                <input type="number" step="0.01" min="-90" max="90" x-model.number="lat" required
-                       class="mt-1 block w-28 rounded-lg border px-2 py-1.5 text-sm" style="background-color: var(--bg-elevated); border-color: var(--border); color: var(--text);">
-            </label>
-            <label class="text-xs" style="color: var(--muted);">{{ __('Longitude') }}
-                <input type="number" step="0.01" min="-180" max="180" x-model.number="lon" required
-                       class="mt-1 block w-28 rounded-lg border px-2 py-1.5 text-sm" style="background-color: var(--bg-elevated); border-color: var(--border); color: var(--text);">
-            </label>
-            <button type="submit" class="rounded-lg border px-3 py-1.5 text-sm" style="border-color: var(--border); color: var(--text);">{{ __('Use these') }}</button>
+        <form class="mt-3" x-show="manual" x-cloak @submit.prevent="submitText()">
+            <label class="block text-xs" style="color: var(--muted);" for="observer-location-text">{{ __('Paste a location') }}</label>
+            <div class="mt-1 flex flex-wrap items-stretch gap-2">
+                <input id="observer-location-text" type="text" x-model="text" required autocomplete="off" spellcheck="false"
+                       placeholder="{{ $what3words ? __('51.51, -0.13  ·  a Google Maps link  ·  ///filled.count.soap') : __('51.51, -0.13  ·  or a Google Maps link') }}"
+                       class="block w-full max-w-md rounded-lg border px-3 py-1.5 text-sm" style="background-color: var(--bg-elevated); border-color: var(--border); color: var(--text);">
+                <button type="submit" class="rounded-lg border px-3 py-1.5 text-sm" style="border-color: var(--border); color: var(--text);">{{ __('Use this') }}</button>
+            </div>
+            @error('text') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
+            @error('lat') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
+            @error('lon') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
+
+            <details class="mt-3 text-xs leading-relaxed" style="color: var(--color-faint); max-width: 52ch;">
+                <summary class="cursor-pointer" style="color: var(--muted);">{{ __('How do I find my coordinates?') }}</summary>
+                <p class="mt-2 font-medium" style="color: var(--muted);">{{ __('Google Maps on a computer') }}</p>
+                <ol class="mt-1 list-decimal space-y-1 pl-5">
+                    <li>{{ __('Right-click the spot where you\'ll be observing.') }}</li>
+                    <li>{{ __('The first line of the menu is the coordinates, e.g. 51.50722, -0.12758 — click it and they\'re copied.') }}</li>
+                    <li>{{ __('Paste them above.') }}</li>
+                </ol>
+                <p class="mt-2 font-medium" style="color: var(--muted);">{{ __('Google Maps on a phone') }}</p>
+                <ol class="mt-1 list-decimal space-y-1 pl-5">
+                    <li>{{ __('Press and hold the spot to drop a pin.') }}</li>
+                    <li>{{ __('The coordinates appear in the search bar (or on the pin\'s card) — tap to copy, then paste above.') }}</li>
+                </ol>
+                <p class="mt-2">{{ __('A full Google Maps link works too, but the short maps.app.goo.gl share links don\'t carry coordinates — copy the numbers instead. We round to about a kilometre; that\'s all the sky calculation needs.') }}</p>
+                @if ($what3words)
+                    <p class="mt-2">{{ __('Know your what3words address? Paste it, e.g. ///filled.count.soap — the three words are sent to what3words to convert them.') }}</p>
+                @endif
+            </details>
         </form>
-        @error('lat') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
-        @error('lon') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
 
         <p class="mt-3 text-xs" style="color: var(--color-faint);">
             {{ __('Your location stays in your browser and is sent only for this calculation.') }}
+            @if ($what3words)
+                {{ __('If you paste a what3words address, the three words go to what3words to be converted.') }}
+            @endif
             @if (Route::has('privacy'))
                 {{ __('See our') }} <a class="link-quiet underline" href="{{ route('privacy') }}">{{ __('privacy policy') }}</a>.
             @endif
@@ -92,7 +113,7 @@
 @script
 <script>
     Alpine.data('skyObserver', () => ({
-        busy: false, manual: false, geoError: '', lat: null, lon: null,
+        busy: false, manual: false, geoError: '', text: '',
         KEY: 'observer_location',
         init() {
             try {
@@ -107,7 +128,7 @@
         },
         locate() {
             this.geoError = '';
-            if (!navigator.geolocation) { this.geoError = @js(__('Your browser has no location support — type coordinates instead.')); this.manual = true; return; }
+            if (!navigator.geolocation) { this.geoError = @js(__('Your browser has no location support — enter a location instead.')); this.manual = true; return; }
             this.busy = true;
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
@@ -116,14 +137,18 @@
                     this.remember(lat, lon);
                     $wire.setLocation(lat, lon);
                 },
-                () => { this.busy = false; this.geoError = @js(__('Location not available — type coordinates instead.')); this.manual = true; },
+                () => { this.busy = false; this.geoError = @js(__('Location not available — enter a location instead.')); this.manual = true; },
                 { timeout: 10000, maximumAge: 600000 }
             );
         },
-        submitManual() {
-            if (typeof this.lat !== 'number' || typeof this.lon !== 'number') return;
-            this.remember(this.lat, this.lon);
-            $wire.setLocation(this.lat, this.lon);
+        async submitText() {
+            var text = (this.text || '').trim();
+            if (!text) return;
+            await $wire.setFromText(text);
+            // Remember only what the server accepted (already rounded to 2 dp).
+            if (typeof $wire.lat === 'number' && typeof $wire.lon === 'number') {
+                this.remember($wire.lat, $wire.lon);
+            }
         },
         forget() {
             try { localStorage.removeItem(this.KEY); } catch (e) {}
