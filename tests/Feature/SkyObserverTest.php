@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 use App\Livewire\SkyObserver;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 
-beforeEach(fn () => fakeSolar());
+beforeEach(function () {
+    RateLimiter::clear('w3w:127.0.0.1');
+    fakeSolar();
+});
 
 it('starts idle with a call to action', function () {
     Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
@@ -65,6 +69,26 @@ it('resolves a what3words address when a key is configured', function () {
         ->call('setFromText', '///filled.count.soap')
         ->assertSet('lat', 51.52)
         ->assertSet('lon', -0.2);
+});
+
+it('caps what3words lookups from one address — nothing is cached to absorb repeats', function () {
+    config(['services.what3words.key' => 'TESTKEY1']);
+    Http::fake([
+        'api.what3words.com/*' => Http::response([
+            'words' => 'filled.count.soap', 'coordinates' => ['lng' => -0.195521, 'lat' => 51.520847],
+        ]),
+    ]);
+
+    $component = Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn']);
+    foreach (range(1, 20) as $ignored) {
+        $component->call('setFromText', '///filled.count.soap');
+    }
+
+    $component->call('setFromText', '///filled.count.soap')
+        ->assertHasErrors(['text'])
+        ->assertSee('Too many what3words lookups');
+
+    expect(Http::recorded(fn ($request) => str_contains($request->url(), 'what3words.com')))->toHaveCount(20);
 });
 
 it('hides the what3words hint and refuses the address when no key is configured', function () {

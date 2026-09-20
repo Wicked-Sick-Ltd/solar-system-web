@@ -11,6 +11,7 @@ use App\Services\What3Words\What3WordsClient;
 use App\Services\What3Words\What3WordsException;
 use App\Support\LocationParser;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -22,6 +23,13 @@ use Livewire\Component;
  */
 final class SkyObserver extends Component
 {
+    /**
+     * Per-IP ceiling on what3words conversions in a minute. Nothing is cached
+     * to absorb repeats, so this is the only bound on the quota an anonymous
+     * caller can spend; the counter holds an IP and a tally, never the words.
+     */
+    private const LOOKUPS_PER_MINUTE = 20;
+
     #[Locked]
     public string $objectId;
 
@@ -68,6 +76,15 @@ final class SkyObserver extends Component
 
                 return;
             }
+
+            $key = 'w3w:'.(request()->ip() ?? 'unknown');
+            if (RateLimiter::tooManyAttempts($key, self::LOOKUPS_PER_MINUTE)) {
+                $this->addError('text', __('Too many what3words lookups — please try again in a minute, or paste coordinates.'));
+
+                return;
+            }
+            RateLimiter::hit($key, 60);
+
             try {
                 $coords = $w3w->toCoordinates($words);
             } catch (What3WordsException $e) {

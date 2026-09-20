@@ -94,7 +94,7 @@
                 </ol>
                 <p class="mt-2">{{ __('A full Google Maps link works too, but the short maps.app.goo.gl share links don\'t carry coordinates — copy the numbers instead. We round to about a kilometre; that\'s all the sky calculation needs.') }}</p>
                 @if ($what3words)
-                    <p class="mt-2">{{ __('Know your what3words address? Paste it, e.g. ///filled.count.soap — the three words are sent to what3words to convert them.') }}</p>
+                    <p class="mt-2">{{ __('Know your what3words address? Paste it, e.g. ///filled.count.soap. This is optional — the three words are sent to what3words to convert them, and we don\'t store the address or the result.') }}</p>
                 @endif
             </details>
         </form>
@@ -102,7 +102,7 @@
         <p class="mt-3 text-xs" style="color: var(--color-faint);">
             {{ __('Your location stays in your browser and is sent only for this calculation.') }}
             @if ($what3words)
-                {{ __('If you paste a what3words address, the three words go to what3words to be converted.') }}
+                {{ __('Using a what3words address is optional; if you do, the three words go to what3words to be converted and we don\'t record them.') }}
             @endif
             @if (Route::has('privacy'))
                 {{ __('See our') }} <a class="link-quiet underline" href="{{ route('privacy') }}">{{ __('privacy policy') }}</a>.
