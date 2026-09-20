@@ -61,6 +61,8 @@ function fakeSolar(): void
             str_contains($path, '/sky/') => Http::response(skyPayload(observer: isset($request['lat']))),
             // The backend has no ephemeris for Pluto (mirrors production).
             str_contains($path, '/positions/dwarf-pluto') => Http::response(['detail' => 'No object found'], 404),
+            // A body whose ephemeris blows up upstream, for degradation tests.
+            str_contains($path, '/positions/broken-body') => Http::response(['detail' => 'boom'], 500),
             // Earth's heliocentric position (2026-09-19) — the relative-position figure always fetches it.
             str_contains($path, '/positions/planet-earth') => Http::response([
                 'name' => 'Earth', 'input_date' => '2026-09-19', 'distance_from_sun_au' => 1.0043887509911655,

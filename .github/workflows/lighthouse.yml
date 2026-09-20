@@ -7,6 +7,13 @@ name: Lighthouse
 on:
   pull_request:
     branches: [main]
+    # Prose cannot change a rendered page, so skip the audit when a pull
+    # request only touches documentation. Everything else — Blade views,
+    # assets, PHP, and this workflow — still runs it.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   workflow_dispatch:
 
 permissions:
@@ -46,13 +53,24 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Start the backend API
+      - name: Install the backend and build its catalogue
         run: |
           git clone --depth 1 https://github.com/Wicked-Sick-Ltd/solar-system-db.git backend
-          python -m pip install --quiet "fastapi" "uvicorn[standard]" "slowapi"
+          # requests is imported by the backend's build scripts, so it is needed
+          # even though the offline build below makes no network calls.
+          python -m pip install --quiet "fastapi" "uvicorn[standard]" "slowapi" "requests"
+          # The backend no longer commits its SQLite catalogue and the published
+          # artefact is ~700 MB compressed, so build one from that repo's own test
+          # fixtures: a few thousand objects, no network and no secrets. api/main.py
+          # opens the catalogue at import time and exits when it is missing, so this
+          # has to happen before the server starts.
+          python backend/scripts/build_full.py --fresh --offline
+
+      - name: Start the backend API
+        run: |
           cd backend && API_PORT=8003 nohup python api/main.py > /tmp/api.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8003/healthz >/dev/null && break; sleep 1; done
-          curl -sf http://127.0.0.1:8003/healthz
+          curl -sf http://127.0.0.1:8003/healthz || { echo "::error::the backend API did not come up"; cat /tmp/api.log; exit 1; }
 
       - name: Prepare the app
         run: |
@@ -68,7 +86,8 @@ jobs:
         run: |
           nohup php artisan serve --port=8000 > /tmp/app.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/ -o /dev/null && break; sleep 1; done
-          curl -sf http://127.0.0.1:8000/ -o /dev/null && echo "app up"
+          curl -sf http://127.0.0.1:8000/ -o /dev/null || { echo "::error::the app did not come up"; cat /tmp/app.log; exit 1; }
+          echo "app up"
 
       - name: Run Lighthouse
         uses: treosh/lighthouse-ci-action@v12
