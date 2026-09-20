@@ -113,7 +113,7 @@
         </h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($sections as $section)
-                <a href="{{ route($section['route']) }}"
+                <a href="{{ route($section['route'], $section['params'] ?? []) }}"
                    class="surface group flex flex-col gap-2 p-5 transition-colors"
                    onmouseover="this.style.borderColor='color-mix(in srgb, var(--accent) 45%, var(--border))'"
                    onmouseout="this.style.borderColor='var(--border)'">
