@@ -37,6 +37,18 @@ it('says so when a share link is unreadable', function () {
         ->assertDontSee('Apply these settings');
 });
 
+it('changes the theme only through the shared applier, so the header toggle keeps in step', function () {
+    $html = $this->get('/settings')->assertOk()->getContent();
+
+    // The pre-paint bootstrap owns data-theme and the stored value; every control asks it to change them.
+    expect(substr_count($html, "setAttribute('data-theme'"))->toBe(1)
+        ->and(substr_count($html, "localStorage.setItem('theme'"))->toBe(1)
+        ->and(substr_count($html, 'window.applyTheme('))->toBeGreaterThanOrEqual(3);
+
+    // Header toggle and settings page both follow the resulting event.
+    expect(substr_count($html, 'x-on:theme-changed.window'))->toBe(2);
+});
+
 it('is linked from the footer, the observer panel and the privacy page', function () {
     $this->get('/about')->assertOk()->assertSee(route('settings'));
     $this->get('/privacy')->assertOk()->assertSee('observer_location')->assertSee(route('settings'));

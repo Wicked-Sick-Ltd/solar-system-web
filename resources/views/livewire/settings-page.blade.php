@@ -1,5 +1,6 @@
 <div class="mx-auto" style="max-width: var(--container-prose);"
-     x-data="settingsPage(@js($import), @js(route('settings')))" x-init="load()">
+     x-data="settingsPage(@js($import), @js(route('settings')))" x-init="load()"
+     x-on:theme-changed.window="theme = $event.detail.theme">
     <x-page-header :title="__('Your settings')" :eyebrow="config('site.name')"
                    :lead="__('Everything this site remembers about you is listed here. All of it lives in your own browser — nothing is stored on our servers, and there is no account. Change or clear any of it; it takes effect immediately.')" />
 
@@ -111,12 +112,12 @@
             var p = this.get('preferences') || {};
             this.prefs = { timeFormat: ['auto', '12', '24'].includes(p.timeFormat) ? p.timeFormat : 'auto' };
         },
-        setTheme(t) { this.theme = t; document.documentElement.setAttribute('data-theme', t); this.set('theme', t); },
+        setTheme(t) { window.applyTheme(t); },
         forgetLocation() { this.location = null; this.set('observer_location', null); },
         setTimeFormat(v) { this.prefs.timeFormat = v; this.set('preferences', this.prefs); },
         clearAll() {
             ['theme', 'observer_location', 'preferences'].forEach(k => this.set(k, null));
-            document.documentElement.setAttribute('data-theme', 'dark');
+            window.applyTheme('dark', false);
             this.load();
         },
         payload() {
