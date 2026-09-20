@@ -33,7 +33,8 @@ it('keeps share payloads off the request, so logs and Referer never see a locati
         ->and($script)->toContain("return baseUrl + '#s=' + b64")
         ->and($script)->not->toContain("return baseUrl + '?s=' + b64")
         ->and($script)->toContain('shareTokenFromUrl()')
-        ->and($script)->toContain("hashParams.has('s')");
+        ->and($script)->toContain("hashParams.has('s')")
+        ->and($script)->toContain("addEventListener('hashchange'");
 });
 
 it('drops the share token from the address bar once the offer is on screen', function () {

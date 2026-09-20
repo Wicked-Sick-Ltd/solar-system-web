@@ -158,13 +158,18 @@
             var p = this.get('preferences') || {};
             this.prefs = { timeFormat: ['auto', '12', '24'].includes(p.timeFormat) ? p.timeFormat : 'auto' };
         },
-        load() {
+        ingestShareFromUrl() {
             var token = this.shareTokenFromUrl();
-            this.importData = token ? this.decodeToken(token) : null;
-            this.importFailed = token !== '' && !this.importData;
+            if (!token) return;
+            this.importData = this.decodeToken(token);
+            this.importFailed = !this.importData;
             this.pendingImport = !!this.importData;
             this.forgetShareToken();
+        },
+        load() {
+            this.ingestShareFromUrl();
             this.loadStored();
+            window.addEventListener('hashchange', () => this.ingestShareFromUrl());
         },
         setTheme(t) { window.applyTheme(t); },
         forgetLocation() { this.location = null; this.set('observer_location', null); },
