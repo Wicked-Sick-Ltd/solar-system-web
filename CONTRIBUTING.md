@@ -13,7 +13,7 @@ features will be closed.
 
 ## Local setup
 
-You need PHP 8.4+, Composer and Node 20+. [Laravel Herd](https://herd.laravel.com)
+You need PHP 8.4+, Composer and Node 22. [Laravel Herd](https://herd.laravel.com)
 is the easiest way to get PHP locally; anything else works too.
 
 ```bash

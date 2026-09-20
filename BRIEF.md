@@ -1,9 +1,14 @@
-# Solar System DB — Front-End Handover
+# Solar System DB — Historical Front-End Handover
 
-**Status:** Brief, ready to build
-**Audience:** Claude Code, starting a new repo from zero
+**Status:** Historical planning brief; the application has shipped
+**Audience:** Maintainers reviewing the original product intent
 **Owner:** Craig
 **Last updated:** 31 May 2026
+
+> This document is retained as decision history, not as the current setup or
+> contributor contract. The shipped stack is Laravel 13 on PHP 8.4 with
+> Livewire 4; use [`README.md`](README.md), [`CONTRIBUTING.md`](CONTRIBUTING.md),
+> and [`DEPLOYMENT.md`](DEPLOYMENT.md) for current instructions.
 
 ---
 
@@ -19,7 +24,7 @@ The site is a *front end only*. All data comes from an existing REST API (Sectio
 
 ## 2. Backend you are consuming
 
-There is an existing backend repo: **`wizzouk2/solar-system-db`** (public, GitHub). You do **not** touch it from this repo. You consume its public REST API only.
+There is an existing backend repo: **`Wicked-Sick-Ltd/solar-system-db`** (public, GitHub). You do **not** touch it from this repo. You consume its public REST API only.
 
 What the backend provides:
 
