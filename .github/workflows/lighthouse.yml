@@ -55,7 +55,7 @@ jobs:
 
       - name: Install the backend and build its catalogue
         run: |
-          git clone --depth 1 https://github.com/WizzoUK2/solar-system-db.git backend
+          git clone --depth 1 https://github.com/Wicked-Sick-Ltd/solar-system-db.git backend
           # requests is imported by the backend's build scripts, so it is needed
           # even though the offline build below makes no network calls.
           python -m pip install --quiet "fastapi" "uvicorn[standard]" "slowapi" "requests"

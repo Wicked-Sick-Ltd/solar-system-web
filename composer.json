@@ -1,11 +1,13 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "wicked-sick-ltd/solar-system-web",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Server-rendered astronomy reference powered by the Solar System DB API.",
     "keywords": [
+        "astronomy",
         "laravel",
-        "framework"
+        "livewire",
+        "solar-system"
     ],
     "license": "MIT",
     "require": {
@@ -42,7 +44,7 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
-            "npm install --ignore-scripts",
+            "npm ci --no-audit --no-fund",
             "npm run build"
         ],
         "dev": [
@@ -62,9 +64,6 @@
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
