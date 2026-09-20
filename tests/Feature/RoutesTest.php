@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Cache;
+
 beforeEach(fn () => fakeSolar());
 
 it('renders every public P0 route', function (string $uri) {
@@ -38,6 +40,17 @@ it('plots bodies on the orrery for a given date', function () {
         ->assertSee('Orrery')
         ->assertSee('<svg', escape: false)
         ->assertSee('Saturn');
+});
+
+it('keeps the orrery up when positions fail after the health probe passed', function () {
+    fakeSolarDown();
+    // The probe is cached for a health window, so the backend can fall over
+    // between it and the position batch. The page degrades; it does not 500.
+    Cache::put('solar:health', true, 60);
+
+    $this->get('/orrery?date=2026-06-01')
+        ->assertOk()
+        ->assertSee('No positions for that date');
 });
 
 it('puts the object name and structured data on a detail page', function () {

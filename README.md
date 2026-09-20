@@ -1,11 +1,11 @@
 # Solar — solar-system-db front end
 
-[![CI](https://github.com/WizzoUK2/solar-system-web/actions/workflows/ci.yml/badge.svg)](https://github.com/WizzoUK2/solar-system-web/actions/workflows/ci.yml)
+[![CI](https://github.com/Wicked-Sick-Ltd/solar-system-web/actions/workflows/ci.yml/badge.svg)](https://github.com/Wicked-Sick-Ltd/solar-system-web/actions/workflows/ci.yml)
 
 A clean, public, server-rendered astronomy reference for the solar system:
 planets, moons, dwarf planets, asteroids, comets, trans-Neptunian objects and
 planetary rings. It is a **front end only** — all data comes from the read-only
-[`wizzouk2/solar-system-db`](https://github.com/wizzouk2/solar-system-db) REST
+[`Wicked-Sick-Ltd/solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db) REST
 API. There is no database, no auth, no user content.
 
 This is an **astronomy** site, not astrology.
@@ -18,6 +18,7 @@ The full product brief lives in [`BRIEF.md`](BRIEF.md). Deployment notes are in
 - **Laravel 13** + **Livewire 4** (full-page components) + **Alpine** (bundled with Livewire)
 - **Tailwind CSS 4** via the Vite plugin; self-hosted **Inter** + **Newsreader** fonts (no runtime Google Fonts)
 - **PHP 8.4+** (the current Laravel 13 / Symfony 8.1 dependency graph requires 8.4.1)
+- **Node 22** for the Vite asset build
 - **Pest 4** for tests
 - No database: sessions and cache use the filesystem. All data is fetched from the API and cached.
 
@@ -29,7 +30,7 @@ over real TLS.
 
 ```bash
 composer install
-npm install
+npm ci
 cp .env.example .env        # then set API_BASE_URL + APP_URL (see below)
 php artisan key:generate
 npm run build               # or `npm run dev` for HMR
@@ -41,7 +42,7 @@ Everything keys off two env vars — nothing about the backend is hard-coded:
 
 | Var            | Purpose                                              | Example                                  |
 | -------------- | ---------------------------------------------------- | ---------------------------------------- |
-| `API_BASE_URL` | The backend REST API root                            | `https://sol.wickedsick.com/api/v1`      |
+| `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
 | `APP_URL`      | This site's public URL (canonical/OG/sitemap/JSON-LD)| `https://sol.wickedsick.com`             |
 
 **Running the backend locally for development.** The backend repo can be cloned
@@ -49,15 +50,16 @@ and run alongside this one. It ships a committed SQLite database and a FastAPI
 server:
 
 ```bash
-# in a clone of wizzouk2/solar-system-db
+# in a clone of Wicked-Sick-Ltd/solar-system-db
 python -m venv .venv
 .venv/bin/pip install "fastapi" "uvicorn[standard]" "slowapi"
 API_PORT=8003 .venv/bin/python api/main.py
 ```
 
-Then set `API_BASE_URL=http://127.0.0.1:8003/api/v1` in `.env`. A snapshot of
-the OpenAPI spec is kept at [`docs/openapi.snapshot.json`](docs/openapi.snapshot.json)
-for reference, but the live `/openapi.json` is always the source of truth.
+Then set `API_BASE_URL=http://127.0.0.1:8003/api/v1` in `.env`.
+[`docs/openapi.snapshot.json`](docs/openapi.snapshot.json) is a historical
+reference copy; it is not automatically synchronized or contract-checked. The
+backend's live `/openapi.json` is the source of truth.
 
 ## How it's put together
 
@@ -93,13 +95,17 @@ Filter/search/page state lives in the **URL**, so every view is linkable.
 | `/planets`, `/planets/{slug}`      | `Planets\Index`, `Objects\Show` |
 | `/dwarf-planets` `/asteroids` `/comets` `/tnos` | `Category` |
 | `/search`                          | `SearchPage`               |
+| `/orrery`                          | `Orrery`                   |
 | `/about`, `/api`                   | `AboutPage`, `ApiPage`     |
+| `/privacy`                         | `PrivacyPage`              |
 | `/random`                          | `RandomObjectController`   |
 | `/sitemap.xml`, `/robots.txt`      | `SitemapController`, `RobotsController` |
 
 Object permalinks use the backend's stable `id` as the slug (e.g.
 `/objects/planet-saturn`). `/planets/{slug}` reuses the object template but
 canonicalises to `/objects/{id}` so the two never compete in search.
+Object detail pages also mount `SkyObserver` as a nested Livewire component;
+it is not a standalone route.
 
 ### Adding a new route
 
@@ -140,3 +146,15 @@ setup and the checks CI runs. Wrong *data* belongs in
 [`solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db). For
 security problems please follow [SECURITY.md](SECURITY.md) rather than opening
 an issue. MIT licensed ([LICENSE](LICENSE)).
+
+<!-- repository-guidance:begin -->
+## Contributing and agent guidance
+
+- [Contributor guide](CONTRIBUTING.md): development workflow and validation.
+- [Agent instructions](AGENTS.md): shared guidance for Codex and other coding agents.
+- [Security policy](SECURITY.md): private vulnerability reporting.
+
+## Repository license
+
+MIT licensed; see [LICENSE](LICENSE). Preserve third-party notices.
+<!-- repository-guidance:end -->

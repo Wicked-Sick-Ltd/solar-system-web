@@ -1,11 +1,13 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "wicked-sick-ltd/solar-system-web",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Server-rendered astronomy reference powered by the Solar System DB API.",
     "keywords": [
+        "astronomy",
         "laravel",
-        "framework"
+        "livewire",
+        "solar-system"
     ],
     "license": "MIT",
     "require": {
@@ -17,7 +19,6 @@
         "symfony/postmark-mailer": "^8.1"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.10",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
@@ -30,9 +31,7 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "App\\": "app/"
         }
     },
     "autoload-dev": {
@@ -45,8 +44,7 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
-            "@php artisan migrate --force",
-            "npm install --ignore-scripts",
+            "npm ci --no-audit --no-fund",
             "npm run build"
         ],
         "dev": [
@@ -66,11 +64,6 @@
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-            "@php artisan migrate --graceful --ansi"
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
