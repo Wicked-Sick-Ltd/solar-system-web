@@ -1,6 +1,8 @@
 # "In the sky" panel (web) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Completed on `main`.
+
+> Retained as implementation history. Completed steps use checked boxes.
 
 **Goal:** Show every propagatable object's RA/Dec, constellation and hemisphere on its detail page, with a one-click, browser-geolocated observer view (alt/az, up-after-dark, rise/transit/set) remembered only in localStorage.
 
@@ -32,7 +34,7 @@ ObserverView { lat, lon, altitudeDeg, azimuthDeg, isUp, sunAltitudeDeg, isDark, 
 Format::bearing(float $azimuthDeg): string   // 16-point compass: 0→N, 22.5→NNE, 281→WNW
 ```
 
-- [ ] Step 1: Failing tests
+- [x] Step 1: Failing tests
 ```php
 // tests/Unit/FormatTest.php
 it('labels azimuths with 16-point compass bearings', function () {
@@ -51,19 +53,19 @@ it('returns null for a sky 404 so the panel simply hides', function () {
     expect(app(SolarApiClient::class)->sky('missing-sky'))->toBeNull();
 });
 ```
-- [ ] Step 2: `php artisan test --filter=sky` → fails (method missing).
-- [ ] Step 3: Implement (see code in the commit); fake in `tests/Pest.php`:
+- [x] Step 2: `php artisan test --filter=sky` → fails (method missing).
+- [x] Step 3: Implement (see code in the commit); fake in `tests/Pest.php`:
 ```php
 str_contains($path, '/sky/missing-sky') => Http::response(['detail' => 'not found'], 404),
 str_contains($path, '/sky/') => Http::response(skyPayload(observer: isset($request['lat']))),
 ```
-- [ ] Step 4: tests pass. Step 5: commit `feat(api-client): sky position DTOs and client method`.
+- [x] Step 4: tests pass. Step 5: commit `feat(api-client): sky position DTOs and client method`.
 
 ### Task 2: "In the sky" section on the object page
 
 **Files:** Modify `app/Livewire/Objects/Show.php` (fetch `$sky`), `resources/views/livewire/objects/show.blade.php` (section after "Where is it now"); Test `tests/Feature/SkyPanelTest.php`.
 
-- [ ] Step 1: Failing tests
+- [x] Step 1: Failing tests
 ```php
 it('shows the sky panel with RA, Dec, constellation and hemisphere', function () {
     $this->get('/objects/planet-saturn')->assertOk()->assertSee('In the sky')
@@ -73,7 +75,7 @@ it('hides the sky panel when the backend has no sky data', function () {
     $this->get('/objects/missing-sky')->assertOk()->assertDontSee('In the sky');
 });
 ```
-- [ ] Step 2: fail. Step 3: in `Show::render`, after `$position`:
+- [x] Step 2: fail. Step 3: in `Show::render`, after `$position`:
 ```php
 $sky = null;
 if ($object->orbital?->isPropagatable() || $object->objectType === 'moon' || $object->id === 'sun') {
@@ -81,7 +83,7 @@ if ($object->orbital?->isPropagatable() || $object->objectType === 'moon' || $ob
 }
 ```
 and pass `'sky' => $sky`. Blade: `<section aria-labelledby="sky-heading">` with a `<dl>` of RA / Dec / Constellation (Wikipedia link `https://en.wikipedia.org/wiki/<name>`) / Distance from Earth / Elongation + reading, the `visibleFrom` sentence, then `<livewire:sky-observer :object-id="$object->id" :key="'sky-'.$object->id" />`, then the accuracy note.
-- [ ] Step 4: pass. Step 5: commit `feat(objects): In the sky panel`.
+- [x] Step 4: pass. Step 5: commit `feat(objects): In the sky panel`.
 
 ### Task 3: `SkyObserver` Livewire child with geolocation + localStorage
 
@@ -89,7 +91,7 @@ and pass `'sky' => $sky`. Blade: `<section aria-labelledby="sky-heading">` with 
 
 **Interfaces:** props `string $objectId`; public `?float $lat = null, ?float $lon = null`; `?SkyPosition $sky` is NOT stored (not serialisable) — re-fetched in `render()` when lat/lon set; methods `setLocation(float $lat, float $lon): void`, `forget(): void`.
 
-- [ ] Step 1: Failing tests
+- [x] Step 1: Failing tests
 ```php
 it('starts idle with a call to action', fn () => Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
     ->assertSee('Get precise data for my location')->assertDontSee('Altitude'));
@@ -100,8 +102,8 @@ it('rejects impossible coordinates', fn () => Livewire::test(SkyObserver::class,
 it('forgets the location', fn () => Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
     ->call('setLocation', 51.5, -0.12)->call('forget')->assertSet('lat', null)->assertSee('Get precise data for my location'));
 ```
-- [ ] Step 2: fail. Step 3: implement component + Blade (Alpine: `x-data="skyObserver()"`, `x-init` reads localStorage and calls `$wire.setLocation`; button uses `navigator.geolocation.getCurrentPosition`; manual lat/lon form; times rendered with `x-text="new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})"`).
-- [ ] Step 4: pass; Pint; PHPStan; `npm run build`. Step 5: commit `feat(objects): observer view with browser geolocation`.
+- [x] Step 2: fail. Step 3: implement component + Blade (Alpine: `x-data="skyObserver()"`, `x-init` reads localStorage and calls `$wire.setLocation`; button uses `navigator.geolocation.getCurrentPosition`; manual lat/lon form; times rendered with `x-text="new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})"`).
+- [x] Step 4: pass; Pint; PHPStan; `npm run build`. Step 5: commit `feat(objects): observer view with browser geolocation`.
 
 ## Self-review
 - Spec coverage: client+DTOs ✔ T1; panel fields, elongation reading, hemisphere sentence ✔ T2; observer button, geolocation, manual entry, localStorage, forget link, local-time rendering, accuracy note ✔ T3; null-guard on 404 ✔ T1/T2; tests listed in spec ✔.
