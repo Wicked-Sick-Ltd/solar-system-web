@@ -12,7 +12,7 @@
         <ul class="list-disc space-y-2 pl-5">
             <li><strong>{{ __('Server logs.') }}</strong> {{ __('Our hosting provider records the IP address, requested page, browser type and time of each request, as every web server does. We use these only to keep the site running and to investigate abuse. They are kept for up to 30 days.') }}</li>
             <li><strong>{{ __('Analytics (only with your consent).') }}</strong>
-                {{ __('If you accept analytics cookies we load Google Analytics 4 with IP anonymisation, which tells us which pages people find useful and roughly where in the world they are. We do not use it for advertising and we do not link it to any account. If you choose "essential only", nothing from Google is loaded at all.') }}
+                {{ __('If you accept analytics cookies we load Google Analytics 4 with IP anonymisation, which tells us which pages people find useful and roughly where in the world they are. It is told the page you are on with sensitive parts of the address removed, so a settings link you open never sends the observing location inside it to Google. We do not use it for advertising and we do not link it to any account. If you choose "essential only", nothing from Google is loaded at all.') }}
                 @unless ($analyticsEnabled)
                     <em style="color: var(--muted);">{{ __('(Analytics is not currently switched on.)') }}</em>
                 @endunless

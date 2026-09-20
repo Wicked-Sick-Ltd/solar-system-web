@@ -106,6 +106,7 @@
         get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } },
         set(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); } catch (e) {} },
         load() {
+            this.forgetShareToken();
             try { this.theme = localStorage.getItem('theme') || 'dark'; } catch (e) {}
             var loc = this.get('observer_location');
             this.location = (loc && typeof loc.lat === 'number' && typeof loc.lon === 'number') ? loc : null;
@@ -142,7 +143,20 @@
         },
         dismissImport() {
             this.pendingImport = false;
-            history.replaceState(null, '', baseUrl);
+            this.forgetShareToken();
+        },
+        // The offer above already holds the shared settings, so the token in the address
+        // bar has done its job. Dropping it keeps the location it carries out of anything
+        // that reads the URL afterwards — a referrer, a copied link, an analytics beacon.
+        forgetShareToken() {
+            try {
+                var url = new URL(window.location.href);
+                if (!url.searchParams.has('s')) return;
+                url.searchParams.delete('s');
+                history.replaceState(null, '', url.pathname + (url.search || '') + url.hash);
+            } catch (e) {
+                history.replaceState(null, '', baseUrl);
+            }
         }
     }));
 </script>

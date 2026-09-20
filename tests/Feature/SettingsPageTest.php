@@ -30,6 +30,17 @@ it('offers, but does not apply, settings from a valid share link', function () {
         ->assertSee('Apply these settings');
 });
 
+it('drops the share token from the address bar once the offer is on screen', function () {
+    $token = SettingsPayload::encode(['location' => ['lat' => 50.97, 'lon' => -1.58]]);
+
+    $script = html_entity_decode($this->get('/settings?s='.$token)->assertOk()->getContent());
+
+    // The offer already holds the settings, so nothing that reads the URL afterwards —
+    // a referrer, a copied link, an analytics beacon — still sees the location in it.
+    expect($script)->toContain('this.forgetShareToken();')
+        ->and($script)->toContain("url.searchParams.delete('s')");
+});
+
 it('says so when a share link is unreadable', function () {
     $this->get('/settings?s=not-a-real-token!!')
         ->assertOk()
