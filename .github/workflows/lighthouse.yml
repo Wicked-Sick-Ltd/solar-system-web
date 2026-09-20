@@ -7,6 +7,13 @@ name: Lighthouse
 on:
   pull_request:
     branches: [main]
+    # Prose cannot change a rendered page, so skip the audit when a pull
+    # request only touches documentation. Everything else — Blade views,
+    # assets, PHP, and this workflow — still runs it.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   workflow_dispatch:
 
 permissions:
