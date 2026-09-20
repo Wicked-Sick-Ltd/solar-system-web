@@ -31,14 +31,14 @@ it('converts an address to rounded coordinates', function () {
         && $r->hasHeader('X-Api-Key', 'TESTKEY1'));
 });
 
-it('caches a conversion so repeat lookups cost no quota', function () {
+it('never caches a lookup — an address someone looked up is a record we promised not to keep', function () {
     Http::fake(['api.what3words.com/*' => Http::response([
         'words' => 'filled.count.soap', 'coordinates' => ['lng' => -0.195521, 'lat' => 51.520847],
     ])]);
     $client = app(What3WordsClient::class);
     $client->toCoordinates('filled.count.soap');
     $client->toCoordinates('filled.count.soap');
-    Http::assertSentCount(1);
+    Http::assertSentCount(2);
 });
 
 it('reports an unknown address as such', function () {
