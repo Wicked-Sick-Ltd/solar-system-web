@@ -18,7 +18,7 @@
                 @endunless
             </li>
             <li><strong>{{ __('Newsletter.') }}</strong> {{ __('If you sign up, your email address goes straight to Mailchimp, who send you a confirmation link (double opt-in). Nothing is stored on our servers. You can unsubscribe from the link in any email, and we will delete your address on request.') }}</li>
-            <li><strong>{{ __('Your location (astronomy tools).') }}</strong> {{ __('Some tools can use your approximate location to tailor sky data. If you allow it, the location stays in your browser and is sent to our API only for that calculation; it is not stored or logged with anything that identifies you.') }}</li>
+            <li><strong>{{ __('Your location (astronomy tools).') }}</strong> {{ __('Some tools can use your approximate location to tailor sky data. If you allow it, the location stays in your browser and is sent to our API only for that calculation; it is not stored or logged with anything that identifies you. If you paste a what3words address, the three words are sent to what3words to convert them to coordinates.') }}</li>
         </ul>
 
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Cookies and local storage') }}</h2>
@@ -45,6 +45,7 @@
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Third parties') }}</h2>
         <ul class="list-disc space-y-2 pl-5">
             <li><strong>Google Analytics</strong> — {{ __('usage statistics, only with consent.') }} <a class="link-quiet underline" href="https://policies.google.com/privacy" rel="noopener" target="_blank">{{ __('Google privacy policy') }}</a></li>
+            <li><strong>what3words</strong> — {{ __('converting a what3words address you paste into coordinates.') }} <a class="link-quiet underline" href="https://what3words.com/privacy" rel="noopener" target="_blank">{{ __('what3words privacy policy') }}</a></li>
             <li><strong>Mailchimp</strong> (Intuit) — {{ __('newsletter delivery.') }} <a class="link-quiet underline" href="https://www.intuit.com/privacy/statement/" rel="noopener" target="_blank">{{ __('Mailchimp privacy statement') }}</a></li>
             <li><strong>NASA / JPL, IAU Minor Planet Center</strong> — {{ __('the astronomical data itself. No personal data is exchanged.') }}</li>
         </ul>

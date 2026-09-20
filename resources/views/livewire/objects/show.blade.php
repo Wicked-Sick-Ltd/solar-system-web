@@ -16,7 +16,6 @@
             $hasVisual = $object->visual?->hasAny();
         @endphp
 
-        {{-- Breadcrumb --}}
         <nav class="mb-6 flex flex-wrap items-center gap-1.5 text-sm" style="color: var(--muted);" aria-label="{{ __('Breadcrumb') }}">
             <a class="link-quiet" href="{{ route('home') }}">{{ __('Home') }}</a>
             <span aria-hidden="true">/</span>
@@ -25,7 +24,6 @@
             <span style="color: var(--text);">{{ $object->name }}</span>
         </nav>
 
-        {{-- Title block --}}
         <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
             <div aria-hidden="true" class="shrink-0">
                 <span class="block h-20 w-20 rounded-full sm:h-24 sm:w-24"
@@ -297,7 +295,6 @@
             ])
         @endif
 
-        {{-- Atmosphere --}}
         @if ($object->atmosphere?->hasAny())
             @include('livewire.objects.partials.atmosphere', ['atmosphere' => $object->atmosphere])
         @endif

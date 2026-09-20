@@ -28,6 +28,12 @@ function fakeSolar(): void
         $url = $request->url();
         $path = parse_url($url, PHP_URL_PATH) ?? '';
 
+        // Only the Solar API is faked here; third-party hosts (what3words,
+        // Mailchimp) fall through to whatever fake the test registered.
+        if (str_contains((string) parse_url($url, PHP_URL_HOST), 'what3words.com')) {
+            return null;
+        }
+
         return match (true) {
             str_contains($path, '/objects/missing-object') => Http::response(['detail' => 'not found'], 404),
             str_contains($path, '/objects/planet-saturn') => Http::response(saturnDetail()),
@@ -55,6 +61,8 @@ function fakeSolar(): void
             str_contains($path, '/sky/') => Http::response(skyPayload(observer: isset($request['lat']))),
             // The backend has no ephemeris for Pluto (mirrors production).
             str_contains($path, '/positions/dwarf-pluto') => Http::response(['detail' => 'No object found'], 404),
+            // A body whose ephemeris blows up upstream, for degradation tests.
+            str_contains($path, '/positions/broken-body') => Http::response(['detail' => 'boom'], 500),
             // Earth's heliocentric position (2026-09-19) — the relative-position figure always fetches it.
             str_contains($path, '/positions/planet-earth') => Http::response([
                 'name' => 'Earth', 'input_date' => '2026-09-19', 'distance_from_sun_au' => 1.0043887509911655,

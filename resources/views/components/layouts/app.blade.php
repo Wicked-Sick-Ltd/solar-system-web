@@ -22,7 +22,7 @@
     <x-seo />
     <x-analytics />
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css'])
     @livewireStyles
 </head>
 <body class="min-h-screen antialiased" style="background-color: var(--bg); color: var(--text);">
