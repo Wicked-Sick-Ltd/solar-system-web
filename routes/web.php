@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
 
-// Catalogue
 Route::get('/objects', ObjectsIndex::class)->name('objects.index');
 Route::get('/objects/{slug}', ObjectsShow::class)->name('objects.show');
 
@@ -33,13 +32,11 @@ Route::get('/asteroids', Category::class)->defaults('kind', 'asteroid')->name('a
 Route::get('/comets', Category::class)->defaults('kind', 'comet')->name('comets');
 Route::get('/tnos', Category::class)->defaults('kind', 'tno')->name('tnos');
 
-// Search
 Route::get('/search', SearchPage::class)->name('search');
 
 // Interactive orrery (2D solar-system map at a chosen date)
 Route::get('/orrery', Orrery::class)->name('orrery');
 
-// Utility
 Route::get('/random', RandomObjectController::class)->name('random');
 
 // Per-object Open Graph share card (rendered + cached on object detail pages)
@@ -47,11 +44,9 @@ Route::get('/og/objects/{slug}.png', OgImageController::class)
     ->where('slug', '[A-Za-z0-9\-]+')   // keep the .png suffix literal
     ->name('og.object');
 
-// Editorial / developer pages
 Route::get('/about', AboutPage::class)->name('about');
 Route::get('/api', ApiPage::class)->name('api');
 Route::get('/privacy', PrivacyPage::class)->name('privacy');
 
-// SEO infrastructure
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
