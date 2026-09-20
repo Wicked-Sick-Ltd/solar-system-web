@@ -14,6 +14,7 @@ use App\Livewire\Orrery;
 use App\Livewire\Planets\Index as PlanetsIndex;
 use App\Livewire\PrivacyPage;
 use App\Livewire\SearchPage;
+use App\Livewire\SettingsPage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
@@ -51,6 +52,7 @@ Route::get('/og/objects/{slug}.png', OgImageController::class)
 Route::get('/about', AboutPage::class)->name('about');
 Route::get('/api', ApiPage::class)->name('api');
 Route::get('/privacy', PrivacyPage::class)->name('privacy');
+Route::get('/settings', SettingsPage::class)->name('settings');
 
 // SEO infrastructure
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');

@@ -36,11 +36,14 @@
                     <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">{{ config('session.cookie') }}</td><td class="px-4 py-3">{{ __('Keeps interactive pages working between requests (essential).') }}</td><td class="px-4 py-3">{{ __(':minutes minutes after the last request', ['minutes' => config('session.lifetime')]) }}</td></tr>
                     <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">XSRF-TOKEN</td><td class="px-4 py-3">{{ __('Protects forms against cross-site request forgery (essential).') }}</td><td class="px-4 py-3">{{ __(':minutes minutes after the last request', ['minutes' => config('session.lifetime')]) }}</td></tr>
                     <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">theme</td><td class="px-4 py-3">{{ __('Local storage, not a cookie: your light/dark choice. Never leaves your browser.') }}</td><td class="px-4 py-3">{{ __('Until cleared') }}</td></tr>
+                    <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">observer_location</td><td class="px-4 py-3">{{ __('Local storage: your observing location, rounded to about a kilometre, so you don\'t re-enter it on every object page. Sent to our API only for the sky calculation; never stored there.') }}</td><td class="px-4 py-3">{{ __('Until cleared') }}</td></tr>
+                    <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">preferences</td><td class="px-4 py-3">{{ __('Local storage: display preferences such as 12- or 24-hour times. Never leaves your browser.') }}</td><td class="px-4 py-3">{{ __('Until cleared') }}</td></tr>
                     <tr><td class="px-4 py-3 font-mono text-xs">_ga, _ga_*</td><td class="px-4 py-3">{{ __('Google Analytics, set only after you accept analytics.') }}</td><td class="px-4 py-3">{{ __('Up to 2 years') }}</td></tr>
                 </tbody>
             </table>
         </div>
-        <p>{{ __('You can change your mind at any time by clearing the cookie_consent cookie in your browser; the banner will ask again on your next visit.') }}</p>
+        <p>{{ __('You can change your mind at any time by clearing the cookie_consent cookie in your browser; the banner will ask again on your next visit.') }}
+           {{ __('Everything in local storage is listed, editable and clearable on') }} <a class="link-quiet underline" href="{{ route('settings') }}">{{ __('Your settings') }}</a>. {{ __('There are no user accounts: we hold no profile of you.') }}</p>
 
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Third parties') }}</h2>
         <ul class="list-disc space-y-2 pl-5">
