@@ -8,7 +8,6 @@ use App\Support\Seo;
 use App\Support\SettingsPayload;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -16,16 +15,13 @@ use Livewire\Component;
  * in their own browser's local storage — theme, observing location, display
  * preferences. The page lists it, lets them change or clear any of it, and
  * makes a share link so the same settings can be applied on another device
- * without an account. The server never sees the stored values; it only
- * validates a share token the visitor chose to open.
+ * without an account. The server never sees the stored values or the share
+ * token: that token lives in the URL fragment and is decoded only in the
+ * browser, so it is absent from requests, access logs and Referer.
  */
 #[Layout('components.layouts.app')]
 final class SettingsPage extends Component
 {
-    /** Share token (?s=…) — validated server-side, applied only when the visitor clicks. */
-    #[Url(as: 's', except: '')]
-    public string $share = '';
-
     public function render(): View
     {
         app(Seo::class)
@@ -33,13 +29,8 @@ final class SettingsPage extends Component
             ->description(__('See, change and clear everything this site remembers about you — all of it stored in your own browser, none of it on our servers.'))
             ->noindex();
 
-        $import = $this->share !== '' ? SettingsPayload::decode($this->share) : null;
-
         return view('livewire.settings-page', [
-            'import' => $import,
-            'importFailed' => $this->share !== '' && $import === null,
             'themes' => SettingsPayload::THEMES,
-            'timeFormats' => SettingsPayload::TIME_FORMATS,
         ]);
     }
 }

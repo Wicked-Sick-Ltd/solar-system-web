@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Support;
 
 /**
- * The settings-share link: everything the site remembers about a visitor,
- * encoded into a URL so they can carry it to another browser or device
- * without an account. Encoded and decoded here so the server can validate
- * what it will offer to apply; the browser does the actual storing.
+ * The settings-share token: everything the site remembers about a visitor,
+ * encoded so they can carry it to another browser or device without an
+ * account. The token is placed in the URL fragment (`#s=…`) and decoded in
+ * the browser; it must never be put on the query string, which would reach
+ * the server, access logs and Referer. This class is the codec spec the
+ * settings page's JavaScript mirrors.
  *
  * Shape: {"theme": "dark"|"light", "location": {"lat": float, "lon": float},
  *         "preferences": {"timeFormat": "auto"|"12"|"24"}}. Every key optional.

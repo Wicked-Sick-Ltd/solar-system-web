@@ -15,37 +15,40 @@ it('lists everything the site remembers, with a clear-all and a share link', fun
         ->assertSee('theme')
         ->assertSee('Clear everything this site remembers')
         ->assertSee('Use these settings on another device')
-        ->assertSee('nothing is stored on our servers');
+        ->assertSee('nothing is stored on our servers')
+        ->assertSee('after the #');
 });
 
-it('offers, but does not apply, settings from a valid share link', function () {
+it('keeps share payloads off the request, so logs and Referer never see a location', function () {
     $token = SettingsPayload::encode(['theme' => 'light', 'location' => ['lat' => 50.97, 'lon' => -1.58], 'preferences' => ['timeFormat' => '24']]);
 
-    $this->get('/settings?s='.$token)
-        ->assertOk()
-        ->assertSee('Apply settings from a link?')
-        ->assertSee('50.97, -1.58')
-        ->assertSee('24-hour')
-        ->assertSee('Light')
-        ->assertSee('Apply these settings');
+    $html = $this->get('/settings?s='.$token)->assertOk()->getContent();
+    $script = html_entity_decode($html);
+
+    // The observing location must not be in the HTML the server sent — only the
+    // browser may decode the fragment after the page has arrived.
+    expect($html)->not->toContain('50.97')
+        ->and($html)->not->toContain($token)
+        ->and($html)->toContain('Apply settings from a link?')
+        ->and($script)->toContain("return baseUrl + '#s=' + b64")
+        ->and($script)->not->toContain("return baseUrl + '?s=' + b64")
+        ->and($script)->toContain('shareTokenFromUrl()')
+        ->and($script)->toContain("hashParams.has('s')");
 });
 
 it('drops the share token from the address bar once the offer is on screen', function () {
-    $token = SettingsPayload::encode(['location' => ['lat' => 50.97, 'lon' => -1.58]]);
+    $script = html_entity_decode($this->get('/settings')->assertOk()->getContent());
 
-    $script = html_entity_decode($this->get('/settings?s='.$token)->assertOk()->getContent());
-
-    // The offer already holds the settings, so nothing that reads the URL afterwards —
-    // a referrer, a copied link, an analytics beacon — still sees the location in it.
     expect($script)->toContain('this.forgetShareToken();')
-        ->and($script)->toContain("url.searchParams.delete('s')");
+        ->and($script)->toContain("url.searchParams.delete('s')")
+        ->and($script)->toContain("hashParams.has('s')");
 });
 
-it('says so when a share link is unreadable', function () {
-    $this->get('/settings?s=not-a-real-token!!')
+it('ships the copy for an unreadable share link, shown only after the browser tries to decode', function () {
+    $this->get('/settings')
         ->assertOk()
         ->assertSee('nothing was changed')
-        ->assertDontSee('Apply these settings');
+        ->assertSee('Apply these settings');
 });
 
 it('changes the theme only through the shared applier, so the header toggle keeps in step', function () {
@@ -62,5 +65,9 @@ it('changes the theme only through the shared applier, so the header toggle keep
 
 it('is linked from the footer, the observer panel and the privacy page', function () {
     $this->get('/about')->assertOk()->assertSee(route('settings'));
-    $this->get('/privacy')->assertOk()->assertSee('observer_location')->assertSee(route('settings'));
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('observer_location')
+        ->assertSee(route('settings'))
+        ->assertSee('fragment of the URL');
 });

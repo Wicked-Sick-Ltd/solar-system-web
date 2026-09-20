@@ -54,6 +54,9 @@ it('redacts a settings share token from the page location it reports', function 
     // And the banner reports that, never the address bar gtag would read by default.
     expect($html)->not->toContain('page_location: location.href')
         ->and($html)->not->toContain('page_location: location');
+
+    // Opening a leftover query share must not echo the coordinates in the HTML either.
+    expect($html)->not->toContain('50.97');
 });
 
 it('shows a cookie banner that links to the privacy policy when analytics is enabled', function () {

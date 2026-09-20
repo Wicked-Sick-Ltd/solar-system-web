@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Support\SettingsPayload;
 
-it('round-trips a full settings object as a URL-safe token', function () {
+it('round-trips a full settings object as a URL-safe fragment token', function () {
     $settings = ['theme' => 'light', 'location' => ['lat' => 50.97, 'lon' => -1.58], 'preferences' => ['timeFormat' => '24']];
     $token = SettingsPayload::encode($settings);
 

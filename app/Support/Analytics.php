@@ -12,10 +12,10 @@ use Illuminate\Http\Request;
  * gtag takes page_location from the address bar unless it is told otherwise,
  * so any sensitive query string reaches Google the moment a visitor who has
  * accepted analytics opens the link — before they touch anything on the page.
- * A settings share link (?s=…) carries an observing location, which belongs in
- * the visitor's own browser and nowhere else, so the layout publishes the page
- * location from here with those parameters replaced and the cookie banner
- * hands that to gtag instead.
+ * Settings share links carry an observing location in the URL fragment
+ * (`#s=…`), which never reaches this request. Older `?s=` links still might,
+ * so those query values are replaced here and the cookie banner hands that
+ * to gtag instead of the address bar.
  */
 final class Analytics
 {
