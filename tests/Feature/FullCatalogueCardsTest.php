@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 use App\Services\SolarApi\Data\OrbitalElements;
 use App\Services\SolarApi\Data\VisualProperties;
 
@@ -37,6 +38,25 @@ it('adds mass and density columns to the moons table', function () {
         ->assertOk()
         ->assertSee('Density')
         ->assertSee('g/cm³');
+});
+
+it('keeps complex object detail sections in focused partials', function () {
+    $partialNames = [
+        'orbit-quality',
+        'close-approaches',
+        'atmosphere',
+        'moons',
+    ];
+
+    foreach ($partialNames as $partialName) {
+        expect(view()->exists("livewire.objects.partials.{$partialName}"))->toBeTrue();
+    }
+
+    $template = file_get_contents(resource_path('views/livewire/objects/show.blade.php'));
+
+    expect($template)
+        ->toContain('CloseApproach::AU_PER_LUNAR_DISTANCE')
+        ->not->toContain('/ 0.002569555');
 });
 
 it('links the whole-database download from the footer and the about page', function () {
