@@ -45,6 +45,7 @@
         <p class="mt-4 text-xs" style="color: var(--color-faint);">
             {{ __('For :lat, :lon. Times in your local time zone.', ['lat' => number_format((float) $view->lat, 2), 'lon' => number_format((float) $view->lon, 2)]) }}
             <button type="button" class="link-quiet underline" @click="forget()">{{ __('Forget my location') }}</button>
+            <a class="link-quiet underline" href="{{ route('settings') }}">{{ __('Your settings') }}</a>
         </p>
     @else
         <p class="text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--muted);">{{ __('From your location') }}</p>
@@ -157,7 +158,15 @@
         local(iso) {
             if (!iso) return '—';
             var d = new Date(iso);
-            return isNaN(d) ? iso : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (isNaN(d)) return iso;
+            // Honour the visitor's time-format preference from /settings (auto = device default).
+            var opts = { hour: '2-digit', minute: '2-digit' };
+            try {
+                var fmt = (JSON.parse(localStorage.getItem('preferences') || '{}') || {}).timeFormat;
+                if (fmt === '12') opts.hour12 = true;
+                if (fmt === '24') opts.hour12 = false;
+            } catch (e) {}
+            return d.toLocaleTimeString([], opts);
         }
     }));
 </script>

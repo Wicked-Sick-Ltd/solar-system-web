@@ -76,11 +76,10 @@
                     x-data="{
                         theme: document.documentElement.getAttribute('data-theme') || 'dark',
                         toggle() {
-                            this.theme = this.theme === 'dark' ? 'light' : 'dark';
-                            document.documentElement.setAttribute('data-theme', this.theme);
-                            try { localStorage.setItem('theme', this.theme); } catch (e) {}
+                            window.applyTheme(this.theme === 'dark' ? 'light' : 'dark');
                         }
                     }"
+                    x-on:theme-changed.window="theme = $event.detail.theme"
                     @click="toggle()"
                     class="inline-flex items-center justify-center rounded-lg border p-2"
                     style="border-color: var(--border); color: var(--muted);"

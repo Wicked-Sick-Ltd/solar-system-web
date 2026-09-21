@@ -13,7 +13,7 @@ use Livewire\Component;
 final class PrivacyPage extends Component
 {
     /** Bump when the policy text materially changes. */
-    public const string LAST_UPDATED = '2026-09-15';
+    public const string LAST_UPDATED = '2026-09-20';
 
     public function render(): View
     {

@@ -30,6 +30,7 @@
                 <li><a class="link-quiet" href="{{ route('about') }}">{{ __('About & data sources') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('api') }}">{{ __('Use the API') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('random') }}">{{ __('Random object') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('settings') }}">{{ __('Your settings') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('privacy') }}">{{ __('Privacy & cookies') }}</a></li>
             </ul>
         </nav>

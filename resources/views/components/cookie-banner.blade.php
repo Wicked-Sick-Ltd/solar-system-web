@@ -36,6 +36,14 @@
             document.cookie = NAME + '=' + encodeURIComponent(value) + '; Max-Age=31536000; Path=/; SameSite=Lax' +
                 (location.protocol === 'https:' ? '; Secure' : '');
         }
+        function pageLocation() {
+            // The layout publishes the address gtag may report. Current share
+            // tokens live in the fragment (never on this request); leftover ?s=
+            // query values are redacted. Without the tag, report the path alone.
+            var meta = document.querySelector('meta[name="ga-page-location"]');
+            var value = meta && meta.getAttribute('content');
+            return value || (location.origin + location.pathname);
+        }
         function loadAnalytics() {
             var meta = document.querySelector('meta[name="ga-measurement-id"]');
             if (!meta || window.__gaLoaded) return;
@@ -49,7 +57,7 @@
             function gtag() { window.dataLayer.push(arguments); }
             window.gtag = gtag;
             gtag('js', new Date());
-            gtag('config', id, { anonymize_ip: true });
+            gtag('config', id, { anonymize_ip: true, page_location: pageLocation() });
         }
         return {
             open: false,

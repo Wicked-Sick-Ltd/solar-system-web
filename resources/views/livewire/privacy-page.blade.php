@@ -12,13 +12,13 @@
         <ul class="list-disc space-y-2 pl-5">
             <li><strong>{{ __('Server logs.') }}</strong> {{ __('Our hosting provider records the IP address, requested page, browser type and time of each request, as every web server does. We use these only to keep the site running and to investigate abuse. They are kept for up to 30 days.') }}</li>
             <li><strong>{{ __('Analytics (only with your consent).') }}</strong>
-                {{ __('If you accept analytics cookies we load Google Analytics 4 with IP anonymisation, which tells us which pages people find useful and roughly where in the world they are. We do not use it for advertising and we do not link it to any account. If you choose "essential only", nothing from Google is loaded at all.') }}
+                {{ __('If you accept analytics cookies we load Google Analytics 4 with IP anonymisation, which tells us which pages people find useful and roughly where in the world they are. It is told the page you are on with sensitive parts of the address removed, so a settings link you open never sends the observing location inside it to Google. We do not use it for advertising and we do not link it to any account. If you choose "essential only", nothing from Google is loaded at all.') }}
                 @unless ($analyticsEnabled)
                     <em style="color: var(--muted);">{{ __('(Analytics is not currently switched on.)') }}</em>
                 @endunless
             </li>
             <li><strong>{{ __('Newsletter.') }}</strong> {{ __('If you sign up, your email address goes straight to Mailchimp, who send you a confirmation link (double opt-in). Nothing is stored on our servers. You can unsubscribe from the link in any email, and we will delete your address on request.') }}</li>
-            <li><strong>{{ __('Your location (astronomy tools).') }}</strong> {{ __('Some tools can use your approximate location to tailor sky data. If you allow it, the location stays in your browser and is sent to our API only for that calculation; it is not stored or logged with anything that identifies you. Entering a what3words address is optional — the other ways of giving a location involve no third party. If you do use one, the three words are sent to what3words to convert them to coordinates; we do not store, cache or log the address or the result.') }}</li>
+            <li><strong>{{ __('Your location (astronomy tools).') }}</strong> {{ __('Some tools can use your approximate location to tailor sky data. If you allow it, the location stays in your browser and is sent to our API only for that calculation; it is not stored or logged with anything that identifies you. A settings link you copy to another device keeps those values in the fragment of the URL (after #), which browsers do not send to our server, to our logs, or as a Referer. Entering a what3words address is optional — the other ways of giving a location involve no third party. If you do use one, the three words are sent to what3words to convert them to coordinates; we do not store, cache or log the address or the result.') }}</li>
         </ul>
 
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Cookies and local storage') }}</h2>
@@ -36,11 +36,14 @@
                     <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">{{ config('session.cookie') }}</td><td class="px-4 py-3">{{ __('Keeps interactive pages working between requests (essential).') }}</td><td class="px-4 py-3">{{ __(':minutes minutes after the last request', ['minutes' => config('session.lifetime')]) }}</td></tr>
                     <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">XSRF-TOKEN</td><td class="px-4 py-3">{{ __('Protects forms against cross-site request forgery (essential).') }}</td><td class="px-4 py-3">{{ __(':minutes minutes after the last request', ['minutes' => config('session.lifetime')]) }}</td></tr>
                     <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">theme</td><td class="px-4 py-3">{{ __('Local storage, not a cookie: your light/dark choice. Never leaves your browser.') }}</td><td class="px-4 py-3">{{ __('Until cleared') }}</td></tr>
+                    <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">observer_location</td><td class="px-4 py-3">{{ __('Local storage: your observing location, rounded to about a kilometre, so you don\'t re-enter it on every object page. Sent to our API only for the sky calculation; never stored there.') }}</td><td class="px-4 py-3">{{ __('Until cleared') }}</td></tr>
+                    <tr class="border-b" style="border-color: var(--border);"><td class="px-4 py-3 font-mono text-xs">preferences</td><td class="px-4 py-3">{{ __('Local storage: display preferences such as 12- or 24-hour times. Never leaves your browser.') }}</td><td class="px-4 py-3">{{ __('Until cleared') }}</td></tr>
                     <tr><td class="px-4 py-3 font-mono text-xs">_ga, _ga_*</td><td class="px-4 py-3">{{ __('Google Analytics, set only after you accept analytics.') }}</td><td class="px-4 py-3">{{ __('Up to 2 years') }}</td></tr>
                 </tbody>
             </table>
         </div>
-        <p>{{ __('You can change your mind at any time by clearing the cookie_consent cookie in your browser; the banner will ask again on your next visit.') }}</p>
+        <p>{{ __('You can change your mind at any time by clearing the cookie_consent cookie in your browser; the banner will ask again on your next visit.') }}
+           {{ __('Everything in local storage is listed, editable and clearable on') }} <a class="link-quiet underline" href="{{ route('settings') }}">{{ __('Your settings') }}</a>. {{ __('There are no user accounts: we hold no profile of you.') }}</p>
 
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Third parties') }}</h2>
         <ul class="list-disc space-y-2 pl-5">

@@ -9,13 +9,24 @@
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="mask-icon" href="{{ asset('favicon.svg') }}" color="#e0b872">
 
-    {{-- Set the theme before first paint to avoid a flash. Default: dark. --}}
+    {{-- Set the theme before first paint to avoid a flash. Default: dark.
+         Every control that changes the theme goes through applyTheme so the header toggle,
+         /settings and any future control stay in step; they listen for the theme-changed event. --}}
     <script>
         (function () {
-            try {
-                var t = localStorage.getItem('theme') || 'dark';
-                document.documentElement.setAttribute('data-theme', t);
-            } catch (e) {}
+            window.applyTheme = function (theme, persist) {
+                document.documentElement.setAttribute('data-theme', theme);
+
+                if (persist !== false) {
+                    try { localStorage.setItem('theme', theme); } catch (e) {}
+                }
+
+                window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: theme } }));
+            };
+
+            var stored = null;
+            try { stored = localStorage.getItem('theme'); } catch (e) {}
+            window.applyTheme(stored || 'dark', false);
         })();
     </script>
 
