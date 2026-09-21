@@ -1,4 +1,5 @@
 @php
+    use App\Services\SolarApi\Data\CloseApproach;
     use App\Support\Format;
     use App\Support\ObjectType;
     use App\Support\PlutoDistance;
@@ -188,28 +189,14 @@
                         <x-prop-row :label="__('Argument of periapsis')" :value="Format::degrees($o->argumentPeriapsisDeg)" />
                         <x-prop-row :label="__('Epoch')" :value="$o->epoch" :hint="$o->frame" />
                         <x-prop-row :label="__('Orbit class')" :value="$o->orbitClassName" :hint="$o->orbitClassCode" />
-                        <x-prop-row :label="__('Earth MOID')" :value="Format::au($o->moidAu, 4)" :hint="$o->moidAu !== null ? number_format($o->moidAu / 0.002569555, 1).' LD' : null" />
+                        <x-prop-row :label="__('Earth MOID')" :value="Format::au($o->moidAu, 4)" :hint="$o->moidAu !== null ? number_format($o->moidAu / CloseApproach::AU_PER_LUNAR_DISTANCE, 1).' LD' : null" />
                         <x-prop-row :label="__('Tisserand (Jupiter)')" :value="Format::number($o->tisserandJupiter, 3)" />
                     </dl>
                 </section>
             @endif
 
             @if ($object->orbital?->hasQualityData())
-                <section class="surface p-6" aria-labelledby="quality-heading">
-                    @php $o = $object->orbital; @endphp
-                    <h2 id="quality-heading" class="mb-1 font-serif text-xl font-medium">{{ __('Orbit quality') }}</h2>
-                    @if ($o->conditionReading())
-                        <p class="mb-3 text-sm" style="color: var(--muted);">{{ __('Orbit :reading (uncertainty code :code).', ['reading' => $o->conditionReading(), 'code' => $o->conditionCode]) }}</p>
-                    @endif
-                    <dl>
-                        <x-prop-row :label="__('Observations used')" :value="$o->nObsUsed !== null ? Format::count($o->nObsUsed) : null" />
-                        <x-prop-row :label="__('Data arc')" :value="$o->dataArcDays !== null ? Format::periodDays($o->dataArcDays) : null" />
-                        <x-prop-row :label="__('First observed')" :value="Format::date($o->firstObs)" />
-                        <x-prop-row :label="__('Last observed')" :value="Format::date($o->lastObs)" />
-                        <x-prop-row :label="__('Residual RMS')" :value="Format::unit($o->rmsArcsec, '″', 2)" />
-                        <x-prop-row :label="__('Solution')" :value="Format::date($o->solutionDate)" :hint="$o->producer" />
-                    </dl>
-                </section>
+                @include('livewire.objects.partials.orbit-quality', ['orbital' => $object->orbital])
             @endif
 
             @if ($hasPhysical)
@@ -302,70 +289,14 @@
 
         {{-- Close approaches --}}
         @if (count($object->closeApproaches))
-            <section class="mt-10" aria-labelledby="ca-heading">
-                <h2 id="ca-heading" class="mb-3 font-serif text-2xl font-medium">
-                    {{ __('Close approaches') }}
-                    @if ($object->closeApproachCount)
-                        <span class="text-base font-normal" style="color: var(--muted);">{{ __(':count on record', ['count' => Format::count($object->closeApproachCount)]) }}</span>
-                    @endif
-                </h2>
-                <div class="surface overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="border-b text-left" style="border-color: var(--border); color: var(--muted);">
-                                <th class="px-4 py-3 font-medium">{{ __('When (UTC)') }}</th>
-                                <th class="px-4 py-3 font-medium">{{ __('Body') }}</th>
-                                <th class="px-4 py-3 text-right font-medium">{{ __('Distance') }}</th>
-                                <th class="px-4 py-3 text-right font-medium">{{ __('Lunar distances') }}</th>
-                                <th class="px-4 py-3 text-right font-medium">{{ __('Relative speed') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($object->closeApproaches as $ca)
-                                <tr class="border-b last:border-0" style="border-color: var(--border);">
-                                    <td class="px-4 py-3 tabular-nums" style="color: var(--text);">{{ str_replace(['T', 'Z'], [' ', ''], (string) $ca->cdIso) }}</td>
-                                    <td class="px-4 py-3" style="color: var(--text);">{{ $ca->body }}</td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::au($ca->distAu, 4) ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ $ca->lunarDistances() !== null ? number_format($ca->lunarDistances(), 1).' LD' : '—' }}</td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::unit($ca->vRelKmS, 'km/s', 1) ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <p class="mt-2 text-xs" style="color: var(--color-faint);">{{ __('Next ten from today. 1 lunar distance = 384,400 km. Source: JPL close-approach data.') }}</p>
-            </section>
+            @include('livewire.objects.partials.close-approaches', [
+                'closeApproaches' => $object->closeApproaches,
+                'closeApproachCount' => $object->closeApproachCount,
+            ])
         @endif
 
         @if ($object->atmosphere?->hasAny())
-            @php $atm = $object->atmosphere; @endphp
-            <section class="mt-10" aria-labelledby="atm-heading">
-                <h2 id="atm-heading" class="mb-3 font-serif text-2xl font-medium">{{ __('Atmosphere') }}</h2>
-                <div class="surface grid gap-6 p-6 lg:grid-cols-2">
-                    <dl>
-                        <x-prop-row :label="__('Surface pressure')" :value="$atm->surfacePressureBar !== null ? Format::unit($atm->surfacePressureBar, 'bar', $atm->surfacePressureBar < 0.01 ? 6 : 2) : null" :hint="$atm->pressureNote" />
-                        <x-prop-row :label="__('Temperature')" :value="Format::unit($atm->temperatureK, 'K', 0)" :hint="$atm->temperatureNote" />
-                        <x-prop-row :label="__('Density')" :value="Format::unit($atm->densityKgM3, 'kg/m³', 3)" />
-                        <x-prop-row :label="__('Scale height')" :value="Format::km($atm->scaleHeightKm, 1)" />
-                        <x-prop-row :label="__('Mean molecular weight')" :value="Format::number($atm->meanMolecularWeight, 2)" />
-                        <x-prop-row :label="__('Winds')" :value="$atm->windNote" />
-                    </dl>
-                    @if (count($atm->composition))
-                        <div>
-                            <h3 class="mb-2 text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Composition by volume') }}</h3>
-                            <ul class="space-y-1.5 text-sm">
-                                @foreach (array_slice($atm->composition, 0, 8) as $c)
-                                    <li class="flex items-baseline justify-between gap-4">
-                                        <span style="color: var(--text);">{{ $c['species'] }}</span>
-                                        <span class="tabular-nums" style="color: var(--muted);">{{ Format::number($c['fraction'], $c['unit'] === '%' ? 2 : 0) }} {{ $c['unit'] }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </div>
-                <p class="mt-2 text-xs" style="color: var(--color-faint);">{{ __('Source: NASA Planetary Fact Sheet.') }}</p>
-            </section>
+            @include('livewire.objects.partials.atmosphere', ['atmosphere' => $object->atmosphere])
         @endif
 
         {{-- Rings --}}
@@ -399,55 +330,11 @@
 
         {{-- Moons (sortable) --}}
         @if (count($moons))
-            @php
-                $cols = [
-                    ['field' => 'name', 'label' => __('Name'), 'align' => 'left'],
-                    ['field' => 'radiusKm', 'label' => __('Radius'), 'align' => 'right'],
-                    ['field' => 'massKg', 'label' => __('Mass'), 'align' => 'right'],
-                    ['field' => 'densityGCm3', 'label' => __('Density'), 'align' => 'right'],
-                    ['field' => 'semiMajorAxisAu', 'label' => __('Distance'), 'align' => 'right'],
-                    ['field' => 'orbitalPeriodDays', 'label' => __('Period'), 'align' => 'right'],
-                ];
-            @endphp
-            <section class="mt-10" aria-labelledby="moons-heading" wire:loading.class="opacity-60">
-                <h2 id="moons-heading" class="mb-3 font-serif text-2xl font-medium">
-                    {{ __(':count moons', ['count' => count($moons)]) }}
-                </h2>
-                <div class="surface overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="border-b text-left" style="border-color: var(--border); color: var(--muted);">
-                                @foreach ($cols as $col)
-                                    <th class="px-4 py-3 font-medium @if ($col['align'] === 'right') text-right @endif">
-                                        <button type="button" wire:click="sortBy('{{ $col['field'] }}')"
-                                                class="inline-flex items-center gap-1 hover:underline"
-                                                @if ($sortField === $col['field']) style="color: var(--accent);" @endif>
-                                            {{ $col['label'] }}
-                                            @if ($sortField === $col['field'])
-                                                <span aria-hidden="true">{{ $sortDir === 'asc' ? '↑' : '↓' }}</span>
-                                            @endif
-                                        </button>
-                                    </th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($moons as $moon)
-                                <tr class="border-b last:border-0" style="border-color: var(--border);" wire:key="moon-{{ $moon->id }}">
-                                    <td class="px-4 py-3">
-                                        <a class="font-medium" style="color: var(--link);" href="{{ route('objects.show', $moon->slug()) }}">{{ $moon->name }}</a>
-                                    </td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::km($moon->radiusKm) ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::massKg($moon->massKg) ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::unit($moon->densityGCm3, 'g/cm³', 2) ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::au($moon->semiMajorAxisAu, 4) ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::periodDays($moon->orbitalPeriodDays) ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+            @include('livewire.objects.partials.moons', [
+                'moons' => $moons,
+                'sortField' => $sortField,
+                'sortDir' => $sortDir,
+            ])
         @endif
 
         {{-- Sources --}}
