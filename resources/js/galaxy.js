@@ -31,6 +31,7 @@ async function initialise() {
         if (!Array.isArray(hosts)) throw new Error('Invalid map response');
         if (currentGeneration !== generation) return;
     } catch {
+        if (currentGeneration !== generation) return;
         status.textContent = 'The map could not load. Use the linked system list below, or reload to try again.';
         modeControl.disabled = radiusControl.disabled = reset.disabled = picker.disabled = true;
         sunLabel.hidden = true;
@@ -194,7 +195,6 @@ async function initialise() {
     if (selected) selectHost(selected);
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialise, { once: true });
-else initialise();
+// Livewire emits this on the initial page load as well as subsequent navigation.
 document.addEventListener('livewire:navigated', initialise);
 document.addEventListener('livewire:navigating', () => { generation++; disposeCurrent?.(); });
