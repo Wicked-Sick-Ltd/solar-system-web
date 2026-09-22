@@ -158,3 +158,22 @@ an issue. MIT licensed ([LICENSE](LICENSE)).
 
 MIT licensed; see [LICENSE](LICENSE). Preserve third-party notices.
 <!-- repository-guidance:end -->
+
+## Exoplanets and galaxy explorer
+
+`/exoplanets` searches NASA confirmed planets by name, discovery method and
+distance; `/exoplanets/{id}` shows measurements and provenance;
+`/systems/{id}` groups a host's planets. `/galaxy` provides a Three.js nearby-system
+map and schematic Milky Way overview. Its route-specific bundle is loaded only
+on the map page. Keyboard system selection and a linked list remain available
+when WebGL is unavailable. The renderer draws on demand, caps pixel ratio and
+cleans up resources on navigation.
+
+Requires `solar-system-db` schema v4 and its `/exoplanets`, `/exoplanet-hosts/{id}`
+and `/galaxy` endpoints. Deploy the backend and new catalogue first. Missing
+list/map support shows an unavailable panel. The frontend fetches its map payload
+through `/galaxy/data` and the existing cached API client; browsers never contact
+NASA directly. Map distances use parsecs internally and light-years in labels.
+Markers represent host systems; their sizes and the galaxy outline are illustrative.
+
+Additional JavaScript checks: `node --test tests/js/*.test.js`.

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services\SolarApi;
 
 use App\Jobs\RefreshSolarCache;
+use App\Services\SolarApi\Data\Exoplanet;
+use App\Services\SolarApi\Data\ExoplanetHost;
+use App\Services\SolarApi\Data\GalaxyMap;
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Data\ObjectSummary;
 use App\Services\SolarApi\Data\Paginated;
@@ -54,6 +57,46 @@ class SolarApiClient
     // ------------------------------------------------------------------
     // Catalogue
     // ------------------------------------------------------------------
+
+    /** @param array<string,mixed> $filters
+     * @return Paginated<Exoplanet>
+     */
+    public function exoplanets(array $filters = [], int $limit = 24, int $offset = 0): Paginated
+    {
+        $limit = max(1, min(100, $limit));
+        $offset = max(0, min(100000, $offset));
+        $filters = array_filter(array_intersect_key($filters, array_flip(['q', 'discovery_method', 'max_distance_pc'])), static fn ($value) => $value !== null && $value !== '');
+        $data = $this->cachedGet('/exoplanets', $filters + ['limit' => $limit + 1, 'offset' => $offset], $this->ttl['catalog']);
+        if (! is_array($data) || ! ($data['available'] ?? false)) {
+            throw new SolarApiException('Exoplanet catalogue is not available yet.');
+        }
+
+        return $this->paginate(array_values($data['results'] ?? []), $limit, $offset, Exoplanet::fromArray(...));
+    }
+
+    public function exoplanet(string $id): ?Exoplanet
+    {
+        $d = $this->cachedGet('/exoplanets/'.rawurlencode($id), [], $this->ttl['catalog']);
+
+        return is_array($d) && isset($d['id']) ? Exoplanet::fromArray($d) : null;
+    }
+
+    public function exoplanetHost(string $id): ?ExoplanetHost
+    {
+        $d = $this->cachedGet('/exoplanet-hosts/'.rawurlencode($id), [], $this->ttl['catalog']);
+
+        return is_array($d) && isset($d['id']) ? ExoplanetHost::fromArray($d) : null;
+    }
+
+    public function galaxyMap(): GalaxyMap
+    {
+        $d = $this->cachedGet('/galaxy', [], $this->ttl['catalog']);
+        if (! is_array($d) || ! ($d['available'] ?? false)) {
+            throw new SolarApiException('Galaxy map is not available yet.');
+        }
+
+        return GalaxyMap::fromArray($d);
+    }
 
     /**
      * Filterable, cursor-paginated list of objects.

@@ -35,6 +35,11 @@ function fakeSolar(): void
         }
 
         return match (true) {
+            str_ends_with($path, '/exoplanets/missing') || str_ends_with($path, '/exoplanet-hosts/missing') => Http::response([], 404),
+            str_ends_with($path, '/exoplanets') => Http::response(['available' => true, 'results' => [exoplanetPayload()], 'total' => 1]),
+            str_contains($path, '/exoplanets/') => Http::response(exoplanetPayload()),
+            str_contains($path, '/exoplanet-hosts/') => Http::response(exoplanetHostPayload()),
+            str_ends_with($path, '/galaxy') => Http::response(['available' => true, 'results' => [exoplanetHostPayload()], 'unmapped_hosts' => 2, 'truncated' => false]),
             str_contains($path, '/objects/missing-object') => Http::response(['detail' => 'not found'], 404),
             str_contains($path, '/objects/planet-saturn') => Http::response(saturnDetail()),
             str_contains($path, '/objects/ast-20099942-apophis') => Http::response(apophisDetail()),
@@ -252,4 +257,26 @@ function skyPayload(bool $observer = false): array
         'frame' => 'equatorial J2000, geocentric; alt/az topocentric; two-body propagation',
         'accuracy_note' => 'Two-body approximation, good to about a degree for the planets.',
     ];
+}
+
+/** @return array<string,mixed> */
+function exoplanetPayload(): array
+{
+    return ['id' => 'exo-proxima-b', 'name' => 'Proxima Cen b', 'host_id' => 'host-proxima',
+        'host_name' => 'Proxima Cen', 'distance_pc' => 1.30119, 'discovery_method' => 'Radial Velocity',
+        'discovery_year' => 2016, 'mass_provenance' => 'Msini', 'controversial' => false,
+        'retrieved_at' => '2026-09-22T12:00:00Z', 'source_data' => [
+            'pl_bmasse' => 1.07, 'pl_bmasseerr1' => 0.06, 'pl_bmasseerr2' => -0.05,
+            'pl_bmasselim' => 0, 'pl_orbper' => 11.186, 'pl_orbperlim' => 0,
+        ]];
+}
+
+/** @return array<string,mixed> */
+function exoplanetHostPayload(): array
+{
+    return ['id' => 'host-proxima', 'name' => 'Proxima Cen', 'distance_pc' => 1.30119,
+        'distance_error_plus_pc' => 0.00034, 'distance_error_minus_pc' => -0.00035,
+        'x_pc' => 0.9, 'y_pc' => -0.9, 'z_pc' => -0.03,
+        'galactocentric_x_pc' => -8121.0, 'galactocentric_y_pc' => -0.9, 'galactocentric_z_pc' => 20.77,
+        'planet_count' => 1, 'planets' => [exoplanetPayload()]];
 }

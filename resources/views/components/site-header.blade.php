@@ -5,6 +5,7 @@
         ['label' => __('Asteroids'), 'route' => 'asteroids', 'active' => 'asteroids'],
         ['label' => __('Comets'), 'route' => 'comets', 'active' => 'comets'],
         ['label' => __('TNOs'), 'route' => 'tnos', 'active' => 'tnos'],
+        ['label' => __('Exoplanets'), 'route' => 'exoplanets.index', 'active' => 'exoplanets*'],
         ['label' => __('All objects'), 'route' => 'objects.index', 'active' => 'objects*'],
     ];
 @endphp
@@ -25,7 +26,7 @@
             @foreach ($nav as $item)
                 <a href="{{ route($item['route']) }}"
                    @class([
-                       'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                       'rounded-md px-2 py-2 text-sm font-medium transition-colors',
                    ])
                    @style([
                        'color: var(--accent)' => request()->routeIs($item['active']),
@@ -52,7 +53,7 @@
                     </svg>
                     <input id="header-search" type="search" name="q" value="{{ request('q') }}"
                            placeholder="{{ __('Search…') }}" autocomplete="off"
-                           class="w-36 bg-transparent px-2 py-1.5 text-sm focus:outline-none lg:w-48"
+                           class="w-36 bg-transparent px-2 py-1.5 text-sm focus:outline-none lg:w-32"
                            style="color: var(--text);">
                 </div>
             </form>
