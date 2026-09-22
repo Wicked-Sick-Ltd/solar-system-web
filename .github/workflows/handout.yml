@@ -1,0 +1,50 @@
+name: Handout
+
+# Builds the two-page A4 leave-behind from live API data and attaches the PDF
+# to the run. Page 2 is a dated snapshot of the planets, so a fresh build each
+# month keeps a current sheet a click away. Nothing is committed — built PDFs
+# are generated artefacts and stay out of the repo.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 06:00 UTC on the 1st of each month, after the nightly 03:00 rebuild.
+    - cron: '0 6 1 * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: handout-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build PDF
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wkhtmltopdf poppler-utils
+
+      - name: Build the handout
+        run: python3 tools/handout/generate.py --out build/solar-handout.pdf
+
+      - name: Check it came out as two A4 pages
+        run: |
+          pdfinfo build/solar-handout.pdf
+          pages=$(pdfinfo build/solar-handout.pdf | awk '/^Pages:/ {print $2}')
+          if [ "$pages" != "2" ]; then
+            echo "::error::expected 2 pages, got $pages"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: solar-handout
+          path: build/solar-handout.pdf
+          if-no-files-found: error
+          retention-days: 90
