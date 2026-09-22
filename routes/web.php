@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GalaxyDataController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
 use App\Http\Controllers\RobotsController;
@@ -7,6 +8,10 @@ use App\Http\Controllers\SitemapController;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
 use App\Livewire\Category;
+use App\Livewire\ExoplanetDetail;
+use App\Livewire\Exoplanets;
+use App\Livewire\ExoplanetSystem;
+use App\Livewire\Galaxy;
 use App\Livewire\Home;
 use App\Livewire\Objects\Index as ObjectsIndex;
 use App\Livewire\Objects\Show as ObjectsShow;
@@ -37,6 +42,12 @@ Route::get('/search', SearchPage::class)->name('search');
 
 // Interactive orrery (2D solar-system map at a chosen date)
 Route::get('/orrery', Orrery::class)->name('orrery');
+
+Route::get('/exoplanets', Exoplanets::class)->name('exoplanets.index');
+Route::get('/exoplanets/{id}', ExoplanetDetail::class)->name('exoplanets.show');
+Route::get('/systems/{id}', ExoplanetSystem::class)->name('systems.show');
+Route::get('/galaxy/data', GalaxyDataController::class)->name('galaxy.data');
+Route::get('/galaxy', Galaxy::class)->name('galaxy');
 
 Route::get('/random', RandomObjectController::class)->name('random');
 

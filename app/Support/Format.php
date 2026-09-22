@@ -15,6 +15,31 @@ use Carbon\CarbonInterface;
  */
 final class Format
 {
+    public static function lightYears(?float $parsecs): string
+    {
+        return $parsecs === null ? __('Distance unknown') : self::unit($parsecs * 3.261563777, 'light-years');
+    }
+
+    /** Preserve limits and asymmetric uncertainties from archive measurements.
+     * @param  array<string,mixed>  $data
+     */
+    public static function exoplanetMeasurement(array $data, string $field, string $unit): string
+    {
+        if (! isset($data[$field]) || ! is_numeric($data[$field])) {
+            return __('Unknown');
+        }
+        $limit = (int) ($data[$field.'lim'] ?? 0);
+        $prefix = match ($limit) {
+            1 => '< ', -1 => '> ', default => ''
+        };
+        $text = $prefix.self::number((float) $data[$field], 4);
+        if ($limit === 0 && isset($data[$field.'err1'], $data[$field.'err2'])) {
+            $text .= ' (+'.self::number(abs((float) $data[$field.'err1']), 4).' / −'.self::number(abs((float) $data[$field.'err2']), 4).')';
+        }
+
+        return $text.' '.$unit;
+    }
+
     /** A distance in astronomical units. */
     public static function au(?float $au, int $places = 3): ?string
     {
