@@ -56,9 +56,12 @@ jobs:
       - name: Install the backend and build its catalogue
         run: |
           git clone --depth 1 https://github.com/Wicked-Sick-Ltd/solar-system-db.git backend
-          # requests is imported by the backend's build scripts, so it is needed
-          # even though the offline build below makes no network calls.
-          python -m pip install --quiet "fastapi" "uvicorn[standard]" "slowapi" "requests"
+          # Install the backend as a package, the way its own CI does, so its
+          # build scripts and api/main.py can import solar_db and so its runtime
+          # dependencies (requests, astropy) come from its metadata rather than
+          # a list here that drifts. The api extra brings fastapi, uvicorn and
+          # slowapi for the server started below.
+          python -m pip install --quiet -e './backend[api]'
           # The backend no longer commits its SQLite catalogue and the published
           # artefact is ~700 MB compressed, so build one from that repo's own test
           # fixtures: a few thousand objects, no network and no secrets. api/main.py
