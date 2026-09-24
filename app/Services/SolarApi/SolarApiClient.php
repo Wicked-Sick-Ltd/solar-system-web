@@ -253,7 +253,7 @@ class SolarApiClient
      * section simply doesn't render (e.g. before the backend deploys /sky).
      *
      * Times and coordinates are rounded so the short cache actually hits:
-     * geocentric calls to the hour, observer calls to 5 minutes and 0.1°.
+     * geocentric calls to the hour, observer calls to 5 minutes and 0.01°.
      */
     public function sky(string $idOrName, ?string $datetime = null, ?float $lat = null, ?float $lon = null): ?SkyPosition
     {
@@ -267,8 +267,8 @@ class SolarApiClient
 
         $query = ['date' => $when->toIso8601ZuluString()];
         if ($observer) {
-            $query['lat'] = round((float) $lat, 1);
-            $query['lon'] = round((float) $lon, 1);
+            $query['lat'] = round((float) $lat, 2);
+            $query['lon'] = round((float) $lon, 2);
         }
 
         $data = $this->cachedGet('/sky/'.$this->encodePath($idOrName), $query, $this->ttl['positions']);

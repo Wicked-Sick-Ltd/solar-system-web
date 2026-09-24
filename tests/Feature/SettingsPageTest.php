@@ -69,6 +69,7 @@ it('is linked from the footer, the observer panel and the privacy page', functio
     $this->get('/privacy')
         ->assertOk()
         ->assertSee('observer_location')
+        ->assertSee('Open-Meteo')
         ->assertSee(route('settings'))
         ->assertSee('fragment of the URL');
 });

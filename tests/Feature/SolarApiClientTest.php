@@ -170,7 +170,7 @@ it('serves a soft-stale position when its refresh fails, and keeps it cached', f
 it('fetches a sky position and maps the observer block', function () {
     fakeSolar();
 
-    $sky = app(SolarApiClient::class)->sky('planet-saturn', '2026-09-15T21:00:00Z', 51.5, -0.12);
+    $sky = app(SolarApiClient::class)->sky('planet-saturn', '2026-09-15T21:00:00Z', 51.5149, -0.1239);
 
     expect($sky)->toBeInstanceOf(SkyPosition::class)
         ->and($sky->raHms)->toBe('23h 12m 04s')
@@ -178,7 +178,9 @@ it('fetches a sky position and maps the observer block', function () {
         ->and($sky->observer?->isUp)->toBeTrue()
         ->and($sky->observer?->riseUtc)->toBe('2026-09-15T18:41:00Z');
 
-    Http::assertSent(fn ($r) => str_contains($r->url(), '/sky/planet-saturn') && (float) $r['lat'] === 51.5);
+    Http::assertSent(fn ($r) => str_contains($r->url(), '/sky/planet-saturn')
+        && (float) $r['lat'] === 51.51
+        && (float) $r['lon'] === -0.12);
 });
 
 it('returns null for a sky 404 so the panel simply hides', function () {

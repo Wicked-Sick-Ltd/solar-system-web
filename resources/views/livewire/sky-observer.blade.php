@@ -42,6 +42,34 @@
                 <dd class="text-sm" style="color: var(--text);">{{ $view->isDark ? __('Below the horizon — dark') : __('Up — daylight or twilight') }}</dd>
             </div>
         </dl>
+
+        @if ($weather)
+            <div class="mt-4 rounded-lg border p-3" style="border-color: var(--border); background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--muted);">{{ __('Tonight\'s outlook') }}</p>
+                <dl class="mt-2 grid gap-y-2 text-sm">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt style="color: var(--muted);">{{ __('Best hour') }}</dt>
+                        <dd class="tabular-nums" style="color: var(--text);"><span x-text="local('{{ $weather->bestHourUtc }}')">{{ $weather->bestHourUtc }}</span></dd>
+                    </div>
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt style="color: var(--muted);">{{ __('Cloud cover') }}</dt>
+                        <dd class="tabular-nums" style="color: var(--text);">{{ $weather->cloudCoverPercent }}% · {{ $weather->verdict }}</dd>
+                    </div>
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt style="color: var(--muted);">{{ __('Dew risk') }}</dt>
+                        <dd style="color: var(--text);">{{ $weather->dewRisk }}</dd>
+                    </div>
+                </dl>
+            </div>
+        @endif
+
+        @if ($kitReadyNudge)
+            <p class="mt-3 text-sm leading-relaxed" style="color: var(--text);">
+                <span class="font-medium">{{ __('Kit-ready nudge:') }}</span>
+                <span x-text="localNudge(@js($kitReadyNudge))">{{ $kitReadyNudge }}</span>
+            </p>
+        @endif
+
         <p class="mt-4 text-xs" style="color: var(--color-faint);">
             {{ __('For :lat, :lon. Times in your local time zone.', ['lat' => number_format((float) $view->lat, 2), 'lon' => number_format((float) $view->lon, 2)]) }}
             <button type="button" class="link-quiet underline" @click="forget()">{{ __('Forget my location') }}</button>
@@ -194,6 +222,9 @@
                 if (fmt === '24') opts.hour12 = false;
             } catch (e) {}
             return d.toLocaleTimeString([], opts);
+        },
+        localNudge(text) {
+            return String(text || '').replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/g, (iso) => this.local(iso));
         }
     }));
 </script>
