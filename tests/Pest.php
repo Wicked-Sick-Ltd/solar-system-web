@@ -64,6 +64,7 @@ function fakeSolar(): void
             ]]),
             str_contains($path, '/sky/missing-sky') => Http::response(['detail' => 'not found'], 404),
             str_contains($path, '/sky/') => Http::response(skyPayload(observer: isset($request['lat']))),
+            str_contains($path, '/v1/forecast') => Http::response(openMeteoPayload()),
             // The backend has no ephemeris for Pluto (mirrors production).
             str_contains($path, '/positions/dwarf-pluto') => Http::response(['detail' => 'No object found'], 404),
             // A body whose ephemeris blows up upstream, for degradation tests.
@@ -256,6 +257,26 @@ function skyPayload(bool $observer = false): array
         ] : null,
         'frame' => 'equatorial J2000, geocentric; alt/az topocentric; two-body propagation',
         'accuracy_note' => 'Two-body approximation, good to about a degree for the planets.',
+    ];
+}
+
+function openMeteoPayload(): array
+{
+    return [
+        'latitude' => 51.5,
+        'longitude' => -0.12,
+        'timezone' => 'UTC',
+        'hourly' => [
+            'time' => [
+                '2026-09-15T23:00',
+                '2026-09-16T00:00',
+                '2026-09-16T01:00',
+            ],
+            'cloud_cover' => [22, 18, 31],
+            'visibility' => [16000, 15000, 14000],
+            'wind_speed_10m' => [3.9, 3.2, 4.5],
+            'relative_humidity_2m' => [82, 90, 88],
+        ],
     ];
 }
 

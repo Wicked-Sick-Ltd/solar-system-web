@@ -25,6 +25,11 @@ it('renders the observer view for a location', function () {
         ->assertSee('Altitude')
         ->assertSee('Up now')
         ->assertSee('WNW')
+        ->assertSee('Tonight\'s outlook')
+        ->assertSee('18%')
+        ->assertSee('Clear')
+        ->assertSee('High dew risk')
+        ->assertSee('Kit-ready nudge:')
         ->assertSee('Forget my location');
 });
 
@@ -103,4 +108,24 @@ it('shows the Google Maps guide', function () {
     Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
         ->assertSee('How do I find my coordinates?')
         ->assertSee('Right-click');
+});
+
+it('degrades gracefully when weather is unavailable', function () {
+    Http::fake(function ($request) {
+        $url = $request->url();
+        $path = parse_url($url, PHP_URL_PATH) ?? '';
+
+        if (str_contains($path, '/v1/forecast')) {
+            return Http::response(['error' => 'down'], 503);
+        }
+
+        return str_contains($path, '/sky/')
+            ? Http::response(skyPayload(observer: isset($request['lat'])))
+            : Http::response(['results' => []]);
+    });
+
+    Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->call('setLocation', 51.5, -0.12)
+        ->assertSee('Altitude')
+        ->assertDontSee('Tonight\'s outlook');
 });
