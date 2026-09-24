@@ -71,6 +71,25 @@ it('provides map controls, source caveats and a linked accessible list', functio
         ->assertSee('host-proxima')->assertSee('not the distribution of all planets');
 });
 
+it('preserves small nonzero measurements, uncertainties and limits', function () {
+    expect(Format::exoplanetMeasurement(['v' => 6.101013, 'verr1' => 0.0000035, 'verr2' => -0.000004], 'v', 'days'))
+        ->toBe('6.101 (+3.5 × 10⁻⁶ / −4 × 10⁻⁶) days');
+    expect(Format::exoplanetMeasurement(['v' => 0.00000012, 'vlim' => 1], 'v', 'AU'))
+        ->toBe('< 1.2 × 10⁻⁷ AU');
+    expect(Format::exoplanetMeasurement(['v' => 0, 'verr1' => 0.00001, 'verr2' => 0], 'v', 'K'))
+        ->toBe('0 (+1 × 10⁻⁵ / −0) K');
+});
+
+it('renders small orbital-period errors on the planet detail page', function () {
+    $planet = exoplanetPayload();
+    $planet['source_data']['pl_orbper'] = 6.101013;
+    $planet['source_data']['pl_orbpererr1'] = 0.0000035;
+    $planet['source_data']['pl_orbpererr2'] = -0.000004;
+    Http::swap(new Factory);
+    Http::fake(['*/exoplanets/*' => Http::response($planet)]);
+    $this->get('/exoplanets/test')->assertOk()->assertSee('6.101 (+3.5 × 10⁻⁶ / −4 × 10⁻⁶) days');
+});
+
 it('loads map data separately from Livewire markup for a full catalogue', function () {
     Http::swap(new Factory);
     $rows = array_fill(0, 5000, exoplanetHostPayload());
