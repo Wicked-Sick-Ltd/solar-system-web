@@ -20,6 +20,8 @@ is the easiest way to get PHP locally; anything else works too.
 composer install
 cp .env.example .env
 php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
 npm ci
 npm run build          # or `npm run dev` for hot reload
 ```
@@ -33,7 +35,7 @@ API_BASE_URL=https://api.sol.wickedsick.com/api/v1
 
 or run `solar-system-db` locally on `:8003` (see its README) and use
 `http://127.0.0.1:8003/api/v1`. Then `php artisan serve` (or open the Herd
-site) and you're up. There is no database to migrate.
+site) and you're up.
 
 ## Before you open a PR
 

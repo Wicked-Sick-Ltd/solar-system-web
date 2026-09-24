@@ -70,6 +70,12 @@ final class SetResponseHeaders
             return;
         }
 
+        // Header chrome is account-aware (sign in vs alerts/sign out), so a
+        // logged-in response must never be stored in a shared cache.
+        if ($request->user() !== null) {
+            return;
+        }
+
         // Livewire wire:submit needs the session CSRF token; cookie-less edge
         // cache would serve a token that cannot match the visitor's session.
         if (app(MailchimpClient::class)->isConfigured()) {

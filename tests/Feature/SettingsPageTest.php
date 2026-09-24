@@ -15,7 +15,7 @@ it('lists everything the site remembers, with a clear-all and a share link', fun
         ->assertSee('theme')
         ->assertSee('Clear everything this site remembers')
         ->assertSee('Use these settings on another device')
-        ->assertSee('nothing is stored on our servers')
+        ->assertSee('Account and alert data are managed separately')
         ->assertSee('after the #');
 });
 

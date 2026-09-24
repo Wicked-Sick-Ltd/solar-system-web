@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Models\VisibilityAlert;
 use App\Services\SolarApi\Data\SkyPosition;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
@@ -11,6 +12,7 @@ use App\Services\What3Words\What3WordsClient;
 use App\Services\What3Words\What3WordsException;
 use App\Support\LocationParser;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -39,6 +41,8 @@ final class SkyObserver extends Component
 
     public bool $failed = false;
 
+    public bool $alertSaved = false;
+
     /** The pasted location text (coordinates, a Google Maps link, or a what3words address). */
     public string $text = '';
 
@@ -52,6 +56,7 @@ final class SkyObserver extends Component
         $this->lat = $lat;
         $this->lon = $lon;
         $this->failed = false;
+        $this->alertSaved = false;
 
         $this->validate([
             'lat' => ['required', 'numeric', 'between:-90,90'],
@@ -112,7 +117,53 @@ final class SkyObserver extends Component
         $this->lat = null;
         $this->lon = null;
         $this->failed = false;
+        $this->alertSaved = false;
         $this->resetErrorBag();
+    }
+
+    public function saveAlert(): void
+    {
+        if (! Auth::check()) {
+            $this->addError('alert', __('Please sign in to save alerts.'));
+
+            return;
+        }
+
+        $this->validate([
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lon' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        VisibilityAlert::query()->updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'object_id' => $this->objectId,
+                'latitude' => round((float) $this->lat, 2),
+                'longitude' => round((float) $this->lon, 2),
+            ],
+            [
+                'active' => true,
+            ],
+        );
+
+        $this->resetErrorBag('alert');
+        $this->alertSaved = true;
+    }
+
+    public function removeAlert(): void
+    {
+        if (! Auth::check() || $this->lat === null || $this->lon === null) {
+            return;
+        }
+
+        VisibilityAlert::query()
+            ->where('user_id', Auth::id())
+            ->where('object_id', $this->objectId)
+            ->where('latitude', round((float) $this->lat, 2))
+            ->where('longitude', round((float) $this->lon, 2))
+            ->delete();
+
+        $this->alertSaved = false;
     }
 
     public function render(SolarApiClient $api): View
@@ -125,6 +176,15 @@ final class SkyObserver extends Component
                 $this->failed = true;
             }
             $this->failed = $this->failed || ! $sky instanceof SkyPosition || $sky->observer === null;
+        }
+
+        if (Auth::check() && $this->lat !== null && $this->lon !== null) {
+            $this->alertSaved = VisibilityAlert::query()
+                ->where('user_id', Auth::id())
+                ->where('object_id', $this->objectId)
+                ->where('latitude', round((float) $this->lat, 2))
+                ->where('longitude', round((float) $this->lon, 2))
+                ->exists();
         }
 
         return view('livewire.sky-observer', [

@@ -5,6 +5,9 @@ use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\VisibilityAlertController;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
 use App\Livewire\Category;
@@ -63,3 +66,16 @@ Route::get('/settings', SettingsPage::class)->name('settings');
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+});
+
+Route::middleware('auth')->group(function (): void {
+    Route::get('/alerts', [VisibilityAlertController::class, 'index'])->name('alerts.index');
+    Route::delete('/alerts/{alert}', [VisibilityAlertController::class, 'destroy'])->name('alerts.destroy');
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+});

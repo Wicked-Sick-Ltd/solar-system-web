@@ -93,6 +93,25 @@
                 </svg>
             </button>
 
+            @auth
+                <a href="{{ route('alerts.index') }}" class="hidden rounded-lg border px-3 py-2 text-sm sm:inline-flex"
+                   style="border-color: var(--border); color: var(--muted);">
+                    {{ __('Alerts') }}
+                </a>
+                <form method="POST" action="{{ route('logout') }}" class="hidden sm:block">
+                    @csrf
+                    <button type="submit" class="rounded-lg border px-3 py-2 text-sm"
+                            style="border-color: var(--border); color: var(--muted);">
+                        {{ __('Sign out') }}
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="hidden rounded-lg border px-3 py-2 text-sm sm:inline-flex"
+                   style="border-color: var(--border); color: var(--muted);">
+                    {{ __('Sign in') }}
+                </a>
+            @endauth
+
             {{-- Mobile menu button --}}
             <button type="button" @click="open = !open"
                     class="inline-flex items-center justify-center rounded-lg border p-2 lg:hidden"
@@ -132,6 +151,16 @@
                 @endforeach
                 <a href="{{ route('random') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Random object') }}</a>
                 <a href="{{ route('about') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('About') }}</a>
+                @auth
+                    <a href="{{ route('alerts.index') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Your alerts') }}</a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full rounded-md px-3 py-2 text-left text-sm font-medium" style="color: var(--text);">{{ __('Sign out') }}</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Sign in') }}</a>
+                    <a href="{{ route('register') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Create account') }}</a>
+                @endauth
             </div>
         </div>
     </nav>

@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
 beforeEach(fn () => fakeSolar());
 
 it('sends baseline security headers on every page', function () {
@@ -40,7 +45,15 @@ it('does not edge-cache interactive pages (they need the session)', function (st
     'search' => '/search?q=ceres',
     'asteroids' => '/asteroids',
     'object detail' => '/objects/planet-saturn',
+    'login' => '/login',
 ]);
+
+it('does not edge-cache even cacheable routes when a user is signed in', function () {
+    $user = User::factory()->create();
+    $cacheControl = (string) $this->actingAs($user)->get('/')->assertOk()->headers->get('Cache-Control');
+
+    expect($cacheControl)->not->toContain('public');
+});
 
 it('makes the sitemap and robots.txt publicly cacheable', function () {
     expect($this->get('/sitemap.xml')->assertOk()->headers->get('Cache-Control'))

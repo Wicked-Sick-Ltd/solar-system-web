@@ -47,6 +47,32 @@
             <button type="button" class="link-quiet underline" @click="forget()">{{ __('Forget my location') }}</button>
             <a class="link-quiet underline" href="{{ route('settings') }}">{{ __('Your settings') }}</a>
         </p>
+        <div class="mt-3">
+            @auth
+                @if ($alertSaved)
+                    <p class="text-sm" style="color: var(--text);">
+                        {{ __('Email alert saved for this location.') }}
+                        <button type="button" class="link-quiet underline" wire:click="removeAlert">{{ __('Remove alert') }}</button>
+                    </p>
+                @else
+                    <button type="button" class="rounded-lg border px-3 py-1.5 text-sm"
+                            style="border-color: var(--border); color: var(--text);"
+                            wire:click="saveAlert">
+                        {{ __('Tell me when it is up after dark') }}
+                    </button>
+                @endif
+            @else
+                <p class="text-sm" style="color: var(--muted);">
+                    <a class="link-quiet underline" href="{{ route('login') }}">{{ __('Sign in') }}</a>
+                    {{ __('or') }}
+                    <a class="link-quiet underline" href="{{ route('register') }}">{{ __('create an account') }}</a>
+                    {{ __('to get email alerts for this object.') }}
+                </p>
+            @endauth
+            @error('alert')
+                <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p>
+            @enderror
+        </div>
     @else
         <p class="text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--muted);">{{ __('From your location') }}</p>
         <p class="mt-2 text-sm leading-relaxed" style="color: var(--text); max-width: 42ch;">
@@ -104,6 +130,7 @@
             @if ($what3words)
                 {{ __('Using a what3words address is optional; if you do, the three words go to what3words to be converted and we don\'t record them.') }}
             @endif
+            {{ __('Set a location first, then you can save an email alert for this object.') }}
             @if (Route::has('privacy'))
                 {{ __('See our') }} <a class="link-quiet underline" href="{{ route('privacy') }}">{{ __('privacy policy') }}</a>.
             @endif
