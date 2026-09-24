@@ -32,4 +32,13 @@ final class Links
 
         return rtrim($host, '/').'/openapi.json';
     }
+
+    /** The backend's streamable HTTP MCP endpoint. */
+    public static function mcp(): string
+    {
+        $base = (string) config('services.solar.base_url');
+        $host = preg_replace('#/api/v\d+/?$#', '', $base);
+
+        return rtrim($host, '/').'/mcp';
+    }
 }
