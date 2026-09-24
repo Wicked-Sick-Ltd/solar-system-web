@@ -32,9 +32,10 @@ final class Format
         $prefix = match ($limit) {
             1 => '< ', -1 => '> ', default => ''
         };
-        $text = $prefix.self::number((float) $data[$field], 4);
+        // Small archive values and errors must not round to an apparent zero.
+        $text = $prefix.self::scientific((float) $data[$field], 4);
         if ($limit === 0 && isset($data[$field.'err1'], $data[$field.'err2'])) {
-            $text .= ' (+'.self::number(abs((float) $data[$field.'err1']), 4).' / −'.self::number(abs((float) $data[$field.'err2']), 4).')';
+            $text .= ' (+'.self::scientific(abs((float) $data[$field.'err1']), 4).' / −'.self::scientific(abs((float) $data[$field.'err2']), 4).')';
         }
 
         return $text.' '.$unit;
