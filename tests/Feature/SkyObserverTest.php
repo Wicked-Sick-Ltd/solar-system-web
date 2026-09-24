@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Livewire\SkyObserver;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
@@ -111,6 +112,9 @@ it('shows the Google Maps guide', function () {
 });
 
 it('degrades gracefully when weather is unavailable', function () {
+    // Replace the shared solar fake outright: stubs registered later never take
+    // precedence, and that one already answers the forecast with good weather.
+    Http::swap(new Factory);
     Http::fake(function ($request) {
         $url = $request->url();
         $path = parse_url($url, PHP_URL_PATH) ?? '';
