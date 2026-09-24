@@ -1,7 +1,7 @@
 <?php
 
-use App\Console\Commands\WarmCache;
 use App\Console\Commands\SendVisibilityAlerts;
+use App\Console\Commands\WarmCache;
 use Illuminate\Support\Facades\Schedule;
 
 // Warm the hot caches shortly after the backend's nightly refresh, and again

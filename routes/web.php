@@ -1,12 +1,12 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\GalaxyDataController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\VisibilityAlertController;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
