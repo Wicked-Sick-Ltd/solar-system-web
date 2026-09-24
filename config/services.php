@@ -78,4 +78,11 @@ return [
         'key' => env('W3W_API_KEY'),
     ],
 
+    // Open-Meteo forecast API — observer panel weather outlook. No API key.
+    'open_meteo' => [
+        'base_url' => env('OPEN_METEO_BASE_URL', 'https://api.open-meteo.com'),
+        'timeout' => (int) env('OPEN_METEO_TIMEOUT', 6),
+        'cache_seconds' => (int) env('OPEN_METEO_CACHE_SECONDS', 1800),
+    ],
+
 ];

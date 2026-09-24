@@ -7,6 +7,8 @@ namespace App\Livewire;
 use App\Services\SolarApi\Data\SkyPosition;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Services\Weather\Data\WeatherOutlook;
+use App\Services\Weather\OpenMeteoClient;
 use App\Services\What3Words\What3WordsClient;
 use App\Services\What3Words\What3WordsException;
 use App\Support\LocationParser;
@@ -118,6 +120,8 @@ final class SkyObserver extends Component
     public function render(SolarApiClient $api): View
     {
         $sky = null;
+        $weather = null;
+        $kitReadyNudge = null;
         if ($this->lat !== null && $this->lon !== null && $this->getErrorBag()->isEmpty()) {
             try {
                 $sky = $api->sky($this->objectId, null, $this->lat, $this->lon);
@@ -125,11 +129,54 @@ final class SkyObserver extends Component
                 $this->failed = true;
             }
             $this->failed = $this->failed || ! $sky instanceof SkyPosition || $sky->observer === null;
+
+            if (! $this->failed && $sky->observer !== null) {
+                $weather = app(OpenMeteoClient::class)->tonightOutlook(
+                    $this->lat,
+                    $this->lon,
+                    $this->bestHourForOutlook($sky),
+                );
+                $kitReadyNudge = $this->kitReadyNudge($sky, $weather);
+            }
         }
 
         return view('livewire.sky-observer', [
             'sky' => $sky,
+            'weather' => $weather,
+            'kitReadyNudge' => $kitReadyNudge,
             'what3words' => app(What3WordsClient::class)->enabled(),
         ]);
+    }
+
+    private function bestHourForOutlook(SkyPosition $sky): ?string
+    {
+        $observer = $sky->observer;
+        if ($observer === null) {
+            return null;
+        }
+
+        return $observer->transitUtc ?? $observer->riseUtc ?? $observer->setUtc;
+    }
+
+    private function kitReadyNudge(SkyPosition $sky, ?WeatherOutlook $weather): ?string
+    {
+        if ($weather === null || $sky->observer === null) {
+            return null;
+        }
+        if ($weather->verdict !== __('Clear')) {
+            return null;
+        }
+
+        $name = $sky->name ?? __('This object');
+        $from = $sky->observer->riseUtc;
+
+        if ($from !== null) {
+            return __('Clear tonight from your location; :name up from :time. Get the kit out.', [
+                'name' => $name,
+                'time' => $from,
+            ]);
+        }
+
+        return __('Clear tonight from your location; :name is observable. Get the kit out.', ['name' => $name]);
     }
 }
