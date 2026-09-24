@@ -18,6 +18,7 @@ final class VisibilityUpAfterDarkNotification extends Notification
         private readonly ?string $objectName,
     ) {}
 
+    /** @return list<string> */
     public function via(object $notifiable): array
     {
         return ['mail'];

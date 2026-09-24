@@ -39,10 +39,12 @@ final class SendVisibilityAlerts extends Command
                         continue;
                     }
 
-                    $upAfterDark = ($sky?->observer?->isUp ?? false) && ($sky?->observer?->isDark ?? false);
+                    $observer = $sky?->observer;
+                    $objectName = $sky?->name;
+                    $upAfterDark = $observer !== null && $observer->isUp && $observer->isDark;
 
                     if ($upAfterDark && $alert->last_state_up_after_dark !== true) {
-                        $alert->user->notify(new VisibilityUpAfterDarkNotification($alert, $sky?->name));
+                        $alert->user->notify(new VisibilityUpAfterDarkNotification($alert, $objectName));
                         $sent++;
                         $alert->last_triggered_at = now();
                     }
