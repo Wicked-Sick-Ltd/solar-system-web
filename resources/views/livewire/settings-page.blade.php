@@ -2,7 +2,7 @@
      x-data="settingsPage(@js(route('settings')))" x-init="load()"
      x-on:theme-changed.window="theme = $event.detail.theme">
     <x-page-header :title="__('Your settings')" :eyebrow="config('site.name')"
-                   :lead="__('Everything this site remembers about you is listed here. All of it lives in your own browser — nothing is stored on our servers, and there is no account. Change or clear any of it; it takes effect immediately.')" />
+                   :lead="__('Everything this site remembers about your browser is listed here. All of it lives in your own browser. Account and alert data are managed separately from these local settings.')" />
 
     <section class="surface mb-8 p-6" aria-labelledby="import-heading" x-show="pendingImport && importData" x-cloak>
         <h2 id="import-heading" class="font-serif text-xl font-medium">{{ __('Apply settings from a link?') }}</h2>

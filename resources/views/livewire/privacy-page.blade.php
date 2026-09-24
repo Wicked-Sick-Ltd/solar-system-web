@@ -11,6 +11,7 @@
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('What we collect, and why') }}</h2>
         <ul class="list-disc space-y-2 pl-5">
             <li><strong>{{ __('Server logs.') }}</strong> {{ __('Our hosting provider records the IP address, requested page, browser type and time of each request, as every web server does. We use these only to keep the site running and to investigate abuse. They are kept for up to 30 days.') }}</li>
+            <li><strong>{{ __('Account and alert data.') }}</strong> {{ __('If you create an account, we store your name, email address, password hash and any visibility alerts you save (object and location) so we can notify you when the condition matches. Remove alerts from your alerts page, and contact us to delete your account data.') }}</li>
             <li><strong>{{ __('Analytics (only with your consent).') }}</strong>
                 {{ __('If you accept analytics cookies we load Google Analytics 4 with IP anonymisation, which tells us which pages people find useful and roughly where in the world they are. It is told the page you are on with sensitive parts of the address removed, so a settings link you open never sends the observing location inside it to Google. We do not use it for advertising and we do not link it to any account. If you choose "essential only", nothing from Google is loaded at all.') }}
                 @unless ($analyticsEnabled)
@@ -43,7 +44,7 @@
             </table>
         </div>
         <p>{{ __('You can change your mind at any time by clearing the cookie_consent cookie in your browser; the banner will ask again on your next visit.') }}
-           {{ __('Everything in local storage is listed, editable and clearable on') }} <a class="link-quiet underline" href="{{ route('settings') }}">{{ __('Your settings') }}</a>. {{ __('There are no user accounts: we hold no profile of you.') }}</p>
+           {{ __('Everything in local storage is listed, editable and clearable on') }} <a class="link-quiet underline" href="{{ route('settings') }}">{{ __('Your settings') }}</a>. {{ __('Account and alert records are separate from browser storage and are used only for sign-in and notifications.') }}</p>
 
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Third parties') }}</h2>
         <ul class="list-disc space-y-2 pl-5">

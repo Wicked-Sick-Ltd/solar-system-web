@@ -15,7 +15,7 @@ use Livewire\Component;
  * in their own browser's local storage — theme, observing location, display
  * preferences. The page lists it, lets them change or clear any of it, and
  * makes a share link so the same settings can be applied on another device
- * without an account. The server never sees the stored values or the share
+ * without copying values manually. The server never sees the stored values or the share
  * token: that token lives in the URL fragment and is decoded only in the
  * browser, so it is absent from requests, access logs and Referer.
  */

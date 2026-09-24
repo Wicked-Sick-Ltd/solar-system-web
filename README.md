@@ -6,7 +6,8 @@ A clean, public, server-rendered astronomy reference for the solar system:
 planets, moons, dwarf planets, asteroids, comets, trans-Neptunian objects and
 planetary rings. It is a **front end only** — all data comes from the read-only
 [`Wicked-Sick-Ltd/solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db) REST
-API. There is no database, no auth, no user content.
+API. It includes lightweight user accounts and email visibility alerts; all
+astronomical data still comes from the backend API.
 
 This is an **astronomy** site, not astrology.
 
@@ -20,7 +21,8 @@ The full product brief lives in [`BRIEF.md`](BRIEF.md). Deployment notes are in
 - **PHP 8.4+** (the current Laravel 13 / Symfony 8.1 dependency graph requires 8.4.1)
 - **Node 22** for the Vite asset build
 - **Pest 4** for tests
-- No database: sessions and cache use the filesystem. All data is fetched from the API and cached.
+- SQLite (or another Laravel-supported DB) for user accounts + visibility alerts
+- Filesystem sessions/cache by default; catalogue/object data is fetched from the API and cached.
 
 ## Local development
 
@@ -33,6 +35,8 @@ composer install
 npm ci
 cp .env.example .env        # then set API_BASE_URL + APP_URL (see below)
 php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
 npm run build               # or `npm run dev` for HMR
 ```
 
@@ -105,6 +109,8 @@ Filter/search/page state lives in the **URL**, so every view is linkable.
 | `/orrery`                          | `Orrery`                   |
 | `/about`, `/api`                   | `AboutPage`, `ApiPage`     |
 | `/privacy`                         | `PrivacyPage`              |
+| `/login`, `/register`              | Auth controllers + Blade forms |
+| `/alerts`                          | `VisibilityAlertController@index` |
 | `/random`                          | `RandomObjectController`   |
 | `/sitemap.xml`, `/robots.txt`      | `SitemapController`, `RobotsController` |
 

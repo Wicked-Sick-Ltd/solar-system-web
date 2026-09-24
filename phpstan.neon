@@ -5,6 +5,10 @@ parameters:
     level: 6
     paths:
         - app
+    # Models declare their casts in the `casts()` method, whose `array` return
+    # type tells Larastan nothing; parsing the method body lets it resolve
+    # attribute types (e.g. `datetime` columns as Carbon) from the real casts.
+    parseModelCastsMethod: true
     # The codebase is small; a single worker avoids intermittent parallel
     # worker crashes and keeps analysis deterministic across machines.
     parallel:
