@@ -36,6 +36,13 @@ php artisan key:generate
 npm run build               # or `npm run dev` for HMR
 ```
 
+## Public endpoints
+
+- REST API base URL: `https://api.sol.wickedsick.com/api/v1`
+- MCP endpoint (streamable HTTP): `https://api.sol.wickedsick.com/mcp`
+
+The in-app `/api` page includes curl examples plus a Claude MCP config snippet.
+
 ### Pointing at the backend
 
 Everything keys off two env vars — nothing about the backend is hard-coded:

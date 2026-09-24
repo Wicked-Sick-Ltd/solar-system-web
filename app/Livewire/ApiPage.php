@@ -21,6 +21,7 @@ final class ApiPage extends Component
 
         return view('livewire.api-page', [
             'baseUrl' => (string) config('services.solar.base_url'),
+            'mcpUrl' => Links::mcp(),
             'docsUrl' => Links::apiDocs(),
             'openApiUrl' => Links::openApi(),
         ]);
