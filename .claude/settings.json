@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && command -v laravel-bootstrap >/dev/null 2>&1; then laravel-bootstrap \"$CLAUDE_PROJECT_DIR\"; fi; exit 0",
+            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && command -v laravel-bootstrap >/dev/null 2>&1; then laravel-bootstrap \"$CLAUDE_PROJECT_DIR\" >&2; fi; exit 0",
             "timeout": 900
           }
         ]
