@@ -106,19 +106,18 @@ def fetch_moon_counts(api_base: str) -> dict:
     Returns {parent_id: count}, e.g. {"planet-saturn": 316, "dwarf-pluto": 5}.
     """
     counts: dict[str, int] = {}
-    after = None
+    offset = 0
+    limit = 500
     while True:
-        url = f"{api_base}/objects?type=moon&limit=500"
-        if after:
-            url += f"&after={after}"
+        url = f"{api_base}/objects?type=moon&limit={limit}&offset={offset}"
         page = fetch_json(url)
         results = page.get("results", [])
         for moon in results:
             parent = moon.get("parent_id") or "unknown"
             counts[parent] = counts.get(parent, 0) + 1
-        after = page.get("next_after")
-        if not results or not after:
+        if len(results) < limit:
             break
+        offset += limit
     if not counts:
         raise SystemExit("the API returned no moons -- cannot build the moons page")
     return counts
