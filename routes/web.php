@@ -11,6 +11,7 @@ use App\Http\Controllers\VisibilityAlertController;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
 use App\Livewire\Category;
+use App\Livewire\CloseApproaches;
 use App\Livewire\ExoplanetDetail;
 use App\Livewire\Exoplanets;
 use App\Livewire\ExoplanetSystem;
@@ -51,6 +52,7 @@ Route::get('/exoplanets/{id}', ExoplanetDetail::class)->name('exoplanets.show');
 Route::get('/systems/{id}', ExoplanetSystem::class)->name('systems.show');
 Route::get('/galaxy/data', GalaxyDataController::class)->name('galaxy.data');
 Route::get('/galaxy', Galaxy::class)->name('galaxy');
+Route::get('/close-approaches', CloseApproaches::class)->name('close-approaches');
 
 Route::get('/random', RandomObjectController::class)->name('random');
 

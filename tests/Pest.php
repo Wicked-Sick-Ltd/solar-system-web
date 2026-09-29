@@ -40,6 +40,10 @@ function fakeSolar(): void
             str_contains($path, '/exoplanets/') => Http::response(exoplanetPayload()),
             str_contains($path, '/exoplanet-hosts/') => Http::response(exoplanetHostPayload()),
             str_ends_with($path, '/galaxy') => Http::response(['available' => true, 'results' => [exoplanetHostPayload()], 'unmapped_hosts' => 2, 'truncated' => false]),
+            str_ends_with($path, '/close-approaches') && ! str_contains($path, '/objects/') => Http::response(['results' => [
+                ['object_id' => 'ast-later', 'name' => '2019 XF2', 'designation' => '(2019 XF2)', 'body' => 'Earth', 'cd_iso' => '2026-12-04T00:35:00Z', 'dist_au' => 0.00795, 'v_rel_km_s' => 10.2],
+                ['object_id' => 'ast-sooner', 'name' => '2022 UP6', 'designation' => '(2022 UP6)', 'body' => 'Earth', 'cd_iso' => '2026-10-15T20:59:00Z', 'dist_au' => 0.00672, 'v_rel_km_s' => 9.02],
+            ]]),
             str_contains($path, '/objects/missing-object') => Http::response(['detail' => 'not found'], 404),
             str_contains($path, '/objects/planet-saturn') => Http::response(saturnDetail()),
             str_contains($path, '/objects/ast-20099942-apophis') => Http::response(apophisDetail()),
