@@ -21,6 +21,9 @@ final readonly class CloseApproach
         public ?float $distMaxAu,
         public ?float $vRelKmS,
         public ?string $tSigma,
+        // Only set on the date-window listing, which spans many objects.
+        public ?string $objectId = null,
+        public ?string $name = null,
     ) {}
 
     /** @param array<string,mixed> $d */
@@ -34,6 +37,8 @@ final readonly class CloseApproach
             distMaxAu: self::float($d, 'dist_max_au'),
             vRelKmS: self::float($d, 'v_rel_km_s'),
             tSigma: self::str($d, 't_sigma'),
+            objectId: self::str($d, 'object_id'),
+            name: self::str($d, 'name') ?? self::str($d, 'designation'),
         );
     }
 

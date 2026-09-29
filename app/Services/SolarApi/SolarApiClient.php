@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\SolarApi;
 
 use App\Jobs\RefreshSolarCache;
+use App\Services\SolarApi\Data\CloseApproach;
 use App\Services\SolarApi\Data\Exoplanet;
 use App\Services\SolarApi\Data\ExoplanetHost;
 use App\Services\SolarApi\Data\GalaxyMap;
@@ -210,6 +211,23 @@ class SolarApiClient
         return $this->mapResults(
             $this->cachedGet('/tnos', ['limit' => max(1, min($limit, 2000))], $this->ttl['catalog']),
             ObjectSummary::fromArray(...),
+        );
+    }
+
+    /**
+     * Every close approach to Earth between two ISO dates within $maxDistAu,
+     * nearest first (the backend's order).
+     *
+     * @return list<CloseApproach>
+     */
+    public function closeApproaches(string $from, string $to, float $maxDistAu = 0.05, int $limit = 200): array
+    {
+        return $this->mapResults(
+            $this->cachedGet('/close-approaches', [
+                'from' => $from, 'to' => $to, 'body' => 'Earth',
+                'max_dist_au' => $maxDistAu, 'limit' => max(1, min($limit, 1000)),
+            ], $this->ttl['catalog']),
+            CloseApproach::fromArray(...),
         );
     }
 
