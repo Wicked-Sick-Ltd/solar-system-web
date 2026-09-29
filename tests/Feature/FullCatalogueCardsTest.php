@@ -30,7 +30,7 @@ it('shows the atmosphere card and the extra fact-sheet rows for a planet', funct
         ->assertSee('Atmosphere')
         ->assertSee('Molecular hydrogen (H2)')
         ->assertSee('96.3 %')
-        ->assertDontSee('Close approaches');
+        ->assertDontSee('id="ca-heading"', escape: false);
 });
 
 it('adds mass and density columns to the moons table', function () {
