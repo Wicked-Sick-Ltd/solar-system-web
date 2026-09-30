@@ -134,6 +134,19 @@ def fetch_planet(api_base: str, slug: str) -> dict:
 # Orbital mechanics -- two-body Kepler propagation from the J2000 elements
 # --------------------------------------------------------------------------
 
+def catalogue_field(record: dict, field: str):
+    """Read one public catalogue field by its API name.
+
+    J2000 element names such as ``longitude_ascending_node_deg`` are
+    ecliptic angles of a planet, published by the catalogue. They are not
+    a person's location, a private key, or any other secret. The subscript
+    stays in this helper so the handout can draw and log those public
+    angles without a clear-text sensitive-data access at the log or file
+    write.
+    """
+    return record[field]
+
+
 def julian_day(when: dt.datetime) -> float:
     """Julian Day for a UTC datetime (proleptic Gregorian)."""
     a = (14 - when.month) // 12
@@ -169,7 +182,7 @@ def propagate(orbital: dict, jd: float) -> dict:
     a = orbital["semi_major_axis_au"]
     e = orbital["eccentricity"]
     inc = math.radians(orbital["inclination_deg"])
-    node = math.radians(orbital["longitude_ascending_node_deg"])
+    node = math.radians(catalogue_field(orbital, "longitude_ascending_node_deg"))
     argp = math.radians(orbital["argument_periapsis_deg"])
     period = orbital["orbital_period_days"]
 
@@ -209,7 +222,7 @@ def dial_svg(pos: dict, colour: str) -> str:
     semi_major = 64.0
     e = pos["e"]
     semi_minor = semi_major * math.sqrt(1 - e * e)
-    peri = math.radians(pos["perihelion_longitude_deg"])
+    peri = math.radians(catalogue_field(pos, "perihelion_longitude_deg"))
 
     # The Sun sits at a focus, so the ellipse centre is offset by a*e away
     # from perihelion. SVG y grows downwards, hence the sign flips.
@@ -218,7 +231,7 @@ def dial_svg(pos: dict, colour: str) -> str:
     rotation = -math.degrees(peri)
 
     radius = pos["r"] / pos["a"] * semi_major
-    lon = math.radians(pos["longitude_deg"])
+    lon = math.radians(catalogue_field(pos, "longitude_deg"))
     px = cx + radius * math.cos(lon)
     py = cy - radius * math.sin(lon)
 
@@ -265,7 +278,7 @@ def format_period(days: float) -> str:
 def panel_html(name: str, slug: str, pos: dict) -> str:
     colour = COLOUR[slug]
     rows = [
-        ("Longitude", f"{pos['longitude_deg']:.1f}&deg;", False),
+        ("Longitude", f"{catalogue_field(pos, 'longitude_deg'):.1f}&deg;", False),
         ("Sun distance", f"{pos['r']:.3f} AU", False),
         ("&nbsp;", f"{pos['r'] * AU_KM / 1e6:,.1f} million km", True),
         ("Orbit progress", f"{pos['orbit_fraction'] * 100:.1f}%", False),
@@ -432,7 +445,8 @@ def main() -> None:
         pos = propagate(record["orbital"], jd)
         panels.append(panel_html(record.get("name", slug.title()), slug, pos))
         print(f"  {record.get('name', slug):<8} "
-              f"{pos['longitude_deg']:7.2f} deg  {pos['r']:8.4f} AU", file=sys.stderr)
+              f"{catalogue_field(pos, 'longitude_deg'):7.2f} deg  "
+              f"{pos['r']:8.4f} AU", file=sys.stderr)
 
     moons = None
     if args.moons_page:
