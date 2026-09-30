@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Solar — a field guide to the solar system</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Carlito", "DejaVu Sans", sans-serif;
+    background: #ffffff;
+    color: #1d1c19;
+    font-size: 10pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+  }
+  .page { width: 100%; padding: 16mm 7.15% 0 7.15%; }
+
+  /* ---------- masthead ---------- */
+  .mast { border-bottom: 2.5pt solid #1d1c19; padding-bottom: 6mm; margin-bottom: 7mm; }
+  .eyebrow { font-size: 7.6pt; letter-spacing: .18em; text-transform: uppercase; color: #7a7466; margin-bottom: 2.5mm; }
+  h1 { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 32pt; line-height: 1; margin: 0 0 2.5mm 0; letter-spacing: -.01em; }
+  .sub { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 11.5pt; color: #4a463d; font-style: italic; margin: 0 0 4mm 0; }
+  .url-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .url { font-family: "DejaVu Sans Mono", monospace; font-size: 12pt; font-weight: bold; letter-spacing: -.02em; }
+  .pills span {
+    display: inline-block; font-size: 7.4pt; letter-spacing: .09em; text-transform: uppercase;
+    border: .8pt solid #b9b2a2; border-radius: 9pt; padding: 1.1mm 3mm; margin-left: 1.5mm; color: #4a463d;
+  }
+
+  /* ---------- lead ---------- */
+  .lead { font-size: 10.6pt; line-height: 1.55; margin: 0 0 8mm 0; color: #2b2922; }
+  .lead b { color: #1d1c19; }
+
+  /* ---------- stats ---------- */
+  .stats { background: #f7f5ef; border: .8pt solid #e2ddd0; padding: 8.5mm 2% 7.5mm 2%; margin-bottom: 13mm; }
+  .stats table { width: 100%; border-collapse: collapse; }
+  .stats td { text-align: center; width: 16.66%; vertical-align: top; }
+  .num { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 17pt; line-height: 1.05; display: block; }
+  .lbl { font-size: 7.3pt; letter-spacing: .11em; text-transform: uppercase; color: #7a7466; }
+  .stats-foot { text-align: center; font-size: 7.8pt; color: #7a7466; margin-top: 3mm; border-top: .5pt dotted #ccc5b5; padding-top: 2.4mm; }
+
+  /* ---------- sections ---------- */
+  h2 { font-size: 8pt; letter-spacing: .16em; text-transform: uppercase; color: #1d1c19;
+       margin: 0 0 3mm 0; padding-bottom: 1.4mm; border-bottom: 1pt solid #1d1c19; }
+  .cols { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .cols td { vertical-align: top; width: 33.33%; padding-right: 4%; }
+  .cols td:last-child { padding-right: 0; }
+  h3 { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 11pt; margin: 0 0 1.5mm 0; }
+  .cols p { margin: 0; color: #4a463d; }
+
+  .block { margin-bottom: 13mm; }
+
+  /* ---------- dev panel ---------- */
+  .dev { background: #1d1c19; color: #f2efe6; padding: 9mm 3.6% 9.5mm 3.6%; margin-bottom: 13mm; }
+  .dev h2 { color: #f2efe6; border-bottom-color: #55504a; }
+  .dev table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .dev td { vertical-align: top; width: 33.33%; padding-right: 4.5%; }
+  .dev td:last-child { padding-right: 0; }
+  .dev h3 { color: #ffffff; margin-bottom: 1.8mm; }
+  .dev p { margin: 0 0 1.8mm 0; color: #c9c3b6; font-size: 9pt; }
+  .dev code { font-family: "DejaVu Sans Mono", monospace; font-size: 7.8pt; color: #ffd98a; word-break: normal; white-space: nowrap; }
+  .dev .tools { margin: 0; color: #c9c3b6; font-size: 8.6pt; line-height: 1.75; }
+  .dev .tools code { white-space: nowrap; }
+  .dev li { margin-bottom: .8mm; }
+
+  /* ---------- sources ---------- */
+  .srcbox { border: .8pt solid #e2ddd0; padding: 8.5mm 3.6% 9mm 3.6%; }
+  .srcbox table { width: 100%; }
+  .srcbox td { vertical-align: top; }
+  .srcbox td.l { width: 62%; padding-right: 5%; }
+  .srcbox p { margin: 0 0 1.6mm 0; color: #4a463d; }
+  .srcbox .note { font-size: 8.4pt; color: #7a7466; margin: 0; }
+  .callout { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 10.5pt; color: #1d1c19; }
+
+  /* ---------- footer ---------- */
+  .foot { margin-top: 8mm; border-top: .8pt solid #d8d2c4; padding-top: 3mm;
+          font-size: 8pt; color: #7a7466; display: flex; justify-content: space-between; }
+  .foot code { font-family: "DejaVu Sans Mono", monospace; font-size: 7.8pt; color: #4a463d; }
+
+  /* ================= page 2 ================= */
+  .p2 { page-break-before: always; }
+  .mast2 { border-bottom: 2.5pt solid #1d1c19; padding-bottom: 5mm; margin-bottom: 6mm; }
+  .h1b { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 26pt; line-height: 1;
+         margin: 0 0 3mm 0; letter-spacing: -.01em; }
+  .sub2 { margin: 0; font-size: 9pt; line-height: 1.5; color: #5a554a; }
+
+  .grid { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .grid td.panel { width: 50%; vertical-align: top; padding: 0 3.2% 4mm 0; }
+  .grid tr td.panel:last-child { padding-right: 0; padding-left: 3.2%;
+                                 border-left: .6pt solid #ece8dd; }
+  .pname { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 13.5pt;
+           margin: 0 0 2mm 0; border-bottom: .8pt solid #1d1c19; padding-bottom: 1.2mm; }
+  .sym { font-family: "DejaVu Sans", sans-serif; font-size: 13pt; margin-right: 2.5mm; }
+  .pin { width: 100%; border-collapse: collapse; }
+  .pin td.dia { width: 50%; padding: 1.5mm 5% 0 0; vertical-align: top; }
+  .pin td.dia svg { width: 100%; height: 41mm; display: block; }
+  .pin td.dat { vertical-align: top; padding-top: 1.5mm; }
+  .row { border-bottom: .5pt dotted #ddd8ca; padding: 1.55mm 0; }
+  .row .k { font-size: 7pt; letter-spacing: .05em; text-transform: uppercase; color: #8b8477; }
+  .row .v { float: right; font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 9.5pt; color: #1d1c19; }
+  .row .v.sm { font-size: 8.4pt; color: #5a554a; }
+  .row:after { content: ""; display: block; clear: both; }
+
+  .foot2 { font-size: 7.8pt; color: #8b8477; margin-top: 6mm; }
+  .p2 .foot { margin-top: 21mm; }
+  .foot2 code { font-family: "DejaVu Sans Mono", monospace; font-size: 7.4pt; color: #5a554a; }
+
+  /* ================= page 3 (optional: moons then and now) ================= */
+  .p3 { page-break-before: always; }
+  .mtable { width: 100%; border-collapse: collapse; margin-bottom: 13mm; }
+  .mtable th { font-size: 7.4pt; letter-spacing: .12em; text-transform: uppercase;
+               color: #8b8477; font-weight: normal; text-align: right;
+               padding: 0 0 2.2mm 0; border-bottom: 1pt solid #1d1c19; }
+  .mtable th.n { text-align: left; }
+  .mtable td { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 13pt;
+               text-align: right; padding: 5.4mm 0; border-bottom: .5pt dotted #ddd8ca; }
+  .mtable td.n { text-align: left; }
+  .mtable td .sym { font-family: "DejaVu Sans", sans-serif; font-size: 11pt; margin-right: 3mm; }
+  .mtable tr.none td { color: #a09889; }
+  .mtable tr.tot td { font-size: 14.5pt; border-bottom: none; border-top: 1pt solid #1d1c19;
+                      padding-top: 3mm; }
+  .mtable td.add { color: #1d1c19; }
+  .mtable tr.none td.add { color: #b5ae9f; }
+
+  .facts { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 13mm; }
+  .facts td { vertical-align: top; width: 33.33%; padding-right: 4%; }
+  .facts td:last-child { padding-right: 0; }
+  .fact-n { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 25pt;
+            line-height: 1; display: block; margin-bottom: 2mm; }
+  .fact-t { font-size: 9.2pt; color: #5a554a; line-height: 1.55; }
+  .p3 .foot { margin-top: 44mm; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="mast">
+    <div class="eyebrow">Free &middot; Open data &middot; No sign-up</div>
+    <h1>Solar</h1>
+    <p class="sub">A field guide to the solar system.</p>
+    <div class="url-row">
+      <span class="url">sol.wickedsick.com</span>
+      <span class="pills"><span>Browse</span><span>Free API</span><span>MCP server</span><span>Bulk download</span></span>
+    </div>
+  </div>
+
+  <p class="lead">
+    Solar is a clean, public reference for everything orbiting our Sun — planets, moons, dwarf planets,
+    asteroids, comets and the icy worlds beyond Neptune. Every record is drawn from <b>NASA/JPL</b> and the
+    <b>IAU Minor Planet Center</b>, rebuilt nightly, and free to browse, query or download.
+    Built and maintained by Wicked Sick Ltd.
+  </p>
+
+  <div class="stats">
+    <table>
+      <tr>
+        <td><span class="num">{{N_PLANETS}}</span><span class="lbl">Planets</span></td>
+        <td><span class="num">{{N_DWARF}}</span><span class="lbl">Dwarf planets</span></td>
+        <td><span class="num">{{N_MOONS}}</span><span class="lbl">Moons</span></td>
+        <td><span class="num">{{N_ASTEROIDS}}</span><span class="lbl">Asteroids</span></td>
+        <td><span class="num">{{N_COMETS}}</span><span class="lbl">Comets</span></td>
+        <td><span class="num">{{N_TNOS}}</span><span class="lbl">TNOs</span></td>
+      </tr>
+    </table>
+    <div class="stats-foot">About {{N_TOTAL_M}} million catalogued objects &middot; rebuilt every night from source &middot; public domain data</div>
+  </div>
+
+  <div class="block">
+    <h2>What you can do with it</h2>
+    <table class="cols">
+      <tr>
+        <td>
+          <h3>Browse &amp; search</h3>
+          <p>Search 1.5&nbsp;million objects by name, designation or discoverer. Filter and sort by type, size,
+             orbit class or discovery date — every view has a shareable URL.</p>
+        </td>
+        <td>
+          <h3>See it move</h3>
+          <p>An interactive orrery plots the planets where they actually are. Object pages carry orbital elements,
+             physical data, rings, moons and close approaches.</p>
+        </td>
+        <td>
+          <h3>Teach and explore</h3>
+          <p>A daily spotlight and a random-object button make it easy to start anywhere. Ideal for classrooms,
+             hobby astronomers, writers and worldbuilders.</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="dev">
+    <h2>For developers and AI builders</h2>
+    <table>
+      <tr>
+        <td>
+          <h3>REST API</h3>
+          <p>Free, read-only, no key and no sign-up.</p>
+          <p><code>api.sol.wickedsick.com/api/v1</code></p>
+          <p>Objects, planets, moons, comets, close approaches, search and stats. Cursor pagination.
+             Roughly 60 requests/minute and 1,000/day per IP.</p>
+          <p><code>/docs</code> Swagger &nbsp;·&nbsp; <code>/openapi.json</code></p>
+        </td>
+        <td>
+          <h3>MCP server</h3>
+          <p>Plug the catalogue straight into Claude, Cursor or any MCP client — stdio locally, or streamable HTTP.</p>
+          <p class="tools">
+            <code>find_objects</code> &middot; <code>get_object</code> &middot; <code>search</code> &middot;
+            <code>list_moons</code> &middot; <code>list_neos</code> &middot; <code>list_tnos</code> &middot;
+            <code>list_meteor_showers</code> &middot; <code>get_rings</code> &middot;
+            <code>compute_position</code> &middot; <code>get_sky_position</code> &middot;
+            <code>next_perihelion</code> &middot; <code>get_schema</code>
+          </p>
+        </td>
+        <td>
+          <h3>Take the whole thing</h3>
+          <p>The entire catalogue as a compressed SQLite database, rebuilt nightly at 03:00&nbsp;UTC with manifest,
+             checksum and licence file.</p>
+          <p><code>download.sol.wickedsick.com</code><br><code>/latest.json</code></p>
+          <p>Both repositories are MIT-licensed — run your own instance if you'd rather.</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="srcbox">
+    <table>
+      <tr>
+        <td class="l">
+          <h2>Where the data comes from</h2>
+          <p>NASA Jet Propulsion Laboratory — planets, moons, orbital elements, close approaches</p>
+          <p>JPL Small-Body Database — asteroids and comets</p>
+          <p>NASA Planetary Fact Sheets — physical data</p>
+          <p>IAU Minor Planet Center — designations and orbits</p>
+          <p>IAU Meteor Data Center — meteor showers</p>
+          <p class="note" style="margin-top:2.5mm;">All sources are public domain or freely redistributable.
+             Attribution: <i>Data: IAU Minor Planet Center</i>; <i>IAU Meteor Data Center (Jenniskens et al. 2020; Hajduková &amp; Rudawska)</i>.</p>
+        </td>
+        <td>
+          <h2>One thing to be clear about</h2>
+          <p class="callout">This is astronomy, not astrology.</p>
+          <p class="note" style="margin-top:2mm;">No horoscopes, houses, transits or natal charts —
+             just observational data from NASA/JPL and the IAU, presented plainly and kept current.</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="foot">
+    <span><code>github.com/Wicked-Sick-Ltd/solar-system-web</code> &nbsp;·&nbsp; <code>solar-system-db</code></span>
+    <span>Wicked Sick Ltd &middot; Wiz Media Group &nbsp;&nbsp;|&nbsp;&nbsp; Page 1 of {{N_PAGES}}</span>
+  </div>
+
+</div>
+<div class="page p2">
+  <div class="mast2">
+    <div class="eyebrow">Where the planets are &mdash; {{DATE_HUMAN}}</div>
+    <h1 class="h1b">Eight worlds, right now</h1>
+    <p class="sub2">Each dial looks down on the Solar System from above the Sun&rsquo;s north pole. The dotted line is
+      the planet&rsquo;s own orbit drawn to its true shape; the small grey dot marks perihelion, its closest point to
+      the Sun. Angles are heliocentric ecliptic longitude, measured anticlockwise from the March equinox direction (0&deg;).
+      Dials are not to a common scale &mdash; each orbit is drawn to fill its own dial.
+      <b>This sheet is a dated snapshot, correct for the date above</b> &mdash; re-run
+      <code>tools/handout/generate.py</code> at any time for a current one.</p>
+  </div>
+
+  <table class="grid">
+    {{PANELS}}
+  </table>
+
+  <div class="foot2">
+    <span>Positions computed by two-body Kepler propagation from J2000 elements &mdash; the same method as the site&rsquo;s orrery. Source: NASA/JPL via <code>{{API_HOST}}</code></span>
+  </div>
+  <div class="foot">
+    <span><code>sol.wickedsick.com</code> &middot; free API, MCP server and nightly database download</span>
+    <span>Wicked Sick Ltd &middot; Wiz Media Group &nbsp;&nbsp;|&nbsp;&nbsp; Page 2 of {{N_PAGES}}</span>
+  </div>
+</div>
+
+<!--PAGE3_START-->
+<div class="page p3">
+  <div class="mast2">
+    <div class="eyebrow">Then and now &mdash; moons known in 1991 vs today</div>
+    <h1 class="h1b">Four hundred and twenty new moons</h1>
+    <p class="sub2">When <i>Deuteros</i> shipped on the Amiga in 1991, the whole solar system
+      came to sixty known moons. You could have listed every one of them on a single sheet of paper.
+      The counts below are live from the catalogue; the 1991 column is the historical record.</p>
+  </div>
+
+  <table class="mtable">
+    <tr>
+      <th class="n">Planet</th><th>Known in 1991</th><th>Known today</th><th>Found since</th>
+    </tr>
+    {{MOON_ROWS}}
+  </table>
+
+  <table class="facts">
+    <tr>
+      <td>
+        <span class="fact-n">{{FACT_SATURN}}</span>
+        <span class="fact-t">new moons at Saturn alone &mdash; more than were known
+          anywhere in the solar system in 1991. Saturn only overtook Jupiter in 2023.</span>
+      </td>
+      <td>
+        <span class="fact-n">0</span>
+        <span class="fact-t">new moons in the inner solar system. Mercury and Venus still have none,
+          Earth still one, Mars still two. Every discovery since has been at a giant planet.</span>
+      </td>
+      <td>
+        <span class="fact-n">{{FACT_DWARF}}</span>
+        <span class="fact-t">moons now known at dwarf planets. In 1991 Pluto was still a planet
+          and Charon was its only known companion; it now has five.</span>
+      </td>
+    </tr>
+  </table>
+
+  <div class="srcbox">
+    <h2>How this was counted</h2>
+    <p>Today&rsquo;s figures are the catalogue&rsquo;s own, read live from the API. The 1991 column is
+      the historical record as it stood at the end of that year. Two moons sit in the &ldquo;found
+      since&rdquo; column despite older discovery dates: Jupiter&rsquo;s <b>Themisto</b> was seen in 1975,
+      lost, and not recovered until 2000; Uranus&rsquo;s <b>Perdita</b> was imaged by Voyager&nbsp;2 in
+      1986 but went unnoticed until 1999 and was not confirmed until 2003. Neither was a known
+      moon in 1991.</p>
+    <p class="note">Moon counts move. New outer satellites are announced regularly, so treat this
+      page as a dated snapshot like the last one.</p>
+  </div>
+
+  <div class="foot">
+    <span><code>sol.wickedsick.com</code> &middot; free API, MCP server and nightly database download</span>
+    <span>Wicked Sick Ltd &middot; Wiz Media Group &nbsp;&nbsp;|&nbsp;&nbsp; Page 3 of {{N_PAGES}}</span>
+  </div>
+</div>
+<!--PAGE3_END-->
+
+</body>
+</html>
