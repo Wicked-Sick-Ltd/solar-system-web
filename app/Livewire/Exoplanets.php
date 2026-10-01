@@ -20,13 +20,13 @@ use Livewire\Component;
 final class Exoplanets extends Component
 {
     #[Url(except: '')]
-    public string $q = '';
+    public mixed $q = '';
 
     #[Url(except: '')]
-    public string $method = '';
+    public mixed $method = '';
 
     #[Url(except: '')]
-    public string $distance = '';
+    public mixed $distance = '';
 
     #[Url(except: 1)]
     // Keep raw update types until validation; Livewire's int synthesizer can
@@ -39,16 +39,18 @@ final class Exoplanets extends Component
 
     public function mount(): void
     {
-        // URL hydration may silently coerce/drop invalid values. Validate the
-        // original query and restore literal string searches such as "true".
-        try {
-            $filters = ExoplanetFilters::fromInput(request()->query());
-            $this->q = $filters->q;
-            $this->method = $filters->method;
-            $this->distance = $filters->distance;
-            $this->page = $filters->page;
-        } catch (ValidationException $exception) {
-            $this->initialFilterErrors = $exception->errors();
+        // Validate each original URL field independently. A malformed distance
+        // must not prevent restoring a literal q="true" after URL hydration.
+        $query = request()->query();
+        foreach (['q', 'method', 'distance', 'page'] as $field) {
+            $value = array_key_exists($field, $query) ? $query[$field] : ($field === 'page' ? 1 : '');
+            $this->{$field} = $value;
+            try {
+                $filters = ExoplanetFilters::fromInput([$field => $value]);
+                $this->{$field} = $filters->{$field};
+            } catch (ValidationException $exception) {
+                $this->initialFilterErrors[$field] = $exception->errors()[$field];
+            }
         }
     }
 
@@ -70,6 +72,9 @@ final class Exoplanets extends Component
 
     public function updated(string $property): void
     {
+        if (in_array($property, ['q', 'method', 'distance'], true) && $this->{$property} === null) {
+            $this->{$property} = '';
+        }
         if ($property !== 'page') {
             $this->page = 1;
         }
@@ -99,6 +104,12 @@ final class Exoplanets extends Component
             $apiDown = true;
         }
 
-        return view('livewire.exoplanets', compact('results', 'apiDown', 'filterErrors', 'exportQuery'));
+        // Hostile updates retain raw values for validation, never for HTML.
+        $displayFilters = [];
+        foreach (['q', 'method', 'distance'] as $field) {
+            $displayFilters[$field] = is_string($this->{$field}) ? $this->{$field} : '';
+        }
+
+        return view('livewire.exoplanets', compact('results', 'apiDown', 'filterErrors', 'exportQuery', 'displayFilters'));
     }
 }

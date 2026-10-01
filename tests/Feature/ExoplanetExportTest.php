@@ -175,3 +175,36 @@ it('rejects booleans and floating-point page updates without loading a different
     Livewire::test(Exoplanets::class)->set('page', $page)->assertHasErrors(['page'])->assertDontSee('Download page as CSV');
     Http::assertSentCount(1);
 })->with([true, false, 2.0, 1.5]);
+
+it('preserves each valid literal filter when another initial filter is invalid', function () {
+    fakeSolar();
+    Livewire::withQueryParams(['q' => 'true', 'method' => 'false', 'distance' => '5'])->test(Exoplanets::class)
+        ->assertSet('q', 'true')->assertSet('method', 'false')->assertDontSee('Download page as CSV')
+        ->set('distance', '10')->assertSet('q', 'true')->assertSet('method', 'false')->assertSee('Download page as CSV');
+    Http::assertSent(fn ($r) => $r['q'] === 'true' && $r['discovery_method'] === 'false' && $r['max_distance_pc'] === '10');
+    Http::assertSentCount(1);
+});
+
+it('normalizes null text filter updates without unsetting Livewire properties', function (string $field) {
+    fakeSolar();
+    Livewire::test(Exoplanets::class)->set($field, null)->assertSet($field, '')->assertSee('Download page as CSV')->assertHasNoErrors();
+})->with(['q', 'method', 'distance']);
+
+it('rejects malformed text filter updates without rendering arrays or fetching different results', function (string $field, mixed $value) {
+    fakeSolar();
+    Livewire::test(Exoplanets::class)->set($field, $value)->assertHasErrors([$field])->assertDontSee('Download page as CSV')
+        ->call('clearFilters')->assertSee('Download page as CSV');
+    Http::assertSentCount(1);
+})->with([
+    ['q', ['unexpected']], ['method', ['Transit']], ['distance', ['10']],
+    ['q', true], ['method', false], ['distance', 10],
+]);
+
+it('retains independent invalid URL fields until each has been corrected', function () {
+    fakeSolar();
+    Livewire::withQueryParams(['q' => ['unexpected'], 'distance' => '5'])->test(Exoplanets::class)
+        ->assertDontSee('Download page as CSV')->set('distance', '10')->assertDontSee('Download page as CSV')
+        ->set('q', 'true')->assertSee('Download page as CSV');
+    Http::assertSent(fn ($r) => $r['q'] === 'true' && $r['max_distance_pc'] === '10');
+    Http::assertSentCount(1);
+});
