@@ -14,7 +14,7 @@
 <nav class="mt-8 flex flex-wrap items-center justify-between gap-4" aria-label="{{ __('Page navigation') }}">
     @if ($results->hasPrevious())
         @if ($nativeLinks && $previousUrl)
-            <a href="{{ $previousUrl }}" rel="prev" wire:click.prevent="$set('page', {{ $page - 1 }})"
+            <a href="{{ $previousUrl }}" rel="prev" wire:navigate
                class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium"
                style="border-color: var(--border); color: var(--text);">← {{ __('Previous') }}</a>
         @elseif (! $nativeLinks)
@@ -32,7 +32,7 @@
 
     @if ($results->hasMore && (! $nativeLinks || $nextUrl))
         @if ($nativeLinks)
-            <a href="{{ $nextUrl }}" rel="next" wire:click.prevent="$set('page', {{ $page + 1 }})"
+            <a href="{{ $nextUrl }}" rel="next" wire:navigate
                class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium"
                style="border-color: var(--border); color: var(--text);">{{ __('Next') }} →</a>
         @else

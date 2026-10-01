@@ -149,3 +149,10 @@ it('restarts an asteroid form submission in its chosen order with the same filte
     Livewire::withQueryParams(['order' => 'id', 'orbit' => 'MBA', 'after' => 'obj-12'])->test(Category::class, ['kind' => 'asteroid'])
         ->call('applyFilters')->assertSet('after', '')->assertSet('page', 1)->assertSet('order', 'id')->assertSet('orbit', 'MBA');
 });
+
+it('leaves catalogue links available to native modified clicks while enhancing plain navigation', function (string $path) {
+    fakeSolar();
+    $document = catalogueDocument($this->get($path)->assertOk()->getContent());
+    expect($document->query('//main//a[@*[name()="wire:click.prevent"]]')->length)->toBe(0);
+    expect($document->query('//main//a[@*[name()="wire:navigate"]]')->length)->toBeGreaterThan(0);
+})->with(['/exoplanets?page=2', '/meteor-showers', '/asteroids', '/comets?page=2', '/tnos?page=2']);

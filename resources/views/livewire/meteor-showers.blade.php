@@ -16,7 +16,7 @@
         </label>
         <div class="flex flex-wrap items-end gap-4">
             <button type="submit" class="rounded border p-2 text-sm" style="border-color: var(--border);">{{ __('Apply filters') }}</button>
-            <a href="{{ route('meteor-showers.index') }}" wire:click.prevent="clearFilters" class="rounded py-2 text-sm underline">{{ __('Clear filters') }}</a>
+            <a href="{{ route('meteor-showers.index') }}" wire:navigate class="rounded py-2 text-sm underline">{{ __('Clear filters') }}</a>
         </div>
     </form>
     <p wire:loading role="status" class="mb-4 text-sm" style="color: var(--accent);">{{ __('Updating meteor showers…') }}</p>

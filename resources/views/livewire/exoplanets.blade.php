@@ -11,14 +11,14 @@
             <x-form-select id="exo-distance" name="distance" wire:model.live="distance" :selected="$displayFilters['distance']" class="focus-visible:ring-2 focus-visible:ring-[var(--accent)]" :options="['' => __('Any distance'), '10' => __('Within 33 light-years'), '25' => __('Within 82 light-years'), '100' => __('Within 326 light-years'), '1000' => __('Within 3,262 light-years')]" /></div>
         <div class="flex flex-wrap items-end gap-4">
             <button type="submit" class="rounded border p-2 text-sm" style="border-color: var(--border)">{{ __('Apply filters') }}</button>
-            <a href="{{ route('exoplanets.index') }}" wire:click.prevent="clearFilters" class="rounded py-2 text-sm underline">{{ __('Clear filters') }}</a>
+            <a href="{{ route('exoplanets.index') }}" wire:navigate class="rounded py-2 text-sm underline">{{ __('Clear filters') }}</a>
         </div>
     </form>
     <p wire:loading role="status" class="mb-4 text-sm" style="color: var(--accent);">{{ __('Updating exoplanets…') }}</p>
     @if($filterErrors !== [])
         <div role="alert" class="surface space-y-2 p-5">
             @foreach($filterErrors as $error)<p>{{ $error }}</p>@endforeach
-            <a href="{{ route('exoplanets.index') }}" wire:click.prevent="clearFilters" class="underline">{{ __('Reset filters and page') }}</a>
+            <a href="{{ route('exoplanets.index') }}" wire:navigate class="underline">{{ __('Reset filters and page') }}</a>
         </div>
     @elseif($apiDown)
         <x-api-down :section="__('The exoplanet catalogue')" />
@@ -26,7 +26,7 @@
         <x-empty-state :title="$page > 1 ? __('No exoplanets at this page') : __('No exoplanets match those filters')">
             @if($page > 1)
                 {{ __('This page is beyond the current results. The catalogue may have changed since the link was saved.') }}
-                <a href="{{ route('exoplanets.index', array_replace($exportQuery, ['page' => 1])) }}" wire:click.prevent="applyFilters" class="mt-3 block underline">{{ __('First page with these filters') }}</a>
+                <a href="{{ route('exoplanets.index', array_replace($exportQuery, ['page' => 1])) }}" wire:navigate class="mt-3 block underline">{{ __('First page with these filters') }}</a>
             @else
                 {{ __('Try another name or clear the filters. Planets without a known distance are excluded when a distance filter is selected.') }}
             @endif

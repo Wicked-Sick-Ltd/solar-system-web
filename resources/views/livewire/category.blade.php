@@ -5,7 +5,7 @@
         <form action="{{ route('asteroids') }}" method="get" wire:submit="applyFilters" class="surface mb-8 space-y-5 p-5" aria-label="{{ __('Asteroid filters') }}">
             <div class="flex items-center justify-between gap-4">
                 <h2 class="font-semibold">{{ __('Filter asteroids') }}</h2>
-                <a href="{{ route('asteroids', $order === 'id' ? ['order' => 'id'] : []) }}" wire:click.prevent="clearFilters" class="rounded text-sm underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">{{ __('Clear filters') }}</a>
+                <a href="{{ route('asteroids', $order === 'id' ? ['order' => 'id'] : []) }}" wire:navigate class="rounded text-sm underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">{{ __('Clear filters') }}</a>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach (['orbit' => __('Orbit class'), 'diameter' => __('Minimum diameter'), 'moid' => __('Earth MOID'), 'quality' => __('Orbit uncertainty'), 'order' => __('Browse order')] as $field => $label)
