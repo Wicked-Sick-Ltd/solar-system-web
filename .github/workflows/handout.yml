@@ -1,15 +1,20 @@
 name: Handout
 
-# Builds the two-page A4 leave-behind from live API data and attaches the PDF
-# to the run. Page 2 is a dated snapshot of the planets, so a fresh build each
-# month keeps a current sheet a click away. Nothing is committed — built PDFs
-# are generated artefacts and stay out of the repo.
-
+# Pull requests validate deterministic QA snapshots without live API calls.
+# Only manual/scheduled builds fetch current data and upload the live handout.
 on:
   workflow_dispatch:
   schedule:
-    # 06:00 UTC on the 1st of each month, after the nightly 03:00 rebuild.
     - cron: '0 6 1 * *'
+  pull_request:
+    paths:
+      - 'tools/handout/**'
+      - '.github/workflows/handout.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/handout/**'
+      - '.github/workflows/handout.yml'
 
 permissions:
   contents: read
@@ -20,31 +25,47 @@ concurrency:
 
 jobs:
   build:
-    name: build PDF
+    name: validate and build PDF
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install wkhtmltopdf
+      - name: Install host PDF inspection tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends wkhtmltopdf poppler-utils
+          sudo apt-get install -y --no-install-recommends poppler-utils
 
-      - name: Build the handout
-        run: python3 tools/handout/generate.py --out build/solar-handout.pdf
+      - name: Build the isolated distro renderer
+        run: docker --context default build --tag public-universe-handout:bookworm tools/handout
 
-      - name: Check it came out as two A4 pages
-        run: |
-          pdfinfo build/solar-handout.pdf
-          pages=$(pdfinfo build/solar-handout.pdf | awk '/^Pages:/ {print $2}')
-          if [ "$pages" != "2" ]; then
-            echo "::error::expected 2 pages, got $pages"
-            exit 1
-          fi
+      - name: Test HTML generation without network data
+        run: python3 -B tools/handout/test_generate.py
+
+      - name: Render and validate both offline handouts
+        run: python3 -B tools/handout/pdf_smoke.py --docker-context default --docker-image public-universe-handout:bookworm
 
       - uses: actions/upload-artifact@v4
         with:
+          name: handout-offline-qa
+          path: |
+            output/pdf/*-qa.pdf
+            output/pdf/validation.json
+            tmp/pdfs/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Fetch current data for the live handout
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python3 tools/handout/generate.py --html-only --out output/pdf/solar-handout.pdf
+
+      - name: Render and validate the live handout
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python3 -B tools/handout/pdf_smoke.py --docker-context default --docker-image public-universe-handout:bookworm --render-html output/pdf/solar-handout.html
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        with:
           name: solar-handout
-          path: build/solar-handout.pdf
+          path: output/pdf/solar-handout.pdf
           if-no-files-found: error
           retention-days: 90

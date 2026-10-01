@@ -94,9 +94,15 @@ def fetch_json(url: str) -> dict:
 def fetch_stats(api_base: str) -> dict:
     """Catalogue counts for the page-1 stats strip."""
     data = fetch_json(f"{api_base}/stats")
-    by_type = data.get("by_object_type", {})
+    if (not isinstance(data, dict) or type(data.get("total_objects")) is not int
+            or data["total_objects"] < 0 or not isinstance(data.get("by_object_type"), dict)
+            or any(not isinstance(key, str) or type(value) is not int or value < 0
+                   for key, value in data["by_object_type"].items())):
+        raise SystemExit("Malformed /stats response; refusing to print invented catalogue counts")
+    by_type = data["by_object_type"]
     tnos = by_type.get("tno", 0) + by_type.get("centaur", 0)
     return {
+        "N_TOTAL": f"{data.get('total_objects', 0):,}",
         "N_PLANETS": f"{by_type.get('planet', 0):,}",
         "N_DWARF": f"{by_type.get('dwarf_planet', 0):,}",
         "N_MOONS": f"{by_type.get('moon', 0):,}",
@@ -113,13 +119,21 @@ def fetch_moon_counts(api_base: str) -> dict:
     Returns {parent_id: count}, e.g. {"planet-saturn": 316, "dwarf-pluto": 5}.
     """
     counts: dict[str, int] = {}
+    seen_ids: set[str] = set()
     offset = 0
     limit = 500
     while True:
         url = f"{api_base}/objects?type=moon&limit={limit}&offset={offset}"
         page = fetch_json(url)
-        results = page.get("results", [])
+        if not isinstance(page, dict) or not isinstance(page.get("results"), list):
+            raise SystemExit("Malformed moon catalogue page; refusing to print partial counts")
+        results = page["results"]
         for moon in results:
+            if (not isinstance(moon, dict) or not isinstance(moon.get("id"), str) or not moon["id"]
+                    or moon["id"] in seen_ids
+                    or (moon.get("parent_id") is not None and not isinstance(moon["parent_id"], str))):
+                raise SystemExit("Malformed or repeated moon record; refusing to print unreliable counts")
+            seen_ids.add(moon["id"])
             parent = moon.get("parent_id") or "unknown"
             counts[parent] = counts.get(parent, 0) + 1
         if len(results) < limit:
@@ -300,7 +314,7 @@ def panel_html(name: str, slug: str, pos: dict) -> str:
     return (
         '<td class="panel">'
         f'<div class="pname"><span class="sym" style="color:{colour}">'
-        f'{SYMBOL[slug]}</span>{name}</div>'
+        f'{SYMBOL[slug]}</span>{html.escape(name)}</div>'
         '<table class="pin"><tr>'
         f'<td class="dia">{dial_svg(pos, colour)}</td>'
         f'<td class="dat">{body}</td>'
@@ -324,20 +338,21 @@ def moons_page_values(counts: dict) -> dict:
             f'<td class="n"><span class="sym" style="color:{COLOUR[slug]}">'
             f"{SYMBOL[slug]}</span>{slug.title()}</td>"
             f"<td>{then}</td><td>{now:,}</td>"
-            f'<td class="add">{"&mdash;" if added == 0 else f"+{added:,}"}</td>'
+            f'<td class="add">{"-" if added == 0 else f"{added:+,}"}</td>'
             "</tr>"
         )
     rows.append(
         '<tr class="tot"><td class="n">All eight planets</td>'
         f"<td>{total_then}</td><td>{total_now:,}</td>"
-        f'<td class="add">+{total_now - total_then:,}</td></tr>'
+        f'<td class="add">{total_now - total_then:+,}</td></tr>'
     )
 
     dwarf = sum(n for parent, n in counts.items() if parent.startswith("dwarf-"))
     return {
         "MOON_ROWS": "".join(rows),
-        "FACT_SATURN": f"+{counts.get('planet-saturn', 0) - MOONS_1991['saturn']:,}",
+        "FACT_SATURN": f"{counts.get('planet-saturn', 0) - MOONS_1991['saturn']:+,}",
         "FACT_DWARF": f"{dwarf:,}",
+        "FACT_INNER": f"{sum(counts.get(f'planet-{slug}', 0) - MOONS_1991[slug] for slug in PLANETS[:4]):+,}",
     }
 
 
@@ -408,7 +423,7 @@ def render_pdf(html_path: Path, pdf_path: Path, binary: str) -> None:
             "  Or pass --keep-html and print the HTML from a browser."
         )
     result = subprocess.run(
-        [binary, "--page-size", "A4", "--enable-local-file-access",
+        [binary, "--page-size", "A4", "--disable-local-file-access", "--disable-javascript",
          "--margin-top", "0", "--margin-bottom", "0",
          "--margin-left", "0", "--margin-right", "0",
          str(html_path), str(pdf_path)],

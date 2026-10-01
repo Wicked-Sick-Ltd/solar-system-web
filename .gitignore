@@ -39,3 +39,7 @@ __pycache__/
 
 # Written per deployment before config caching
 /bootstrap/build-commit.txt
+
+# Local PDF QA artifacts
+/output/pdf/
+/tmp/pdfs/

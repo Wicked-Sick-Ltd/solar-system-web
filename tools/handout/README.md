@@ -7,8 +7,8 @@ The planetary pages remain a solar-system snapshot generated from API data.
 - **Page 1** — what Public Universe is, the catalogue counts, the free REST API, the MCP
   server and the nightly database download.
 - **Page 2** — a dated snapshot of where the eight planets are, one dial each.
-- **Page 3** *(optional, `--moons-page`)* — today's moon count per planet against the
-  sixty known in 1991.
+- **Page 3** *(optional, `--moons-page`)* - the selected catalogue's moon counts
+  per planet against the sixty in the 1991 reference.
 
 Both pages are built from the public API at run time: the counts come from
 `/stats`, the J2000 orbital elements from `/objects/planet-<name>`. The optional
@@ -77,9 +77,9 @@ python3 tools/handout/generate.py --date 2027-03-20T12:00:00Z --html-only
 
 ## The moons page
 
-`--moons-page` adds a third sheet setting today's moon count against the sixty
-known at the end of 1991, when *Deuteros* shipped on the Amiga. Today's column
-is counted live from the catalogue; the 1991 column is a historical constant in
+`--moons-page` adds a third sheet setting the catalogue snapshot against the sixty
+known at the eight listed planets at the end of 1991, when *Deuteros* shipped on the Amiga. The snapshot column
+is counted from the selected catalogue; the 1991 column is a historical constant in
 `MOONS_1991`, because it cannot be derived from discovery dates alone.
 
 Two moons carry pre-1992 dates but were not known then, and both are counted as
@@ -104,7 +104,8 @@ Two things to know before you move anything:
   rounds past the paper height and emits a trailing blank page. The content is
   sized to fill the page instead.
 
-After a change, check both pages still come out at two pages and edge to edge.
+After a change, run the PDF smoke check below and inspect all pages. It tests
+the two-page default and optional three-page version with real `wkhtmltopdf`.
 
 ## Astronomy, not astrology
 
@@ -117,8 +118,8 @@ science.
 Command-line flags override `SITE_NAME`, `APP_URL`, `API_BASE_URL` and
 `SOLAR_DOWNLOAD_URL` environment variables, respectively. The generator does
 not load Laravel or read `.env` files. Defaults print **Public Universe** while
-retaining the existing website/API origins and the same S3 manifest default as
-the website configuration. Merely changing the brand does not move a service.
+retaining the existing website/API origins and the download manifest default
+`https://download.sol.wickedsick.com/latest.json`. Merely changing the brand does not move a service.
 API documentation and MCP links use the configured API origin plus `/docs` and
 `/mcp`; website and download links can be configured independently. Printed
 public URLs must use HTTP(S) without credentials, query parameters or fragments.
@@ -130,7 +131,7 @@ verified new endpoints explicitly and check the links in the generated artifact.
 Source-specific reuse terms apply; the repositories' MIT licences do not make
 all contributed scientific data public domain.
 
-## Offline checks and PDF release prerequisite
+## Offline HTML and PDF checks
 
 ```bash
 python3 -B tools/handout/test_generate.py
@@ -141,9 +142,55 @@ CLI output without network access or a PDF renderer, check optional planetary
 pages, and verify branding, escaping and endpoint configuration. `--html-only`
 itself still fetches API data in ordinary use; tests replace those reads.
 
-**PDF rendering remains a release prerequisite.** The Public Universe template
-changes have been checked as HTML and have not yet been rendered with
-`wkhtmltopdf`. Before publishing a handout, render both the two-page default and
-three-page `--moons-page` version, confirm A4 page counts and working links, and
-inspect every page for clipping and overflow, especially the longer masthead and
-endpoint labels. HTML tests do not establish PDF pagination or visual acceptance.
+The template was rendered and every page visually inspected with Debian's
+`wkhtmltopdf` 0.12.6 on 1 October 2026. That check found and fixed a blank page
+and an orphaned footer. See [PDF QA evidence](../../docs/qa/2026-10-01/handout-pdf.md)
+for exact versions, checks, limitations and the retained snapshot's provenance.
+
+For reproducible offline layout checks on a machine with Python and Poppler
+(`pdfinfo`, `pdftotext`, `pdftoppm`), build the isolated distro renderer:
+
+```bash
+docker --context desktop-linux build --tag public-universe-handout:bookworm tools/handout
+python3 -B tools/handout/pdf_smoke.py --docker-image public-universe-handout:bookworm
+```
+
+`desktop-linux` is the local Docker Desktop context used for verification.
+On Linux or CI select your intended local engine explicitly with
+`--docker-context default`. The image uses an official Debian base pinned by
+digest plus distro `wkhtmltopdf`, Poppler and fonts. Package installation needs
+network access; each render runs without networking, as the current user, with
+a read-only container filesystem, a temporary `/tmp`, and only the artifact
+folder mounted. No account secrets or backend checkout are mounted.
+
+If `wkhtmltopdf` is already installed, omit `--docker-image` (set
+`QT_QPA_PLATFORM=offscreen` on headless Linux). No API data is fetched by this
+smoke command. `fixture.json` contains a small extract of a retained local
+catalogue, with its checksum and capture date. The PDFs prominently say
+**OFFLINE QA SNAPSHOT - NOT CURRENT CATALOGUE COUNTS** on every page. These
+artifacts test layout; they must not be presented as today's catalogue.
+
+Outputs are ignored: `output/pdf/public-universe-handout-{2,3}page-qa.pdf`, a
+JSON validation report and intermediate HTML. Page PNGs are in `tmp/pdfs/`.
+Checks require exactly two/three A4 pages, nonempty per-page text and expected
+headings/footers, no unresolved placeholders, text within safe page bounds,
+and five working PDF link annotations. All PNG pages still need human/agent
+visual inspection for overlap, clipping, symbols, line breaks and contrast;
+text extraction alone cannot prove layout quality. Link annotations are checked
+for the intended URL, not fetched over the network.
+
+The `Handout` workflow runs these offline checks on matching pull requests and
+main-branch changes. Only scheduled/manual runs fetch live catalogue data.
+They generate HTML first, then use the same isolated renderer and PDF validator:
+
+```bash
+# This first command fetches the configured API; use only for a current handout.
+python3 tools/handout/generate.py --html-only --out output/pdf/solar-handout.pdf
+python3 -B tools/handout/pdf_smoke.py --docker-image public-universe-handout:bookworm --render-html output/pdf/solar-handout.html
+```
+
+For optional moons HTML add `--moons-page` to generation and `--expected-pages 3`
+to rendering. The existing-HTML path checks a Public Universe handout and its
+actual printed URL annotations; it does not refetch data. CLI branding and URL
+flags still work with the original `generate.py` command; any different brand,
+fonts, renderer build or longer text requires another visual PDF review.
