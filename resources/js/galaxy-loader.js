@@ -4,12 +4,14 @@ export function mountGalaxyPage(root, { loadRenderer, fetchMap = globalThis.fetc
     const document = root.ownerDocument;
     const button = root.querySelector('[data-load-map]');
     const status = root.querySelector('[data-map-status]');
+    const instruction = root.querySelector('[data-map-instruction]');
     const viewport = root.querySelector('[data-viewport]');
     const controls = ['[data-view]', '[data-radius]', '[data-reset]', '[data-system]'].map(selector => root.querySelector(selector));
     const events = new AbortController();
     let request, pending, disposeRenderer, focusEvents, disposed = false;
 
     function idle() {
+        instruction.hidden = false;
         button.hidden = false;
         button.disabled = false;
         button.textContent = 'Load 3D map';
@@ -58,6 +60,9 @@ export function mountGalaxyPage(root, { loadRenderer, fetchMap = globalThis.fetc
                 if (disposed) return;
                 disposeRenderer = module.mountGalaxy(root, hosts, { focusOnReady: shouldFocus() });
                 button.hidden = true;
+                // The renderer also supports a picker-only WebGL fallback.
+                // Both ready states have usable controls; neither needs this prompt.
+                instruction.hidden = true;
                 viewport.setAttribute('aria-busy', 'false');
             } catch {
                 request.abort();
@@ -84,6 +89,7 @@ export function mountGalaxyPage(root, { loadRenderer, fetchMap = globalThis.fetc
             request?.abort();
             focusEvents?.abort();
             disposeRenderer?.();
+            idle();
         },
     };
 }
