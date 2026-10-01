@@ -41,7 +41,7 @@ brew install --cask wkhtmltopdf       # macOS
 | `--api-base http://127.0.0.1:8003/api/v1` | Build against a local `solar-system-db`; also controls printed API/MCP/docs links |
 | `--site-name "Public Universe"` | Visitor-facing title and introduction |
 | `--site-url https://sol.wickedsick.com` | Printed website links |
-| `--download-url https://s3.wickedsick.com/solar-system-db/latest.json` | Printed catalogue manifest link |
+| `--download-url https://download.sol.wickedsick.com/latest.json` | Printed catalogue manifest link |
 | `--keep-html` | Keep the intermediate HTML beside the PDF |
 | `--html-only` | Write the HTML and stop — no wkhtmltopdf needed |
 | `--wkhtmltopdf /path/to/bin` | Use a wkhtmltopdf that isn't on `PATH` |

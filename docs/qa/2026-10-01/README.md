@@ -21,6 +21,20 @@ No scheduler, live email or third-party observing services were enabled.
   filtered transit-discovery link are present. Guest hubs also have automated
   backend-outage coverage.
 - Homepage reviewed at 1024 × 900 and 390 × 844. Viewport override reset.
+- Asteroids: ID-ordered first page ended at Aten; Next began at Bacchus. Applying
+  minimum diameter 10 km with NEO selected reset the cursor and returned four
+  fixture matches. Reviewed the controls at 390px.
+- Meteor list showed 44 parameter sets grouped into 25 showers; Geminids detail
+  exposed all six sets, units, missing-value labels and Phaethon parent links.
+  Detail reviewed at 390px. Upstream citation markup is displayed as escaped
+  readable text; raw references remain available in data objects.
+- Exoplanet export panel reviewed at 390px with CSV/JSON links carrying the
+  TRAPPIST-1 filter. Separate local HTTP integration downloaded both formats:
+  seven planets, matching source data, a metadata row in CSV, no-store and
+  attachment headers, and an explicit absent immutable snapshot identifier.
+- Invalid exoplanet URL `?q=true&distance=5` showed a distance error. Selecting
+  a valid distance recovered to `?q=true&distance=10`, preserving the literal
+  query and showing an honest empty result.
 
 ## Limitations
 
@@ -36,4 +50,6 @@ passing asset build. Post-change totals belong in the development progress log.
 ![Unified search on mobile](search-mobile.png)
 
 Additional evidence: [desktop search](search-desktop.png),
-[mobile homepage](home-mobile.png), [mobile learning page](learn-mobile.png).
+[mobile homepage](home-mobile.png), [mobile learning page](learn-mobile.png),
+[asteroid filters](asteroids-mobile.png), [meteor detail](meteors-mobile.png),
+[scientific exports](exports-mobile.png).

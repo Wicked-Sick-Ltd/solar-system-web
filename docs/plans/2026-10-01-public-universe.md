@@ -1,6 +1,7 @@
 # Public Universe development plan
 
-Status: active. Owner: Craig. Started: 2026-10-01.
+Status: foundation implemented; final validation recorded in PROGRESS.md.
+Owner: Craig. Started: 2026-10-01.
 
 ## Objective and boundaries
 
@@ -16,7 +17,7 @@ local Git checkpoints are authorized. Production changes, DNS/TLS cutover,
 auto-deploying merges, new access grants, purchases and outbound messages remain
 outside this development scope. Do not execute historical rollout plans.
 
-## Evidence and current state
+## Initial evidence (before this development run)
 
 - Web baseline: `13c40ef`; database baseline: `12af96b` plus local documentation
   handoff `55df0ae`. Preserve the database handoff branch.
@@ -80,8 +81,15 @@ data; responsive browser review completed for new surfaces.
    withdrawn records explicitly. Never fuzzy-merge distinct scientific objects.
 4. Review plugin compatibility once its repository is located.
 
-Exit: exports round-trip representative values and documented metadata; alias
-and contract behaviour have offline fixtures and regression tests.
+Exit: exports round-trip representative values and documented metadata;
+contracts have offline fixtures and regression tests. Alias implementation is
+conditional on trustworthy source identity, as required above.
+
+Implementation decision (1 October): selected archive fields contain no reliable
+planet-level alias relation. Automatic reconciliation is deferred; the inspected
+limitation and requirements for a persistent cited registry are recorded in
+[contract/identity notes](../catalogue-contract.md). The plugin remains
+unavailable. These are follow-on dependencies, not claims of implemented support.
 
 ### Later, separately sized work
 

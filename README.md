@@ -232,3 +232,7 @@ Offline REST/MCP-function/website contract validation and fixture refresh:
 
 Deployment-order regressions use fake commands and never deploy:
 `python3 -m unittest discover -s tests/deployment -v` (also run in CI).
+
+Handout branding/links are verified offline with
+`python3 -B tools/handout/test_generate.py` (also in CI). PDF release checks are
+listed in [the handout guide](tools/handout/README.md).

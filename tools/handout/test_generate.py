@@ -32,7 +32,7 @@ class HandoutBrandingTests(unittest.TestCase):
         self.assertIn('href="https://sol.wickedsick.com"', rendered)
         self.assertIn('href="https://api.sol.wickedsick.com/api/v1"', rendered)
         self.assertIn('href="https://api.sol.wickedsick.com/mcp"', rendered)
-        self.assertIn('href="https://s3.wickedsick.com/solar-system-db/latest.json"', rendered)
+        self.assertIn('href="https://download.sol.wickedsick.com/latest.json"', rendered)
         self.assertIn("This handout focuses on our solar system", rendered)
         self.assertIn("Solar System from above the Sun", rendered)
         self.assertNotIn("public domain data", rendered)

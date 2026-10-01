@@ -56,6 +56,9 @@ jobs:
       - name: Verify deployment ordering with fake executables
         run: python3 -m unittest discover -s tests/deployment -v
 
+      - name: Verify handout HTML offline
+        run: python3 -B tools/handout/test_generate.py
+
       - name: Run tests (Pest)
         run: ./vendor/bin/pest
 

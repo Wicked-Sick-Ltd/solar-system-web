@@ -70,12 +70,14 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
   versioning a URL cannot change the text already baked into its image.
   Confirm image content, not only the image URL. No production invalidation or
   CDN configuration has been performed by this development change.
-- Update `tools/handout/template.html` and generator branding/URL configuration
-  before publishing new handouts. The existing printed template still says
-  Solar, has legacy URLs and broad reuse claims. Render and inspect all pages
-  with `wkhtmltopdf`, verify two A4 pages (three with `--moons-page`), correct
-  links, no clipping, dated positions and source-specific attribution. This
-  foundation change has not regenerated or visually verified those PDFs.
+- The handout template and generator now use Public Universe with escaped,
+  configurable branding and public URLs. Legacy website/API/download origins
+  remain defaults; set the approved values explicitly when generating new
+  material. Six offline HTML tests verify branding, links and CLI configuration.
+  Before publishing, render and inspect all pages with `wkhtmltopdf`: verify two
+  A4 pages (three with `--moons-page`), correct links, no clipping, dated positions
+  and source-specific attribution. This foundation change has not regenerated
+  or visually verified those PDFs. See [handout instructions](../tools/handout/README.md).
 
 ## Website cutover
 

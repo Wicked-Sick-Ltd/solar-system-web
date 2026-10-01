@@ -43,7 +43,7 @@ from pathlib import Path
 DEFAULT_API = "https://api.sol.wickedsick.com/api/v1"
 DEFAULT_SITE_NAME = "Public Universe"
 DEFAULT_SITE_URL = "https://sol.wickedsick.com"
-DEFAULT_DOWNLOAD_URL = "https://s3.wickedsick.com/solar-system-db/latest.json"
+DEFAULT_DOWNLOAD_URL = "https://download.sol.wickedsick.com/latest.json"
 J2000_JD = 2451545.0
 AU_KM = 149_597_870.7
 HTTP_TIMEOUT = 30
@@ -448,7 +448,7 @@ def main() -> None:
                         help="website URL (APP_URL, otherwise the existing public website)")
     parser.add_argument("--download-url", type=public_http_url,
                         default=os.environ.get("SOLAR_DOWNLOAD_URL", DEFAULT_DOWNLOAD_URL),
-                        help="manifest URL (SOLAR_DOWNLOAD_URL, otherwise the existing S3 manifest)")
+                        help="manifest URL (SOLAR_DOWNLOAD_URL, otherwise the existing download manifest)")
     parser.add_argument("--date", default=None,
                         help="UTC instant for the planet positions, ISO 8601 "
                              "(default: now, rounded down to the hour)")

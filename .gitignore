@@ -32,3 +32,7 @@ Thumbs.db
 
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# Python helper and verification bytecode
+__pycache__/
+*.py[cod]
