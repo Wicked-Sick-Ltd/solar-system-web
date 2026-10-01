@@ -33,7 +33,7 @@ final class SitemapController extends Controller
 
         // Static, high-value pages.
         foreach (['home', 'explore', 'observe', 'learn', 'objects.index', 'planets.index', 'dwarf-planets',
-            'asteroids', 'comets', 'tnos', 'close-approaches', 'orrery', 'exoplanets.index', 'systems.index', 'galaxy', 'meteor-showers.index', 'about', 'api', 'privacy'] as $name) {
+            'asteroids', 'comets', 'tnos', 'close-approaches', 'orrery', 'exoplanets.index', 'systems.index', 'galaxy', 'meteor-showers.index', 'releases.index', 'about', 'api', 'privacy'] as $name) {
             $urls[route($name)] = $name === 'home' ? '1.0' : '0.7';
         }
 

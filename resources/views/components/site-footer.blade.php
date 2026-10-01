@@ -36,6 +36,7 @@
                 <li><a class="link-quiet" href="{{ route('galaxy') }}">{{ __('Galaxy explorer') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('orrery') }}">{{ __('Orrery') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('about') }}">{{ __('About & data sources') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('releases.index') }}">{{ __('What’s new') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('api') }}">{{ __('Use the API') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('random') }}">{{ __('Random object') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('settings') }}">{{ __('Your settings') }}</a></li>

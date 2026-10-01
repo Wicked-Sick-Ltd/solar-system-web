@@ -9,7 +9,7 @@ observing tools. Public browsing and learning require no account.
 Astronomical data comes from the read-only
 [`Wicked-Sick-Ltd/solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db)
 REST API, which brings together NASA, JPL and other astronomical sources. This
-front end stores lightweight user accounts and email visibility alerts in its
+front end stores lightweight user accounts, email visibility alerts and public release history in its
 own database. Consult individual source references and reuse terms when using
 the data; the repository's MIT licence applies to the code.
 
@@ -239,3 +239,10 @@ listed in [the handout guide](tools/handout/README.md).
 
 The [measured-system directory](docs/measured-systems.md) provides a searchable,
 paginated alternative to the 3D map that works without JavaScript.
+
+## Community releases
+
+[Release workflow](docs/releases.md) covers reviewed community notes, the public
+`/whats-new` history, versioning, CI metadata checks and deployment verification.
+Start with `php artisan universe:releases:render 1.0.0` to preview the first draft
+locally. This does not publish or send an announcement.

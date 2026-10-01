@@ -1,0 +1,29 @@
+{
+  "title": "Public Universe: a wider view of space",
+  "summary": "Our free astronomy platform has a new name and more ways to explore real observations, from our solar system to planets around other stars. This first community release brings easier discovery, accessible system browsing, learning activities and scientific downloads together under Public Universe.",
+  "sections": {
+    "Explore at your own pace": [
+      "Explore, Observe, Learn and Data give you clear starting points, whether you are curious about space, preparing an observing session, teaching or doing research.",
+      "Search solar-system objects and exoplanets together. Results keep useful information available when one catalogue is temporarily unavailable.",
+      "Browse measured planetary systems by name or distance without needing JavaScript or a 3D display, then open a system's planets or locate it on the galaxy map.",
+      "Filter asteroids by their recorded properties and continue through the catalogue without skipping objects between pages."
+    ],
+    "Learn from observations": [
+      "New short activities explore stellar distances, planet-discovery methods and how to read measurements, with extra detail and links to NASA sources.",
+      "Meteor-shower pages show the different observation campaigns, reported parent bodies and measurements in the IAU Meteor Data Center catalogue.",
+      "Meteor activity filters are clearly marked as approximate seasonal guides, rather than forecasts of visibility or hourly meteor rates."
+    ],
+    "Use the data with confidence": [
+      "Download the current filtered exoplanet page as CSV or JSON, with up to 24 planets, units, original source fields, uncertainties, limits and references.",
+      "Downloads distinguish missing values from zero and explain that the current API does not provide an immutable snapshot identifier.",
+      "Small and one-sided distance uncertainties remain visible in the system directory and galaxy map. Coverage notes explain missing positions and incomplete samples.",
+      "Malformed upstream data is reported as unavailable rather than silently treated as an empty or complete catalogue."
+    ],
+    "A dependable free platform": [
+      "Public browsing, learning and data access remain free and available without an account.",
+      "Account sessions, personal-page caching and visibility-alert processing have received reliability improvements.",
+      "This release history gives every announced version a permanent page, with notes published after the running release has been verified.",
+      "The move to publicuniverse.net is being prepared separately. Existing public addresses remain in use until that migration is ready."
+    ]
+  }
+}

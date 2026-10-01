@@ -1,7 +1,51 @@
 # Public Universe progress and continuation
 
-Updated: 2026-10-01. Foundation and accessible-system follow-on complete.
+Updated: 2026-10-01. Foundation, accessible systems and release workflow implemented.
 See [development plan](2026-10-01-public-universe.md).
+
+## Community release workflow
+
+Craig requested deployments and full community/site release notes following
+project-gambit. Implemented a single reviewed JSON source, local Markdown/JSON
+review commands, `/whats-new` history and permanent version pages, linked from
+the footer and sitemap. Drafts remain private until exact live build/database
+verification records an immutable publication. Rollbacks hide newer versions;
+retries and concurrent publishers preserve the first notes, commit and date.
+
+The deployment script now requires a full reviewed SHA, validates branch ancestry
+and a clean checkout before maintenance, checks out that exact revision and
+writes build identity before configuration caching. Its final publication hook
+requires HTTPS, no redirects, a nonce, no-store and matching live version/commit
+and database readiness. Bootstrap `0.0.0` also verifies readiness but publishes
+nothing. Post-activation failure explicitly reports that code is already live.
+
+Release Please configuration and no-secret CI metadata checks are prepared. The
+release bot is inactive until a separately authorized repository-scoped GitHub
+App is configured; a manual release PR remains possible. A reviewed draft for
+1.0.0 is at `resources/releases/1.0.0.json`. No stable release/tag, live deployment,
+community message or new access grant has been created. See
+[release workflow](../releases.md) and [deployment runbook](../../DEPLOYMENT.md).
+
+Validation: **507 PHP tests / 1,932 assertions**, **15 release metadata/hook tests**,
+**8 deployment tests** (including an isolated real Git branch-advance test),
+**6 JavaScript tests**, Pint, PHPStan and production assets pass. The existing
+557 kB galaxy chunk warning remains. Independent review corrected a bootstrap
+readiness bypass and a PHP/Python numeric-heading schema mismatch before
+integration. Browser review of desktop and 390px layouts used a temporary local
+SQLite database and clearly labelled QA release, with no accounts or outbound
+HTTP. The permanent page link works; no local fixture was publicly published.
+
+The first deployment destination was requested once (existing production or
+separate staging) and remains unanswered. Existing Forge site inventory was
+read, but the intended read-only Git command returned unrelated cache-warming
+output. Inspection of the installed CLI showed it lists commands and polls the
+first item after creating a command, making stale output plausible; this does
+not establish the deployed revision. No deployment command was invoked and no
+further remote commands were attempted. Forge's browser session requires login.
+Before rollout, establish the actual revision, install a reviewed deploy wrapper,
+verify backups/drain/recovery and obtain the target decision. A changed repository
+script does not automatically replace Forge's saved script. Worker/scheduler
+health remains a required operator check beyond web readiness.
 
 ## Completed follow-on: accessible measured-system directory
 

@@ -74,3 +74,15 @@ Additional evidence: [desktop search](search-desktop.png),
 
 Evidence: [desktop directory](systems-desktop.png),
 [mobile controls](systems-mobile.png), [mobile result](systems-mobile-result.png).
+
+
+## Community release history
+
+The [desktop release preview](releases-desktop.png) uses a temporary local SQLite
+database, a simulated `1.0.0` build and a conspicuous LOCAL QA PREVIEW notice.
+Neither the row nor its date is a public release. Browser inspection verified the
+index, permanent version link and readable [390×844 layout](releases-mobile.png). Draft exclusion,
+rollback visibility and empty-state behaviour have HTTP feature coverage.
+A browser-control timeout prevented the additional keyboard-navigation check
+; that check is not claimed as completed. The
+viewport reset was attempted but could not be confirmed after that timeout.

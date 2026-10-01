@@ -1,8 +1,8 @@
 # Deployment
 
 The website consumes the astronomy catalogue through the Solar System DB REST
-API and **has a persistent database of its own** for accounts and visibility
-alerts. Deploying application code must preserve that database, `APP_KEY`, and
+API and **has a persistent database of its own** for accounts, visibility
+alerts and published release history. Deploying application code must preserve that database, `APP_KEY`, and
 private storage. This runbook prepares a release; it does not authorize a live
 release or domain cutover.
 
@@ -63,6 +63,7 @@ php artisan key:generate
 npm ci --no-audit --no-fund
 npm run build
 php artisan migrate --force
+bash scripts/release-deploy.sh prepare
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -77,14 +78,21 @@ backup procedure below before opening account registration.
 
 The Forge [deploy script](deploy.sh) is an **in-place maintenance release**, not
 an atomic or zero-downtime deployment. Use it only for an installed application
-with working dependencies. Configure Forge's `FORGE_SITE_*`, `FORGE_PHP`,
+with working dependencies. It checks out an exact revision in detached HEAD
+state. Configure Forge's `FORGE_SITE_*`, `FORGE_PHP`,
 `FORGE_COMPOSER` and `FORGE_PHP_FPM` variables as usual.
 
 Before invoking it:
 
 1. Verify the target host, branch, reviewed commit and pending migrations. Record
    the currently deployed commit and backup location. Live deployment needs
-   authorization for that environment.
+   authorization for that environment. Set `RELEASE_COMMIT` to that full,
+   lowercase 40-character SHA. The revision must be reachable from the fetched
+   configured branch; moving the branch later must not change the target.
+   Confirm that Forge supports the resulting detached checkout.
+   **The repository script does not replace Forge's saved deploy script.**
+   Install or invoke a reviewed copy of this script explicitly; the old
+   branch-pulling wrapper must not run first.
 2. Disable the site's scheduler and stop/drain its queue worker and any running
    `alerts:send-visibility` processes. Maintenance alone cannot stop a command
    that is already executing. Prevent deploy hooks from restarting them early.
@@ -103,13 +111,20 @@ provider's consistent snapshot/dump procedure and test restoration. Back up
 `APP_KEY`/environment separately with restricted access. Encrypt off-site
 copies, apply a retention policy, and monitor backup failures.
 
-The script serializes releases, prerenders maintenance HTML, requires a successful
-backup, pulls with `--ff-only`, installs locked dependencies, builds assets,
-clears stale configuration, migrates, rebuilds framework caches, signals worker
-restart, reloads FPM, and brings the site up. It deliberately avoids
-`optimize:clear` because that also clears application cache/lock entries. A
-failure after maintenance starts **leaves the site down** for investigation.
-Cache warming after reopening is best-effort. The standalone `errors/503` view
+The script serializes releases and checks for a clean checkout, including
+untracked files. It fetches the configured branch and validates the target before
+maintenance begins. It then prerenders maintenance HTML, requires a successful
+backup, checks out `RELEASE_COMMIT`, installs locked dependencies, builds assets,
+clears stale configuration, migrates, writes the build identity, rebuilds
+framework caches, signals worker restart, reloads FPM, and brings the site up.
+It deliberately avoids `optimize:clear` because that also clears application
+cache/lock entries. A failure after maintenance starts and before reopening
+**leaves the site down** for investigation. Cache warming after reopening is
+best-effort. The final publication hook verifies the live HTTPS build and database
+before recording release notes. A failure at this final step means **code is
+already active**; investigate and retry publication instead of assuming the site
+is still protected by maintenance. See [release workflow](docs/releases.md).
+The standalone `errors/503` view
 has inline styles and no application layout, JavaScript or asset dependencies,
 so ordinary HTML requests stop before Composer autoloading while dependencies
 are replaced. On the first upgrade to this script, provision that view before
@@ -188,14 +203,19 @@ Verify the CDN using separate anonymous and authenticated browser sessions.
 
 ## Recovery and rollback
 
-Keep maintenance enabled and scheduler/workers stopped on failure. Record the
+For failures before activation, keep maintenance enabled and scheduler/workers
+stopped. If the final publication hook fails, code is already active: inspect
+`/up/release`, correct the cause and retry `bash scripts/release-deploy.sh publish`
+from the active checkout. Do not restore a database just to retry publication.
+Record the
 failed step and inspect logs without exposing personal data. Prefer fixing the
 release forward. Never automatically run `migrate:rollback`: down migrations
 may delete account/alert data and older code may not support the new schema.
 
 If reverting code, first verify the previous commit supports the **current**
 schema. Restore that reviewed commit and its lockfile dependencies/assets,
-rebuild config/routes/views/events, reload FPM and check locally before
+rerun `bash scripts/release-deploy.sh prepare` before rebuilding
+config/routes/views/events, reload FPM and check locally before
 `php artisan up`. If a database restore is necessary, it must be a separately
 authorized recovery with an explicit data-loss window; new registrations and
 alert changes since the snapshot would be lost. Restore into an isolated target
@@ -204,8 +224,13 @@ for investigation with the same privacy controls as backups.
 
 ## Post-release checks
 
-Confirm `/up`, the homepage, an object page, `/login`, `robots.txt` and
-`sitemap.xml` respond correctly and use the intended public origin. Confirm
+Confirm `/up`, `/up/release`, `/whats-new`, the homepage, an object page,
+`/login`, `robots.txt` and
+`sitemap.xml` respond correctly and use the intended public origin. Check that
+`/up/release` matches the reviewed SHA and version, reports database readiness,
+and returns `Cache-Control: no-store` through the public HTTPS edge. Bypass
+edge caching for this endpoint. At version `0.0.0`, release history stays empty;
+a stable release must display its reviewed notes only after publication. Confirm
 `php artisan migrate:status` shows the expected schema and
 `php artisan schedule:list` shows warming and alerts. Inspect scheduler and
 worker logs after resuming them. Validate registration, login/logout, alert
