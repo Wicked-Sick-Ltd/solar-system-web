@@ -85,6 +85,13 @@ final class Exoplanets extends Component
         $this->reset(['q', 'method', 'distance', 'page', 'initialFilterErrors']);
     }
 
+    public function applyFilters(): void
+    {
+        $this->page = 1;
+        unset($this->initialFilterErrors['page']);
+        $this->resetValidation('page');
+    }
+
     public function render(SolarApiClient $api): View
     {
         app(Seo::class)->title(__('Exoplanets'))->description(__('Explore confirmed planets beyond our solar system, with measurements from the NASA Exoplanet Archive.'));

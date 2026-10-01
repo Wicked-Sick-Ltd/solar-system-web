@@ -2,7 +2,7 @@
     <x-page-header :title="$copy['title']" :eyebrow="$copy['eyebrow']" :lead="$copy['lead']" />
 
     @if ($kind === 'asteroid')
-        <form action="{{ route('asteroids') }}" method="get" class="surface mb-8 space-y-5 p-5" aria-label="{{ __('Asteroid filters') }}">
+        <form action="{{ route('asteroids') }}" method="get" wire:submit="applyFilters" class="surface mb-8 space-y-5 p-5" aria-label="{{ __('Asteroid filters') }}">
             <div class="flex items-center justify-between gap-4">
                 <h2 class="font-semibold">{{ __('Filter asteroids') }}</h2>
                 <a href="{{ route('asteroids', $order === 'id' ? ['order' => 'id'] : []) }}" wire:click.prevent="clearFilters" class="rounded text-sm underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">{{ __('Clear filters') }}</a>
@@ -38,16 +38,21 @@
             @if ($kind === 'asteroid')
                 <a href="{{ route('asteroids') }}" class="inline-block underline">{{ __('Reset filters and position') }}</a>
                 <a href="{{ $fullCatalogueUrl }}" class="inline-block underline">{{ __('Browse full catalogue by ID') }}</a>
+            @else
+                <a href="{{ $firstUrl }}" class="inline-block underline">{{ __('Return to the first page') }}</a>
             @endif
         </div>
     @elseif ($apiDown)
         <x-api-down :section="$copy['title']" />
     @elseif ($results->isEmpty())
-        <x-empty-state :title="$kind === 'asteroid' ? __('No asteroids match these filters at this position') : __('Nothing here yet')">
+        <x-empty-state :title="$kind === 'asteroid' ? __('No asteroids match these filters at this position') : ($page > 1 ? __('No objects at this page') : __('Nothing here yet'))">
             @if ($kind === 'asteroid')
                 {{ __('Widen the filters above or return to the first results. Missing measurements are excluded when their filter is active.') }}
                 <a href="{{ $firstUrl }}" class="mt-3 block underline">{{ __('First results with these filters') }}</a>
                 <a href="{{ route('search') }}" class="mt-2 block underline">{{ __('Search by name or designation') }}</a>
+            @elseif ($page > 1)
+                {{ __('This page is beyond the current results. The catalogue may have changed since the link was saved.') }}
+                <a href="{{ $firstUrl }}" class="mt-3 block underline">{{ __('Return to the first page') }}</a>
             @endif
         </x-empty-state>
     @else
@@ -85,11 +90,14 @@
                 @endif
             </nav>
         @elseif ($paginated)
-            <x-pagination :results="$results" :page="$page">
+            <x-pagination :results="$results" :page="$page" :native-links="true" :previous-url="$previousUrl" :next-url="$atPageLimit ? null : $nextUrl">
                 @foreach ($results->items as $object)
                     <x-object-card :object="$object" wire:key="cat-{{ $object->id }}" />
                 @endforeach
             </x-pagination>
+            @if ($results->hasMore && $atPageLimit)
+                <p class="mt-4 text-sm" role="status">{{ __('The browsing page limit has been reached.') }} <a href="{{ route('search') }}" class="underline">{{ __('Search by name or designation') }}</a></p>
+            @endif
         @else
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach ($results->items as $object)

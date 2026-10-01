@@ -1,7 +1,7 @@
 <div>
     <x-page-header :title="__('Search')" :eyebrow="__('Find an object')" />
 
-    <form action="{{ route('search') }}" method="get" role="search" class="mb-8">
+    <form action="{{ route('search') }}" method="get" wire:submit="$refresh" role="search" class="mb-8">
         <label for="search-q" class="sr-only">{{ __('Search the catalogue') }}</label>
         <div class="flex items-center rounded-xl border px-4 focus-within:ring-2 focus-within:ring-[var(--accent)]"
              style="border-color: var(--border); background-color: var(--bg-elevated);">

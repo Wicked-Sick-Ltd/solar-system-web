@@ -58,6 +58,7 @@ final class Category extends Component
     #[Url(except: '')]
     public mixed $after = '';
 
+    #[Locked]
     public string $kind;
 
     /** @var array<string, string> */
@@ -115,6 +116,13 @@ final class Category extends Component
             $this->reset('order');
         }
         $this->reset(['orbit', 'neo', 'pha', 'named', 'diameter', 'moid', 'quality', 'discovered', 'page', 'after']);
+    }
+
+    public function applyFilters(): void
+    {
+        unset($this->rawInputErrors['page'], $this->rawInputErrors['after']);
+        $this->resetValidation(['page', 'after']);
+        $this->reset(['page', 'after']);
     }
 
     public function render(SolarApiClient $api): View
@@ -251,6 +259,15 @@ final class Category extends Component
 
     private function pageUrl(int $page, ?string $after = null): string
     {
+        if ($this->kind !== 'asteroid') {
+            return route(match ($this->kind) {
+                'comet' => 'comets',
+                'tno' => 'tnos',
+                'dwarf_planet' => 'dwarf-planets',
+                default => 'objects.index',
+            }, ['page' => $page]);
+        }
+
         return route('asteroids', $this->urlFilters() + ($this->order === 'id'
             ? ['order' => 'id', 'after' => $after ?? ''] : ['page' => $page]));
     }

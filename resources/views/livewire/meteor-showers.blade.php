@@ -2,20 +2,24 @@
     <x-page-header :title="__('Meteor showers')" :eyebrow="__('Observe & discover')"
         :lead="__('Meteor showers happen when Earth encounters streams of debris. Explore the IAU Meteor Data Center catalogue and the different observation campaigns behind each shower.')" />
 
-    <div class="surface mb-6 grid gap-4 p-5 sm:grid-cols-3">
+    <form action="{{ route('meteor-showers.index') }}" method="get" wire:submit="$refresh" aria-label="{{ __('Meteor shower filters') }}" class="surface mb-6 grid gap-4 p-5 md:grid-cols-3">
         <div>
             <label for="meteor-date" class="mb-2 block text-sm">{{ __('Approximate activity on date') }}</label>
-            <input id="meteor-date" type="date" min="0001-01-01" max="9999-12-31" wire:model.live="activeOn"
+            <input id="meteor-date" name="active_on" type="date" value="{{ $activeOn }}" min="0001-01-01" max="9999-12-31" wire:model.live="activeOn"
                    aria-describedby="meteor-date-help{{ $invalidDate ? ' meteor-date-error' : '' }}"
                    @if($invalidDate) aria-invalid="true" @endif
                    class="w-full rounded border p-2" style="border-color: var(--border); background: var(--bg);">
         </div>
         <label class="flex items-center gap-3 self-center" for="meteor-established">
-            <input id="meteor-established" type="checkbox" wire:model.live="establishedOnly">
+            <input id="meteor-established" name="established_only" type="checkbox" value="1" @checked($establishedOnly) wire:model.live="establishedOnly">
             <span class="text-sm">{{ __('Established showers only (MDC codes 1 and 6)') }}</span>
         </label>
-        <button type="button" wire:click="clearFilters" class="self-end rounded border p-2" style="border-color: var(--border);">{{ __('Clear filters') }}</button>
-    </div>
+        <div class="flex flex-wrap items-end gap-4">
+            <button type="submit" class="rounded border p-2 text-sm" style="border-color: var(--border);">{{ __('Apply filters') }}</button>
+            <a href="{{ route('meteor-showers.index') }}" wire:click.prevent="clearFilters" class="rounded py-2 text-sm underline">{{ __('Clear filters') }}</a>
+        </div>
+    </form>
+    <p wire:loading role="status" class="mb-4 text-sm" style="color: var(--accent);">{{ __('Updating meteor showers…') }}</p>
     <p id="meteor-date-help" class="mb-6 text-sm leading-relaxed" style="color: var(--muted);">
         {{ __('The date filter selects parameter sets whose activity peak is within 15° of the Sun’s approximate ecliptic longitude on that date. It is a seasonal guide, not a prediction of visibility, meteor rates or exact activity dates. Clouds, moonlight, your location and the radiant’s height also matter. Sets without a reported peak are excluded by this filter.') }}
     </p>
