@@ -30,6 +30,7 @@ it('renders every public P0 route', function (string $uri) {
     'exoplanet detail' => '/exoplanets/exo-proxima-b',
     'exoplanet system' => '/systems/host-proxima',
     'galaxy' => '/galaxy',
+    'meteor showers' => '/meteor-showers',
     'close approaches' => '/close-approaches',
     'about' => '/about',
     'api' => '/api',
@@ -121,4 +122,8 @@ it('does not 404 a detail page when the backend is down', function () {
     $this->get('/objects/planet-saturn')
         ->assertOk()
         ->assertSee('unavailable');
+});
+
+it('ignores array search parameters in the shared header', function () {
+    $this->get('/learn?q%5B%5D=Proxima')->assertOk();
 });

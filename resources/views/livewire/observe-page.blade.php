@@ -23,5 +23,7 @@
         <h2 id="observe-events" class="text-2xl">{{ __('Follow astronomical events') }}</h2>
         <p class="mt-3 leading-relaxed">{{ __('Earth close approaches describe how near objects pass. Proximity alone does not tell you whether an object is bright enough to see.') }}</p>
         <a class="mt-4 inline-block underline" href="{{ route('close-approaches') }}">{{ __('Upcoming close approaches') }} →</a>
+        <p class="mt-5 leading-relaxed">{{ __('Meteor showers connect the streaks in our sky to streams of material and their parent bodies. Explore the catalogue and compare observation campaigns; its date filter is an approximate activity guide.') }}</p>
+        <a class="mt-3 inline-block underline" href="{{ route('meteor-showers.index') }}">{{ __('Explore meteor showers') }} →</a>
     </section>
 </div>

@@ -22,6 +22,7 @@
                 <li><a class="link-quiet" href="{{ route('comets') }}">{{ __('Comets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('tnos') }}">{{ __('Trans-Neptunian objects') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('close-approaches') }}">{{ __('Close approaches') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('meteor-showers.index') }}">{{ __('Meteor showers') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('objects.index') }}">{{ __('All objects') }}</a></li>
             </ul>
         </nav>

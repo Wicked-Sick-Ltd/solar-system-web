@@ -1,4 +1,5 @@
 @php
+    $searchQuery = is_string(request('q')) ? request('q') : '';
     $nav = [
         ['label' => __('Explore'), 'route' => 'explore', 'active' => 'explore'],
         ['label' => __('Observe'), 'route' => 'observe', 'active' => 'observe'],
@@ -48,7 +49,7 @@
                         <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
                         <path d="m18 18-4.5-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                     </svg>
-                    <input id="header-search" type="search" name="q" value="{{ request('q') }}"
+                    <input id="header-search" type="search" name="q" value="{{ $searchQuery }}"
                            placeholder="{{ __('Search…') }}" autocomplete="off"
                            class="w-36 bg-transparent px-2 py-1.5 text-sm focus:outline-none lg:w-32"
                            style="color: var(--text);">
@@ -129,7 +130,7 @@
         <div class="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6">
             <form action="{{ route('search') }}" method="GET" role="search" class="mb-3 md:hidden">
                 <label for="mobile-search" class="sr-only">{{ __('Search the catalogue') }}</label>
-                <input id="mobile-search" type="search" name="q" value="{{ request('q') }}"
+                <input id="mobile-search" type="search" name="q" value="{{ $searchQuery }}"
                        placeholder="{{ __('Search the catalogue…') }}" autocomplete="off"
                        class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none"
                        style="border-color: var(--border); background-color: var(--bg); color: var(--text);">
