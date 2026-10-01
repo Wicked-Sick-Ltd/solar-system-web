@@ -243,10 +243,12 @@ class SolarApiClient
             return [];
         }
 
-        return $this->mapResults(
-            $this->cachedGet('/search', ['q' => $query, 'limit' => max(1, min($limit, 100))], $this->ttl['catalog']),
-            SearchResult::fromArray(...),
-        );
+        $data = $this->cachedGet('/search', ['q' => $query, 'limit' => max(1, min($limit, 100))], $this->ttl['catalog']);
+        if (! is_array($data) || ! isset($data['results']) || ! is_array($data['results'])) {
+            throw new SolarApiException('Solar-system search is not available.');
+        }
+
+        return $this->mapResults($data, SearchResult::fromArray(...));
     }
 
     // ------------------------------------------------------------------
