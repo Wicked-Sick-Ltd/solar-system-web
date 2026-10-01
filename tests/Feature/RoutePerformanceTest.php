@@ -25,6 +25,11 @@ it('keeps representative request-kernel work within measured structural budgets'
     for ($iteration = 0; $iteration < $iterations; $iteration++) {
         RouteWorkload::fake();
         foreach (array_keys($measurements) as $temperature) {
+            // A test process survives requests; production PHP requests start with fresh
+            // Livewire render state. Preserve the application cache, not asset flags.
+            app()->forgetScopedInstances();
+            app('livewire')->flushState();
+            app('view')->flushState();
             $before = Http::recorded()->count();
             gc_collect_cycles();
             $baseline = memory_get_usage(false);
@@ -51,6 +56,7 @@ it('keeps representative request-kernel work within measured structural budgets'
                         $scripts[] = $script->getAttribute('src');
                     }
                 }
+                expect(count(array_filter($scripts, fn ($src) => str_contains($src, '/livewire.min.js'))))->toBe(1);
             }
             $measurements[$temperature][] = [
                 'kernel_ms' => round($milliseconds, 3), 'php_peak_used_bytes' => $peak,
