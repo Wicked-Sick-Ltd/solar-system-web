@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\PrivateNightWeather;
 use App\Http\Middleware\PrivateObservingSync;
 use App\Http\Middleware\SetResponseHeaders;
 use Illuminate\Foundation\Application;
@@ -16,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // globally-pushed back-button-cache middleware — letting our public
         // Cache-Control win on the cacheable routes (interactive pages keep
         // Livewire's no-store).
-        $middleware->prepend([SetResponseHeaders::class, PrivateObservingSync::class]);
+        $middleware->prepend([SetResponseHeaders::class, PrivateObservingSync::class, PrivateNightWeather::class]);
     })
     // Bind the exception handler. /api is HTML Livewire, not a JSON API.
     ->withExceptions()
