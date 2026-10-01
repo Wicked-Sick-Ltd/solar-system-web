@@ -70,17 +70,18 @@ final class SettingsPayload
 
         $loc = $data['location'] ?? null;
         if (is_array($loc) && is_numeric($loc['lat'] ?? null) && is_numeric($loc['lon'] ?? null)) {
-            $lat = round((float) $loc['lat'], 2);
-            $lon = round((float) $loc['lon'], 2);
-            if ($lat >= -90 && $lat <= 90 && $lon >= -180 && $lon <= 180) {
-                $out['location'] = ['lat' => $lat, 'lon' => $lon];
+            $lat = (float) $loc['lat'];
+            $lon = (float) $loc['lon'];
+            if (is_finite($lat) && is_finite($lon) && $lat >= -90 && $lat <= 90 && $lon >= -180 && $lon <= 180) {
+                $out['location'] = ['lat' => round($lat, 2), 'lon' => round($lon, 2)];
             }
         }
 
         $prefs = $data['preferences'] ?? null;
         if (is_array($prefs)) {
             $p = [];
-            if (isset($prefs['timeFormat']) && in_array((string) $prefs['timeFormat'], self::TIME_FORMATS, true)) {
+            if (isset($prefs['timeFormat']) && (is_string($prefs['timeFormat']) || is_int($prefs['timeFormat']) || is_float($prefs['timeFormat']))
+                && in_array((string) $prefs['timeFormat'], self::TIME_FORMATS, true)) {
                 $p['timeFormat'] = (string) $prefs['timeFormat'];
             }
             if ($p !== []) {

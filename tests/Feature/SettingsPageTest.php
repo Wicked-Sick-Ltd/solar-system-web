@@ -73,3 +73,19 @@ it('is linked from the footer, the observer panel and the privacy page', functio
         ->assertSee(route('settings'))
         ->assertSee('fragment of the URL');
 });
+
+it('uses labelled native radios for keyboard selection of local preferences', function () {
+    $response = $this->get('/settings')->assertOk();
+    $document = new DOMDocument;
+    $document->loadHTML($response->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+    $xpath = new DOMXPath($document);
+    foreach (['settings-theme' => ['dark', 'light'], 'settings-time-format' => ['auto', '12', '24']] as $name => $values) {
+        $inputs = $xpath->query('//div[@role="radiogroup"]/label/input[@type="radio"][@name="'.$name.'"]');
+        expect($inputs->length)->toBe(count($values));
+        foreach ($inputs as $index => $input) {
+            expect($input->getAttribute('value'))->toBe($values[$index])
+                ->and(trim($input->parentNode->textContent))->not->toBe('');
+        }
+    }
+    expect($xpath->query('//button[@role="radio"]')->length)->toBe(0);
+});

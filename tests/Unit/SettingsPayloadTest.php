@@ -32,3 +32,12 @@ it('rounds a shared location to 2 dp like every other location path', function (
 it('refuses garbage, oversize and non-base64url tokens', function (string $token) {
     expect(SettingsPayload::decode($token))->toBeNull();
 })->with(['', 'not base64!', str_repeat('A', 401), rtrim(base64_encode('"just a string"'), '='), rtrim(base64_encode('{bad json'), '=')]);
+
+it('rejects invalid coordinate types and out-of-range values before rounding', function (mixed $latitude) {
+    expect(SettingsPayload::clean(['location' => ['lat' => $latitude, 'lon' => 0]]))->toBe([]);
+})->with([null, false, true, '', ' ', [[]], [[12]], '0x10', '1e309', 90.001, -90.001]);
+
+it('drops compound time formats instead of casting them to strings', function () {
+    expect(SettingsPayload::clean(['preferences' => ['timeFormat' => ['24']]]))->toBe([])
+        ->and(SettingsPayload::clean(['preferences' => ['timeFormat' => 24]]))->toBe(['preferences' => ['timeFormat' => '24']]);
+});
