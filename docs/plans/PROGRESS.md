@@ -24,6 +24,13 @@ Changes are integrated on `codex/public-universe-foundation` as local commits.
   and preserve null, zero and sub-precision positive measurements.
 - Settings use native radios, clean up listeners/timers on navigation, reject
   malformed shared locations, and retain explicit confirmation before import.
+- The observer panel cancels stale location callbacks, serializes Forget after
+  pending lookups, and saves only accepted coordinates. Invalid input and API
+  failures recover without losing useful error messages. Sky responses are
+  validated before producing visibility claims. Weather uses explicit m/s winds,
+  a new cache namespace and the exact forecast hour; copy no longer equates clear
+  weather with observability or civil twilight with daylight. Offline REST/MCP
+  and PHP contracts now include real ordinary and polar observer responses.
 - A disposable loopback HTTPS rehearsal exercises real cached Laravel builds
   and an isolated release ledger, with dedicated no-secret CI. Adversarial review
   strengthened assertions for changed-note retries and before/after rollback
@@ -31,13 +38,16 @@ Changes are integrated on `codex/public-universe-foundation` as local commits.
 - The reviewed **1.0.0 draft** now includes these changes. Version remains the
   bootstrap `0.0.0`; no publication, tag, merge, deployment or domain change.
 
-Combined integration validation: **651 PHP tests / 2,527 assertions**, **27
+Combined integration validation: **755 PHP tests / 2,830 assertions**, **36
 JavaScript tests**, **15 release metadata/hook tests**, **8 deployment tests**,
 and **11 handout tests** pass. Full Pint, PHPStan and production asset build pass.
-The optional renderer's existing chunk-size warning remains visible.
+The real offline contract rerun passes **6 tests / 106 assertions** against the
+unchanged backend integration checkout. The optional renderer's existing
+chunk-size warning and the backend's pre-existing Starlette deprecation remain.
 
 Browser controls timed out and later reported no available Chrome window. The
-new layouts, native radio arrow-key interaction and WebGL activation therefore
+new layouts, native radio arrow-key interaction, observer focus/error feedback
+and WebGL activation therefore
 remain pending browser acceptance. Do not treat prior screenshots as evidence of
 these new changes. See [evening acceptance](../qa/2026-10-01/evening-development.md)
 for measurements, isolation limits and the exact remaining visual checks.

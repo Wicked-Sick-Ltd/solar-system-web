@@ -63,6 +63,31 @@ nearest-200 subset from chronological order within that subset. Null, zero and
 positive distances smaller than the normal display precision remain distinct.
 Independent review exercised 36 observation regressions with 151 assertions.
 
+The offline contract runner now compares real REST and MCP-function responses
+with the PHP consumer for three observer locations at a fixed instant: London,
+89° north and 89° south. The generated records exercise ordinary, circumpolar
+and never-rises states, including null event times. Six contract tests with 106
+assertions pass against backend commit `34e62c0`; the temporary catalogue is
+removed afterwards. This checks interface compatibility, not ephemeris accuracy
+or the MCP transport.
+
+The observer follow-on validates sky responses and coordinates before making
+status claims, recovers from temporary failures, and keeps location errors
+visible. Location initialization runs once; a newer input, Forget or page
+navigation invalidates late callbacks. Only explicitly accepted coordinates are
+stored, and Forget is ordered after any already-running location request.
+Synthetic JavaScript tests cover these races without requesting real location.
+
+Weather now requests metres per second explicitly and uses a new cache namespace,
+so old kilometres-per-hour values cannot be reused as m/s. This matches the
+[Open-Meteo unit contract](https://open-meteo.com/en/docs). Strict UTC hourly data
+validation preserves missing optional values and refuses invalid percentages,
+dates, units and misaligned series. A requested hour missing from the forecast
+is unavailable, not substituted with a different date. The UI gives a forecast timestamp rather
+than promising a best observing time; clear weather no longer implies that an
+object is observable. Twilight copy follows the backend's −6° solar-altitude
+threshold and does not call civil twilight daylight or astronomical darkness.
+
 ## Local release rehearsal
 
 `python3 -B tools/rehearse_release.py` exercises real loopback HTTPS, Laravel
@@ -81,9 +106,15 @@ always-hidden release that weaker assertions could miss.
 The built-in PHP server disables opcode caching; this does not replace production
 FPM reload or environment-specific backup, worker, scheduler and edge checks.
 
+The strengthened seven-check rehearsal first passed against clean committed
+source `e707b3d0bfb4c72e0257708014f40b6708d81a02`. The final local rerun report is
+saved in ignored `output/release-rehearsal.log`, identifying its exact tested
+revision and source cleanliness. Its servers and synthetic ledger are removed
+on completion. These reports do not certify later revisions automatically.
+
 ## Browser limits and remaining visual checks
 
-Combined integration checks passed: 651 PHP tests / 2,527 assertions, 27 Node
+Combined integration checks passed: 755 PHP tests / 2,830 assertions, 36 Node
 tests, 15 release metadata/hook tests, 8 deployment tests and 11 handout tests;
 Pint, PHPStan (512 MB) and the production build also passed. The build-budget
 test ran against the generated manifest with no skipped JavaScript tests.
@@ -97,7 +128,7 @@ returning successful responses. No cause is inferred from these tool failures.
 Consequently the following are **not certified by this pass**: real network
 request timing, actual WebGL rendering after activation, physical touch,
 320px/landscape layout, visible keyboard outlines, Escape focus return, native
-settings radio arrow-key interaction, and a
+settings radio arrow-key interaction, observer focus/error feedback, and a
 browser session with JavaScript disabled. Tests verify emitted HTML, GET flows
 and lifecycle logic, not these browser observations. Do not reuse earlier
 screenshots as evidence of the new layouts. Resume those checks when browser

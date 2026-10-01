@@ -17,7 +17,8 @@
       "Meteor-shower pages show the different observation campaigns, reported parent bodies and measurements in the IAU Meteor Data Center catalogue.",
       "Meteor activity filters are clearly marked as approximate seasonal guides, rather than forecasts of visibility or hourly meteor rates.",
       "The solar-system diagram rejects impossible dates, offers ordinary date-navigation links and names any selected bodies whose positions are unavailable.",
-      "Close-approach pages distinguish unavailable data from no listed encounters, explain the nearest-200 limit and keep very small distances visible."
+      "Close-approach pages distinguish unavailable data from no listed encounters, explain the nearest-200 limit and keep very small distances visible.",
+      "Observer weather now refers to a specific forecast hour and keeps clear skies separate from an object's visibility. Dew-risk calculations use consistent wind units, and twilight labels follow the sky calculation."
     ],
     "Use the data with confidence": [
       "Download the current filtered exoplanet page as CSV or JSON, with up to 24 planets, units, original source fields, uncertainties, limits and references.",
