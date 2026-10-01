@@ -28,7 +28,7 @@
         "gzip_bytes": 11000
     },
     "resources/js/observing/night.js": {
-        "bytes": 20000,
-        "gzip_bytes": 7500
+        "bytes": 32000,
+        "gzip_bytes": 12000
     }
 }

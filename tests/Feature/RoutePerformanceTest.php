@@ -22,6 +22,7 @@ it('keeps representative request-kernel work within measured structural budgets'
     $budget = json_decode(file_get_contents(base_path('tests/fixtures/performance/route-budgets.json')), true, 512, JSON_THROW_ON_ERROR)[$scenario];
     $iterations = getenv('PERFORMANCE_REPORT') ? 7 : 2;
     $measurements = ['cold_application_cache' => [], 'fresh_application_cache' => []];
+    $initialStructure = null;
     for ($iteration = 0; $iteration < $iterations; $iteration++) {
         RouteWorkload::fake();
         foreach (array_keys($measurements) as $temperature) {
@@ -58,6 +59,9 @@ it('keeps representative request-kernel work within measured structural budgets'
                 }
                 expect(count(array_filter($scripts, fn ($src) => str_contains($src, '/livewire.min.js'))))->toBe(1);
             }
+            $structure = ['elements' => $elements, 'scripts' => $scripts];
+            $initialStructure ??= $structure;
+            expect($structure)->toBe($initialStructure);
             $measurements[$temperature][] = [
                 'kernel_ms' => round($milliseconds, 3), 'php_peak_used_bytes' => $peak,
                 'php_peak_increment_bytes' => max(0, $peak - $baseline),

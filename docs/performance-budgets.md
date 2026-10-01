@@ -40,7 +40,9 @@ fixture to make a regression disappear.
 ## Meaning of the measurements
 
 “Cold” means an empty **application cache**, not a cold machine or cold OS disk
-cache. The framework/test process remains alive; compiled views and file pages
+cache. Request-scoped services and Livewire/view render state reset before each request,
+so every HTML sample includes its runtime and does not accumulate SEO scripts.
+The framework/test process remains alive; compiled views and file pages
 can already be warm. The first sample can include setup/compilation effects;
 it remains in the report rather than being discarded. Each cold request is
 followed by a fresh-cache request. The night calculation intentionally is not
@@ -77,7 +79,8 @@ It asserts maximum upstream request counts, upstream/response bytes, gzip bytes
 and server HTML element counts. Content/row assertions prevent a smaller error
 page from falsely passing. The checked-in ceilings include room for small
 markup/dependency changes; counts preserve single-batch and warm-cache behavior.
-No wall-clock or memory threshold fails CI because hosted-machine load and
+Every repeated sample must also have the same element count and script sources;
+this detects request-state accumulation in the harness. No wall-clock or memory threshold fails CI because hosted-machine load and
 allocator behavior vary. Raw timing/memory samples remain visible in artifacts.
 
 The asset gate walks **static imports recursively**, counting shared chunks once

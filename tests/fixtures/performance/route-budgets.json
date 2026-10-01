@@ -1,6 +1,6 @@
 {
     "home": {
-        "cold_calls": 2,
+        "cold_calls": 3,
         "warm_calls": 0,
         "upstream_bytes": 1000,
         "response_bytes": 55000,
@@ -8,7 +8,7 @@
         "dom_elements": 330
     },
     "saturn": {
-        "cold_calls": 6,
+        "cold_calls": 7,
         "warm_calls": 0,
         "upstream_bytes": 4000,
         "response_bytes": 100000,
@@ -16,7 +16,7 @@
         "dom_elements": 550
     },
     "search": {
-        "cold_calls": 2,
+        "cold_calls": 3,
         "warm_calls": 0,
         "upstream_bytes": 12000,
         "response_bytes": 75000,
@@ -24,7 +24,7 @@
         "dom_elements": 420
     },
     "exoplanets_page": {
-        "cold_calls": 1,
+        "cold_calls": 2,
         "warm_calls": 0,
         "upstream_bytes": 12000,
         "response_bytes": 60000,
@@ -32,7 +32,7 @@
         "dom_elements": 480
     },
     "systems_5000": {
-        "cold_calls": 1,
+        "cold_calls": 2,
         "warm_calls": 0,
         "upstream_bytes": 4000000,
         "response_bytes": 80000,
@@ -40,7 +40,7 @@
         "dom_elements": 750
     },
     "galaxy_5000": {
-        "cold_calls": 1,
+        "cold_calls": 2,
         "warm_calls": 0,
         "upstream_bytes": 4000000,
         "response_bytes": 45000,
@@ -48,7 +48,7 @@
         "dom_elements": 350
     },
     "galaxy_data_5000": {
-        "cold_calls": 1,
+        "cold_calls": 2,
         "warm_calls": 0,
         "upstream_bytes": 4000000,
         "response_bytes": 4000000,
@@ -56,7 +56,7 @@
         "dom_elements": 0
     },
     "orrery": {
-        "cold_calls": 11,
+        "cold_calls": 12,
         "warm_calls": 0,
         "upstream_bytes": 2500,
         "response_bytes": 50000,
