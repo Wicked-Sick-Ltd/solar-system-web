@@ -57,10 +57,34 @@ Screenshots are recorded under `docs/qa/2026-10-01/observing/`; browser emulatio
 is not physical-touch acceptance. Latest foundation catalogue/settings/galaxy
 browser acceptance still needs completing.
 
-Active owners: equipment lane E4 camera/sensor profiles and horizon masks;
-backend lane checksum-pinned local JPL provider; catalogue lane frontend
-`/observing-targets` browsing with source/epoch/licence disclosures; parent
-integration, browser evidence and next private lists/journals/sync work.
+Second-wave checkpoints:
+
+- [Web #71](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/71) adds
+  sourced starter-catalogue browsing. Full849PHP tests passed; browser acceptance
+  remains pending.
+- [Web #72](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/72) adds
+  camera/sensor geometry and version-two workspace horizon masks, with backward
+  import support. Full760PHP/142JS tests and independent review passed. Masks
+  are stored; applying them to night calculations is the next backend slice.
+- [Database #35](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/35)
+  adds a checksum-pinned local DE440s provider in an isolated bounded process,
+  kernel/IERS provenance and selected Horizons regressions. All CI is green.
+- [Web #73](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/73) adds
+  guest observing lists/journals and private JSON/CSV/print output. Full821PHP
+  tests/3112assertions and140JS tests pass. Real Chrome creation, persistence,
+  downloaded JSON and desktop/mobile layouts pass. Browser import requires
+  extension file-URL permission; automated preview/apply/undo tests pass.
+
+`codex/observing-integration` stays at its published checkpoint so dependent PRs
+retain reviewable diffs. The next combined branch is
+`codex/observing-integration-next`, with853PHP tests/3235assertions and173JS tests
+passing. These checkpoints are not releases.
+
+Active owners: private authenticated sync; selected observing hours and terrain
+constraints; primary-source coordinate-frame metadata for static-target planning;
+parent integration and browser consent/synchronization controls. Primary sources
+verify50 FK5/J2000 bright stars and107 ICRS/J2000 deep-sky records; the unmatched
+M45 addendum remains unsupported for coordinate-frame-dependent planning.
 
 Remaining accepted scope includes complete equipment-aware planner journeys,
 selected hours/weather/exports, sourced catalogue planning integration, observing
