@@ -56,3 +56,22 @@ stale/deleted-site and no-write coverage; its complete browser journey is pendin
 The local backend used the builtin model; actual DE440s scientific regressions
 are covered separately in backend PR35/39. A legacy upstream accuracy sentence
 in this capture says no terrain; PR39 corrects it to no surveyed-terrain guarantee.
+
+
+Mixed-catalogue/session checks continued after midnight (2October local time).
+The local server on18018 used an explicit isolated environment and backend18006
+with the actual pinned DE440s kernel. Native target hints left location/date empty;
+submitting synthetic London plus Moon, HR2491 and NGC0224 produced correct solar
+and starter journal namespaces, source/model disclosures and session controls.
+Downloaded default JSON was12,253bytes with all three target identities and the
+actual kernel hash, but no latitude, longitude or terrain; inputs_complete=false.
+The opt-in control produced an explicit location-inclusive preparation status;
+its second downloaded artifact was not independently recovered. Automated tests
+cover both output forms and checkbox/print reset. Phone viewport375×812 showed
+usable wrapping controls and no page overflow (360px content); override restored.
+See [desktop](catalogue-session-desktop.jpg) and [mobile](catalogue-session-mobile.jpg).
+
+Native Chrome print preview showed three pages with a light paper theme and
+location/terrain omitted by default. The dialog was cancelled without sending
+a print job. Accessible preview text was checked; a standalone PDF was not
+produced. Exact source and model metadata remain in the JSON export.

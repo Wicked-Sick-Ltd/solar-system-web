@@ -166,3 +166,25 @@ main[id], main [id], :focus-visible {
     overflow-y: auto;
     overscroll-behavior: contain;
 }
+
+/* A printed observing session uses paper colours without changing the saved theme. */
+@media print {
+    html:has([data-night-session]),
+    body:has([data-night-session]) {
+        --bg: white;
+        --bg-elevated: white;
+        --bg-elevated-2: white;
+        --text: #111;
+        --muted: #333;
+        --link: #111;
+        --border: #999;
+        color-scheme: light;
+    }
+    body:has([data-night-session]) > header,
+    body:has([data-night-session]) > footer,
+    body:has([data-night-session]) > a[href='#main'] {
+        display: none;
+    }
+    [data-night-session] svg { break-inside: avoid; }
+    [data-night-session] h2 { break-after: avoid; }
+}

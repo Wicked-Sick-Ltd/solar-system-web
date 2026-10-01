@@ -1,15 +1,15 @@
-# Moon and planet night planner
+# Observing night planner
 
 `GET /observe/night` renders a guest form. `POST /observe/night` validates a
 calendar date, IANA time zone, rounded latitude/longitude, one to eight supported
-bodies, optional exact UTC observing hours, and altitude/darkness/Moon/terrain
+Moon, planet or catalogue targets, optional exact UTC observing hours, and altitude/darkness/Moon/terrain
 constraints, then makes **one JSON POST** request
 to `/api/v1/observing/night`. No per-sample API calls, persistent cache, automatic
 retry, account upload or session old-input flashing is involved. Responses,
 including errors and throttling, use private/no-store and no-referrer headers.
 The POST route permits six requests per minute under the standard route throttle.
 
-Requires backend constraints support in database PR #37.
+Requires backend constraints and catalogue planning support in database PR #39.
 An older API, unsupported date, unavailable Earth-orientation coverage or malformed
 response produces an unavailable result, never a legacy lunar substitute.
 `SOLAR_PLANNER_TIMEOUT` defaults to 40 seconds and is bounded to 40–60 seconds,
@@ -38,23 +38,58 @@ keyboard. A browser-saved site can explicitly copy coordinates, timezone,
 baseline and horizon into the form, without activating or changing its profile.
 Manual fields work without JavaScript. Blank terrain remains unknown; Moon
 interference uses its geometric altitude above zero, independent of that mask.
-Equipment suggestions, weather, session exports and starter star/deep-sky
-planning remain tracked follow-ups.
+Equipment suggestions and optional weather remain tracked follow-ups.
 
 ## Validation fixture
 
 `tests/fixtures/observing/night.json` is a local offline engine response generated
-on 2026-10-01 from the implementation subsequently committed as backend `c8d6cd9`:
+from backend `c4f618ab6f0503d871e417680a9a008cd1a29dec`:
 2026-10-01, Europe/London, 51.50/-0.12, Moon and Saturn, minimum altitude20°, Sun
 below−12°, Moon separation0°. It is a contract fixture, not independent scientific
 truth. The backend contains separately retrieved official JPL Horizons reference
 fixtures and its calculation validation. No private observing location is used.
-For the additive constraints contract, this fixture now explicitly records its
-full-night effective interval, unknown horizon and existing20°baseline in each
-target sample. Original positions and window measurements are unchanged.
+This refreshed whole response records the full-night effective interval, unknown
+horizon, baseline and exact provider/IERS provenance. Earlier derived fixtures
+remain in Git history; no identity was retroactively assigned to their values.
 
 Tests exercise one-call batching, malformed contracts, unavailable backends,
 invalid dates/coordinates/constraints, private headers, escaped upstream labels,
 form correction and explicitly unresolved crossings. Browser QA used the same
 synthetic central-London coordinates with Moon, Jupiter and Saturn and verified
 real form submission, model windows and readable tables/charts.
+
+
+## Catalogue targets and session summaries
+
+The form accepts up to eight total Moon/planet targets and exact starter catalogue
+identifiers. Native catalogue links preselect public target IDs only; date and
+location remain empty and no calculation starts until submission. IDs are never
+case-folded, fuzzy-matched or silently removed. Unknown catalogue membership or
+unsupported coordinates produce an unavailable result, without substitute targets.
+
+Calculated catalogue directions retain verified FK5/ICRS metadata, source and
+evidence hashes, source-specific attribution/licensing, the stated angular-motion
+model and explicit missing physical distances. Provider details retain the actual
+Astropy/ERFA versions, IERS effective-column hash and, where configured, the JPL
+kernel identity. These are reported identities, not signatures or accuracy claims.
+The builtin two-target fixture was wholly refreshed from backend
+`c4f618ab6f0503d871e417680a9a008cd1a29dec`; its original request/date remains the same.
+`catalogue-night.json` retains Moon, HR2491 and NGC0224 from the actual eight-target
+JPL response from that revision, without changing any coordinates or metadata.
+
+Session JSON is a bounded160KB summary of the exact normalized request, effective
+constraints, windows, units, UTC/timezone and scientific provenance. It deliberately
+omits chart samples, weather, gear and actual observations. CSV is a window index
+with second-resolution UTC times, unresolved states and spreadsheet-formula
+protection; retain its companion JSON for full assumptions. Both formats are made
+locally from the validated result, with no recalculation, upload or local-storage
+write. No import or executable replay is implied by a downloaded input record.
+
+Coordinates and terrain are omitted from downloads and print by default. An
+explicit checkbox includes them; dates, timezone and derived windows remain even
+without that choice and can reveal observing context. Print uses paper colours
+without changing the saved theme. Exact repetition needs the original private
+inputs, source snapshots, ephemeris/IERS data and compatible software/timezone
+rules. The live API is not an immutable archive; no global catalogue identity was
+attached atomically to this night calculation. Per-target snapshots remain useful
+without making that stronger claim.

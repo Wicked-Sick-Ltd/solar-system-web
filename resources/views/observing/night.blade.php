@@ -1,6 +1,6 @@
 <x-layouts.app>
-    <div class="mx-auto max-w-5xl">
-        <x-page-header :title="__('Plan a night')" :eyebrow="__('Moon and planets')" :lead="__('Find geometric observing windows for your location. Clouds, terrain, brightness and equipment can still prevent a useful view.')" />
+    <div class="mx-auto max-w-5xl" @if($sessionSummary) data-night-session @endif>
+        <x-page-header :title="__('Plan a night')" :eyebrow="__('Moon, planets and catalogue targets')" :lead="__('Find geometric observing windows for your location. Clouds, terrain, brightness and equipment can still prevent a useful view.')" />
         <p class="mb-6">{{ __('A night runs from local noon to the following noon. Times include their UTC offset so clock changes are unambiguous. Coordinates are rounded to two decimal places and sent for this calculation; this form does not save them.') }}</p>
         @if ($problem)
             <div role="alert" class="surface mb-6 p-5">
@@ -52,7 +52,10 @@
             <fieldset @if(collect($validation)->keys()->contains(fn ($key) => str_starts_with($key, 'targets'))) aria-describedby="night-error-targets" @endif>
                 <legend>{{ __('Targets') }}</legend>
                 <div class="mt-2 flex flex-wrap gap-3">@foreach (\App\Services\Observing\NightRequest::TARGETS as $body)<label class="inline-flex min-h-11 items-center gap-2 rounded border px-3"><input type="checkbox" name="targets[]" value="{{ $body }}" @checked(in_array($body, $input['targets'], true))> {{ ucfirst($body) }}</label>@endforeach</div>
-                @if(collect($validation)->keys()->contains(fn ($key) => str_starts_with($key, 'targets')))<p id="night-error-targets" class="mt-2 text-sm">{{ __('Choose one or more distinct supported targets.') }}</p>@endif
+                <label class="mt-4 block" for="night-catalogue-targets">{{ __('Catalogue identifiers (optional)') }}</label>
+                <input id="night-catalogue-targets" name="catalogue_targets" value="{{ $input['catalogue_targets'] }}" maxlength="400" placeholder="bsc5p:hr2491, openngc:NGC0224" class="mt-2 w-full rounded border p-3" style="background: var(--bg-elevated)" @if(collect($validation)->keys()->contains(fn ($key) => str_starts_with($key, 'targets'))) aria-invalid="true" aria-describedby="night-error-targets" @endif>
+                <p class="mt-2 text-sm">{{ __('Choose at most eight targets in total. Use exact, case-sensitive identifiers from the starter catalogue, separated by spaces or commas. Only records with supported coordinate metadata can be calculated; the catalogue is a bounded sample.') }}</p>
+                @if(collect($validation)->keys()->contains(fn ($key) => str_starts_with($key, 'targets')))<p id="night-error-targets" class="mt-2 text-sm">{{ __('Choose one to eight distinct supported targets.') }}</p>@endif
             </fieldset>
             <p class="text-sm">{{ __('Moon separation applies to other targets only while the Moon’s geometric centre is above 0°, independent of your terrain profile. Every target must remain at least 30° from the Sun. This is a night-planning tool and provides no solar-observing instructions.') }}</p>
             <button class="min-h-11 rounded border px-5 py-3 font-semibold" type="submit">{{ __('Calculate this night') }}</button>
@@ -69,14 +72,20 @@
                 <h2 id="night-summary" class="text-2xl">{{ __('Your night') }} · {{ $plan['night']['date'] }}</h2>
                 <p>{{ $local($plan['night']['start_utc']) }} → {{ $local($plan['night']['end_utc']) }} · {{ $plan['observer']['timezone'] }} · {{ $plan['night']['duration_hours'] }} {{ __('hours') }}</p>
                 <p>{{ __('Selected observing interval:') }} {{ $local($plan['constraints']['window_start_utc']) }} → {{ $local($plan['constraints']['window_end_utc']) }}. {{ $plan['constraints']['horizon_mask'] === null ? __('Terrain is unknown; only the baseline altitude was applied.') : __('Your supplied horizon profile was applied with the baseline altitude.') }}</p>
-                <p>{{ __('Location:') }} {{ $plan['observer']['lat'] }}°, {{ $plan['observer']['lon'] }}° · {{ __('Moon illuminated:') }} {{ number_format($plan['moon']['illumination_fraction'] * 100, 1) }}% {{ __('at') }} {{ $local($plan['moon']['reference_utc']) }}.</p>
+                <p><span data-night-private-location class="print:hidden">{{ __('Location:') }} {{ $plan['observer']['lat'] }}°, {{ $plan['observer']['lon'] }}° · </span>{{ __('Moon illuminated:') }} {{ number_format($plan['moon']['illumination_fraction'] * 100, 1) }}% {{ __('at') }} {{ $local($plan['moon']['reference_utc']) }}.</p>
+                <p data-night-private-location class="print:hidden">{{ __('Terrain profile (azimuth°, minimum altitude°):') }} @if($plan['constraints']['horizon_mask'] === null) {{ __('Unknown') }} @else @foreach($plan['constraints']['horizon_mask'] as $point) {{ $point['azimuth_deg'] }}°, {{ $point['min_altitude_deg'] }}°{{ $loop->last ? '.' : '; ' }} @endforeach @endif</p>
                 <p>{{ __('Darkness intervals:') }} @forelse ($plan['darkness']['intervals'] as $window){{ $local($window['start_utc']) }} – {{ $local($window['end_utc']) }}{{ $loop->last ? '.' : '; ' }} @empty {{ $plan['darkness']['status'] === 'unresolved_grazing' ? __('No confirmed interval; the boundary remains unresolved.') : __('None at the chosen threshold.') }} @endforelse</p>
                 @if ($plan['darkness']['status'] === 'unresolved_grazing')<p>{{ __('Darkness is close to a grazing crossing; its boundary is unresolved in this model.') }}</p>@endif
             </section>
+            @include('observing.partials-night-session')
             @foreach ($plan['targets'] as $target)
                 <article class="surface mt-6 space-y-4 p-5" aria-labelledby="target-{{ $target['id'] }}">
                     <h2 id="target-{{ $target['id'] }}" class="text-2xl">{{ $target['name'] }}</h2>
-                    <x-save-observing-target catalogue="solar" :target-id="$target['id'] === 'moon' ? 'moon-luna' : 'planet-'.$target['id']" :target-label="$target['name']" />
+                    @php
+                        $journalTarget = \App\Services\Observing\NightTargets::journalIdentity($target['id']);
+                    @endphp
+                    <div class="print:hidden"><x-save-observing-target :catalogue="$journalTarget['catalogue']" :target-id="$journalTarget['id']" :target-label="$target['name']" /></div>
+                    @if(isset($target['catalogue'])) @include('observing.partials-night-source', ['source' => $target['catalogue']]) @endif
                     @if ($target['status'] === 'unresolved_grazing')<p>{{ __('A constraint nearly touches its threshold. These provisional windows need independent checking.') }}</p>@endif
                     <p>{{ __('Windows satisfying altitude, darkness, Sun separation and your Moon constraint:') }}</p>
                     <ul class="list-disc pl-5">@forelse ($target['windows'] as $window)<li><time datetime="{{ $window['start_utc'] }}">{{ $local($window['start_utc']) }}</time> – <time datetime="{{ $window['end_utc'] }}">{{ $local($window['end_utc']) }}</time></li>@empty<li>{{ $target['status'] === 'unresolved_grazing' ? __('No confirmed window; a constraint boundary remains unresolved.') : __('No matching window in the selected observing interval. This does not mean the target never rises.') }}</li>@endforelse</ul>
@@ -114,6 +123,7 @@
                 <p>{{ $plan['method']['provider'] }} · {{ $plan['method']['ephemeris'] }} · {{ $plan['method']['frame'] }} · {{ $plan['method']['refraction'] }}</p>
                 <p>{{ $plan['method']['accuracy_note'] }}</p><p>{{ $plan['method']['window_note'] }}</p>
                 <p>{{ __('Earth-orientation data:') }} {{ $plan['method']['iers']['status'] }}. {{ __('Numerical crossing tolerance:') }} {{ $plan['method']['root_tolerance_seconds'] }} s.</p>
+                @include('observing.partials-night-method', ['method' => $plan['method']])
                 <p>{{ __('Weather is not included in this calculation. Check a current local forecast before observing.') }}</p>
             </section>
         @endif

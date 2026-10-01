@@ -59,7 +59,7 @@ final class NightPlan
         self::label($data['constraints']['horizon_rule'] ?? null);
         $windowA = self::instant($windowStart);
         $windowB = self::instant($windowEnd);
-        $method = $data['method'];
+        $method = NightProviderProvenance::validate($data['method']);
         foreach (['provider', 'ephemeris', 'frame', 'refraction', 'accuracy_note', 'window_note'] as $key) {
             self::label($method[$key] ?? null);
         }
@@ -85,13 +85,18 @@ final class NightPlan
         $ids = [];
         foreach ($data['targets'] as $target) {
             self::require(is_array($target));
-            self::require(in_array($target['id'] ?? null, NightRequest::TARGETS, true));
+            self::require(NightTargets::isSupportedId($target['id'] ?? null));
+            if (NightTargets::isCatalogueId($target['id'])) {
+                NightCatalogueProvenance::validate($target['catalogue'] ?? null, $target['id']);
+            } else {
+                self::require(! array_key_exists('catalogue', $target));
+            }
             $ids[] = $target['id'];
             self::label($target['name'] ?? null);
             self::require(in_array($target['status'] ?? null, ['unresolved_grazing', 'windows_found', 'no_matching_window'], true));
             self::windows($target['windows'] ?? null, $windowA, $windowB);
             self::status($target['status'], $target['windows'], 'windows_found', 'no_matching_window');
-            self::samples($target['samples'] ?? null, $start, $end, $method['sample_minutes']);
+            self::samples($target['samples'] ?? null, $start, $end, $method['sample_minutes'], $target['id']);
             foreach ($target['samples'] as $sample) {
                 self::require(array_key_exists('horizon_altitude_deg', $sample));
                 $expected = $mask === null ? null : NightConstraints::altitude($mask, $sample['azimuth_deg']);
@@ -157,7 +162,7 @@ final class NightPlan
         self::require($status !== $none || count($windows) === 0);
     }
 
-    private static function samples(mixed $samples, int $start, int $end, float $minutes): void
+    private static function samples(mixed $samples, int $start, int $end, float $minutes, string $targetId = 'moon'): void
     {
         self::require(is_array($samples) && array_is_list($samples) && count($samples) >= 2 && count($samples) <= 400);
         $previous = null;
@@ -172,7 +177,7 @@ final class NightPlan
             foreach (['sun_separation_deg', 'moon_separation_deg'] as $key) {
                 self::number($sample[$key] ?? null, 0, 180);
             }
-            self::number($sample['distance_au'] ?? null, 0.000001, 1000);
+            NightTargets::distance($targetId, $sample);
             $previous = $t;
         }
         self::require(self::instant($samples[0]['time_utc']) === $start && $previous === $end);
