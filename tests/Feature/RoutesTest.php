@@ -60,7 +60,7 @@ it('keeps the orrery up when positions fail after the health probe passed', func
 
     $this->get('/orrery?date=2026-06-01')
         ->assertOk()
-        ->assertSee('No positions for that date');
+        ->assertSee('Positions unavailable for this date');
 });
 
 it('puts the object name and structured data on a detail page', function () {

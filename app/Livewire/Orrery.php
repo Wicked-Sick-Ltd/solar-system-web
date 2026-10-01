@@ -45,16 +45,17 @@ final class Orrery extends Component
     ];
 
     #[Url(as: 'date', except: '')]
-    public string $date = '';
+    public mixed $date = '';
 
     public function mount(): void
     {
-        $this->date = $this->normalisedDate($this->date);
-    }
-
-    public function updatedDate(): void
-    {
-        $this->date = $this->normalisedDate($this->date);
+        // Keep malformed query types until validation; never reinterpret a relative
+        // date or silently roll an impossible calendar date into another month.
+        if (request()->query->has('date')) {
+            $this->date = request()->query()['date'] ?? '';
+        } elseif ($this->date === '') {
+            $this->today();
+        }
     }
 
     public function today(): void
@@ -64,28 +65,35 @@ final class Orrery extends Component
 
     public function step(int $days): void
     {
-        $this->date = CarbonImmutable::parse($this->date)->addDays($days)->toDateString();
+        if (($date = $this->dateAfter($days)) !== null) {
+            $this->date = $date;
+        }
     }
 
     public function render(SolarApiClient $api): View
     {
         app(Seo::class)
             ->title(__('Orrery'))
-            ->description(__('An interactive 2D map of the solar system for any date — the planets and Pluto, positioned from live ephemeris data.'));
+            ->description(__('An approximate 2D model of solar-system positions for a selected date, using catalogue orbital elements.'));
 
-        $apiDown = ! $api->reachable();
+        $validDate = $this->validatedDate();
+        $apiDown = $validDate !== null && ! $api->reachable();
         $bodies = [];
 
-        if (! $apiDown) {
-            $positions = $api->positionsBatch(array_keys(self::BODIES), $this->date);
+        if ($validDate !== null && ! $apiDown) {
+            $positions = $api->positionsBatch(array_keys(self::BODIES), $validDate->toDateString());
             $bodies = $this->plot($positions);
         }
 
         return view('livewire.orrery', [
             'apiDown' => $apiDown,
             'bodies' => $bodies,
-            'date' => $this->date,
-            'prettyDate' => CarbonImmutable::parse($this->date)->isoFormat('D MMMM YYYY'),
+            'dateValue' => is_string($this->date) ? $this->date : '',
+            'invalidDate' => $validDate === null,
+            'prettyDate' => $validDate?->isoFormat('D MMMM YYYY'),
+            'stepDates' => [-30 => $this->dateAfter(-30), -1 => $this->dateAfter(-1), 1 => $this->dateAfter(1), 30 => $this->dateAfter(30)],
+            'expectedBodies' => count(self::BODIES),
+            'missingBodies' => array_values(array_map(fn ($id) => self::BODIES[$id]['label'], array_diff(array_keys(self::BODIES), array_column($bodies, 'slug')))),
         ]);
     }
 
@@ -101,11 +109,14 @@ final class Orrery extends Component
         $maxRadius = 270.0;
 
         // Scale to the furthest body we actually got a position for.
+        $usable = array_filter($positions, static fn (?Position $position): bool => $position !== null
+            && $position->xAu !== null && is_finite($position->xAu)
+            && $position->yAu !== null && is_finite($position->yAu)
+            && $position->distanceFromSunAu !== null && is_finite($position->distanceFromSunAu)
+            && $position->distanceFromSunAu > 0);
         $maxDistance = 0.0;
-        foreach ($positions as $position) {
-            if ($position?->distanceFromSunAu !== null) {
-                $maxDistance = max($maxDistance, $position->distanceFromSunAu);
-            }
+        foreach ($usable as $position) {
+            $maxDistance = max($maxDistance, $position->distanceFromSunAu);
         }
         if ($maxDistance <= 0.0) {
             return [];
@@ -113,8 +124,8 @@ final class Orrery extends Component
 
         $bodies = [];
         foreach (self::BODIES as $id => $meta) {
-            $position = $positions[$id] ?? null;
-            if ($position?->xAu === null || $position->yAu === null || $position->distanceFromSunAu === null) {
+            $position = $usable[$id] ?? null;
+            if ($position === null) {
                 continue;
             }
 
@@ -136,12 +147,29 @@ final class Orrery extends Component
         return $bodies;
     }
 
-    private function normalisedDate(string $date): string
+    private function validatedDate(): ?CarbonImmutable
     {
-        try {
-            return CarbonImmutable::parse($date !== '' ? $date : 'now')->toDateString();
-        } catch (\Throwable) {
-            return CarbonImmutable::now('UTC')->toDateString();
+        if (! is_string($this->date) || ! preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $this->date)
+            || (int) substr($this->date, 0, 4) < 1) {
+            return null;
         }
+        try {
+            $date = CarbonImmutable::createFromFormat('!Y-m-d', $this->date, 'UTC');
+
+            return $date && $date->toDateString() === $this->date ? $date : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function dateAfter(int $days): ?string
+    {
+        $date = $this->validatedDate();
+        if ($date === null || $days < -36600 || $days > 36600) {
+            return null;
+        }
+        $next = $date->addDays($days);
+
+        return $next->year >= 1 && $next->year <= 9999 ? $next->toDateString() : null;
     }
 }

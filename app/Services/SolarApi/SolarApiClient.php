@@ -509,10 +509,20 @@ class SolarApiClient
             }
         }
 
-        return array_map(
-            static fn ($value) => is_array($value) ? Position::fromArray($value) : null,
-            $out,
-        );
+        return array_map(static function ($value): ?Position {
+            if (! is_array($value)) {
+                return null;
+            }
+            // A malformed metadata field must omit one body, not fail the whole
+            // drawing with an array-to-string conversion in the tolerant DTO.
+            foreach (['name', 'designation', 'input_date', 'frame', 'accuracy_note'] as $field) {
+                if (isset($value[$field]) && ! is_scalar($value[$field])) {
+                    return null;
+                }
+            }
+
+            return Position::fromArray($value);
+        }, $out);
     }
 
     /**
