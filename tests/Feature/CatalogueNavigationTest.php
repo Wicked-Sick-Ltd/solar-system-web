@@ -156,3 +156,35 @@ it('leaves catalogue links available to native modified clicks while enhancing p
     expect($document->query('//main//a[@*[name()="wire:click.prevent"]]')->length)->toBe(0);
     expect($document->query('//main//a[@*[name()="wire:navigate"]]')->length)->toBeGreaterThan(0);
 })->with(['/exoplanets?page=2', '/meteor-showers', '/asteroids', '/comets?page=2', '/tnos?page=2']);
+
+it('submits the initial object filter state and follows filtered native pages', function () {
+    Http::fake(['*/objects*' => Http::response(['results' => objectRows(25)])]);
+    $query = ['type' => 'moon', 'parent' => 'moon-luna', 'size' => 'small', 'neo' => '1', 'named' => '1', 'page' => '2'];
+    $response = $this->get('/objects?'.http_build_query($query))->assertOk();
+    $document = catalogueDocument($response->getContent());
+    $url = catalogueFormUrl($document, 'Object filters');
+    parse_str(parse_url($url, PHP_URL_QUERY), $submitted);
+    expect($submitted)->toBe(array_diff_key($query, ['page' => true]));
+    $this->get($url)->assertOk();
+    Http::assertSent(fn ($request) => $request['type'] === 'moon' && $request['parent'] === 'moon-luna'
+        && $request['min_radius_km'] === 1.0 && $request['max_radius_km'] === 100.0
+        && $request['neo'] === 'true' && $request['named_only'] === 'true' && $request['offset'] === 0);
+    foreach (['prev' => '1', 'next' => '3'] as $relation => $page) {
+        $url = $document->query('//main//a[@rel="'.$relation.'"]')->item(0)->getAttribute('href');
+        parse_str(parse_url($url, PHP_URL_QUERY), $selection);
+        expect($selection)->toBe(array_replace($query, ['page' => $page]));
+        $this->get($url)->assertOk();
+    }
+});
+
+it('recovers a stale object page with the same filters and respects the page bound', function () {
+    Http::fake(['*/objects*' => Http::response(['results' => []])]);
+    $this->get('/objects?type=moon&parent=Jupiter&size=tiny&page=12')->assertOk()->assertSee('No objects at this page')
+        ->assertDontSee('No objects match those filters')
+        ->assertSee(route('objects.index', ['type' => 'moon', 'parent' => 'Jupiter', 'size' => 'tiny', 'page' => 1]));
+    Cache::flush();
+    Http::swap(new Factory);
+    Http::fake(['*/objects*' => Http::response(['results' => objectRows(25)])]);
+    $response = $this->get('/objects?page=417')->assertOk()->assertSee('browsing page limit has been reached');
+    expect(catalogueDocument($response->getContent())->query('//main//a[@rel="next"]')->length)->toBe(0);
+});
