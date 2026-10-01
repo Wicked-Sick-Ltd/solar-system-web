@@ -103,13 +103,19 @@ provider's consistent snapshot/dump procedure and test restoration. Back up
 `APP_KEY`/environment separately with restricted access. Encrypt off-site
 copies, apply a retention policy, and monitor backup failures.
 
-The script serializes releases, enables maintenance, requires a successful
+The script serializes releases, prerenders maintenance HTML, requires a successful
 backup, pulls with `--ff-only`, installs locked dependencies, builds assets,
 clears stale configuration, migrates, rebuilds framework caches, signals worker
 restart, reloads FPM, and brings the site up. It deliberately avoids
 `optimize:clear` because that also clears application cache/lock entries. A
 failure after maintenance starts **leaves the site down** for investigation.
-Cache warming after reopening is best-effort.
+Cache warming after reopening is best-effort. The standalone `errors/503` view
+has inline styles and no application layout, JavaScript or asset dependencies,
+so ordinary HTML requests stop before Composer autoloading while dependencies
+are replaced. On the first upgrade to this script, provision that view before
+the release (the previous version used the application layout). Laravel still
+bootstraps JSON requests and excluded paths such as `/up`; use a reverse-proxy
+503 gate if those must stay independent of PHP during an in-place release.
 
 After successful smoke checks, resume the supervised worker and scheduler.
 Verify their logs and delivery failures. Do not run the alert command as a

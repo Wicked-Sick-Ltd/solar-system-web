@@ -22,7 +22,7 @@ flock -n 9 || { echo 'Another deployment is active.' >&2; exit 1; }
 
 # Stop/drain the scheduler and workers before invoking this script. Maintenance
 # protects web writes; a failure deliberately leaves the site down for recovery.
-"$FORGE_PHP" artisan down --retry=60
+"$FORGE_PHP" artisan down --retry=60 --render=errors::503
 trap 'echo "Release failed; site remains in maintenance. Follow DEPLOYMENT.md recovery." >&2' ERR
 "$ACCOUNT_BACKUP_HOOK"
 

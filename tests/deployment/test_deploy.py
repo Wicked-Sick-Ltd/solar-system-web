@@ -56,7 +56,7 @@ class DeployTests(unittest.TestCase):
         result, commands = self.run_deploy()
         self.assertEqual(result.returncode, 0, result.stderr)
         ordered = [
-            "php artisan down --retry=60",
+            "php artisan down --retry=60 --render=errors::503",
             "backup ",
             "git pull --ff-only origin reviewed-branch",
             "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
@@ -78,7 +78,7 @@ class DeployTests(unittest.TestCase):
             with self.subTest(failing=failing):
                 result, commands = self.run_deploy(fail=failing)
                 self.assertNotEqual(result.returncode, 0)
-                self.assertIn("php artisan down --retry=60", commands)
+                self.assertIn("php artisan down --retry=60 --render=errors::503", commands)
                 self.assertNotIn("php artisan up", commands)
                 self.assertIn("site remains in maintenance", result.stderr)
                 if failing == "backup ":
