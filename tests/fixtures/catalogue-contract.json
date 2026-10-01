@@ -2640,5 +2640,118 @@
     "limit": 25,
     "offset": 0,
     "next_after": "ast-20000050-virginia"
+  },
+  "sky": {
+    "london": {
+      "name": "Saturn",
+      "designation": null,
+      "input_datetime": "2026-10-01T22:00:00Z",
+      "resolved_from": null,
+      "ra_deg": 11.239124132972984,
+      "ra_hours": 0.7492749421981989,
+      "ra_hms": "00h 44m 57s",
+      "dec_deg": 1.8845289403483068,
+      "dec_dms": "+01° 53′ 04″",
+      "distance_from_earth_au": 8.440121173105329,
+      "distance_from_sun_au": 9.439503932210101,
+      "elongation_deg": 176.84734941084116,
+      "constellation": {
+        "abbr": "Cet",
+        "name": "Cetus"
+      },
+      "hemisphere": "equatorial",
+      "visible_from": "Visible from both hemispheres.",
+      "jd": 2461315.4166666665,
+      "observer": {
+        "lat": 51.5,
+        "lon": -0.12,
+        "altitude_deg": 34.100429918675275,
+        "azimuth_deg": 141.94203786872004,
+        "is_up": true,
+        "sun_altitude_deg": -36.78347026727731,
+        "is_dark": true,
+        "rise_utc": "2026-10-01T17:54:20Z",
+        "transit_utc": "2026-10-01T00:06:26Z",
+        "set_utc": "2026-10-01T06:18:33Z",
+        "circumpolar": false,
+        "never_rises": false
+      },
+      "frame": "equatorial J2000, geocentric; alt/az topocentric; two-body propagation",
+      "accuracy_note": "Two-body approximation, good to about a degree for the planets — enough to find the constellation and know whether it is up."
+    },
+    "north": {
+      "name": "Saturn",
+      "designation": null,
+      "input_datetime": "2026-10-01T22:00:00Z",
+      "resolved_from": null,
+      "ra_deg": 11.239124132972984,
+      "ra_hours": 0.7492749421981989,
+      "ra_hms": "00h 44m 57s",
+      "dec_deg": 1.8845289403483068,
+      "dec_dms": "+01° 53′ 04″",
+      "distance_from_earth_au": 8.440121173105329,
+      "distance_from_sun_au": 9.439503932210101,
+      "elongation_deg": 176.84734941084116,
+      "constellation": {
+        "abbr": "Cet",
+        "name": "Cetus"
+      },
+      "hemisphere": "equatorial",
+      "visible_from": "Visible from both hemispheres.",
+      "jd": 2461315.4166666665,
+      "observer": {
+        "lat": 89.0,
+        "lon": 0.0,
+        "altitude_deg": 2.745247207192626,
+        "azimuth_deg": 149.38639675847315,
+        "is_up": true,
+        "sun_altitude_deg": -4.6319568350780385,
+        "is_dark": false,
+        "rise_utc": null,
+        "transit_utc": "2026-10-01T00:05:58Z",
+        "set_utc": null,
+        "circumpolar": true,
+        "never_rises": false
+      },
+      "frame": "equatorial J2000, geocentric; alt/az topocentric; two-body propagation",
+      "accuracy_note": "Two-body approximation, good to about a degree for the planets — enough to find the constellation and know whether it is up."
+    },
+    "south": {
+      "name": "Saturn",
+      "designation": null,
+      "input_datetime": "2026-10-01T22:00:00Z",
+      "resolved_from": null,
+      "ra_deg": 11.239124132972984,
+      "ra_hours": 0.7492749421981989,
+      "ra_hms": "00h 44m 57s",
+      "dec_deg": 1.8845289403483068,
+      "dec_dms": "+01° 53′ 04″",
+      "distance_from_earth_au": 8.440121173105329,
+      "distance_from_sun_au": 9.439503932210101,
+      "elongation_deg": 176.84734941084116,
+      "constellation": {
+        "abbr": "Cet",
+        "name": "Cetus"
+      },
+      "hemisphere": "equatorial",
+      "visible_from": "Visible from both hemispheres.",
+      "jd": 2461315.4166666665,
+      "observer": {
+        "lat": -89.0,
+        "lon": 0.0,
+        "altitude_deg": -1.0236619073425144,
+        "azimuth_deg": 30.58010619001853,
+        "is_up": false,
+        "sun_altitude_deg": 2.866868875399467,
+        "is_dark": false,
+        "rise_utc": null,
+        "transit_utc": null,
+        "set_utc": null,
+        "circumpolar": false,
+        "never_rises": true
+      },
+      "frame": "equatorial J2000, geocentric; alt/az topocentric; two-body propagation",
+      "accuracy_note": "Two-body approximation, good to about a degree for the planets — enough to find the constellation and know whether it is up."
+    }
   }
 }

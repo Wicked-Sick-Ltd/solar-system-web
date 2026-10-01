@@ -64,6 +64,13 @@ def collect(backend: Path, database: Path) -> dict:
         require_equal(next_objects["results"], server.find_objects(object_type="asteroid", limit=25, after=cursor), "next asteroid cursor")
         require_equal(next_objects["results"][0]["id"], objects["results"][24]["id"], "overfetch boundary")
 
+        sky = {}
+        for label, lat, lon in (('london', 51.5, -0.12), ('north', 89.0, 0.0), ('south', -89.0, 0.0)):
+            when = '2026-10-01T22:00:00Z'
+            sky[label] = get('/sky/planet-saturn', date=when, lat=lat, lon=lon)
+            require_equal(sky[label], server.get_sky_position('planet-saturn', date=when, lat=lat, lon=lon),
+                          'observer sky '+label)
+
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=backend, text=True).strip()
     dirty = bool(subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=normal"], cwd=backend, text=True).strip())
     return {"provenance": {"backend_revision": revision, "backend_modified": dirty,
@@ -71,7 +78,7 @@ def collect(backend: Path, database: Path) -> dict:
                            "retrieval_time": "fixed for deterministic contract checks"},
             "exoplanets": planets, "exoplanet": planet, "host": host, "galaxy": galaxy,
             "meteor_showers": showers, "meteor_shower": shower,
-            "objects": objects, "next_objects": next_objects}
+            "objects": objects, "next_objects": next_objects, "sky": sky}
 
 
 def main() -> int:

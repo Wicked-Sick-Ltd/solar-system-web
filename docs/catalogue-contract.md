@@ -4,8 +4,11 @@ The committed `tests/fixtures/catalogue-contract.json` is produced from the
 backend's small offline catalogue. It contains scientific fixture records and
 its generating Git revision, not production or account data. Standard PHP tests
 verify that the website emits exact requests and consumes those real response
-shapes for exoplanets, hosts, the map, meteor parameter sets and asteroid cursor
-boundaries. Unit tests separately cover unavailable and malformed responses.
+shapes for exoplanets, hosts, the map, meteor parameter sets, asteroid cursor
+boundaries and observer calculations. The observer cases cover London and both
+polar regions at a fixed instant, preserving circumpolar and never-rises states,
+null event times and numerical values. Unit tests separately cover unavailable
+and malformed responses.
 
 To check the selected backend checkout against the current website, use a Python
 environment with that repository's development/API/MCP dependencies installed:
