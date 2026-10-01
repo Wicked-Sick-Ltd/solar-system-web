@@ -3,6 +3,37 @@
 Updated: 2026-10-01. Foundation, accessible systems, release workflow and evening usability pass implemented.
 See [development plan](2026-10-01-public-universe.md).
 
+## Active programme: performance and equipment-aware observing
+
+Craig accepted the complete seven-workstream proposal after the evening pass,
+and requested existing work in PRs before autonomous continuation. The persistent
+programme goal is active; the earlier two-hour goal is complete and is not the
+scope limit for this new request. See the [accepted programme and acceptance
+checklist](2026-10-01-observing-programme.md).
+
+Existing work is now published for review: [web #65](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/65)
+and [database #31](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/31).
+Web remains draft for the outstanding browser acceptance. Initial application,
+assets, Lighthouse, PDF and local release-rehearsal CI passed; CodeQL's explicit
+TLS-floor finding was addressed in `b39f6a8` and new checks are running. These are
+PRs, not merged releases. Persistent permissions were updated for this programme
+and development-branch/PR publication; production boundaries remain unchanged.
+
+First wave in progress:
+
+- E1–E3: guest equipment/site workspace in `codex/observing-workspace`.
+- A1–A6: offset/Moon correctness and bounded validated night-engine work in
+  backend `codex/observing-engine`; parent integration/review precedes new PRs.
+- P2–P3: measured request-count baseline and refresh-job deduplication in
+  `codex/performance-refresh`.
+
+Remaining accepted work includes optical previews, complete planner journeys,
+camera profiles/horizon masks, sourced star/double/deep-sky catalogues, observing
+lists/journals, optional private sync, scientific snapshot identity/exports and
+the remaining performance/browser acceptance. Do not mark the programme complete
+after delivering only the first wave. Continue the build/review/PR loop across
+sessions; preserve the original backend checkout and all topic worktrees.
+
 ## Evening development: usability, observation accuracy and release rehearsal
 
 Craig authorized an autonomous window of up to two hours from 18:42 UTC. Three
