@@ -38,7 +38,7 @@
         </div>
         @vite('resources/js/galaxy.js')
         <div class="mt-5 space-y-2 text-sm" style="color: var(--muted)">
-            <p>{{ __('The map shows known detections, not the distribution of all planets. Systems without usable positions are omitted: :count.', ['count' => $map->unmappedHosts]) }}</p>
+            <p>{{ __('The map shows known detections, not the distribution of all planets. Systems without usable positions are omitted: :count.', ['count' => $map->unmappedHosts === null ? __('not reported') : \App\Support\Format::count($map->unmappedHosts)]) }}</p>
             <p>{{ __('Positions use NASA catalogue astrometry, without stellar-motion propagation. Nearby axes follow Galactic coordinates. The overview places the Sun 8,122 parsecs from the Galactic centre and 20.8 parsecs above its plane.') }}</p>
             @if($map->truncated)<p>{{ __('The map response reached its display limit; browse the catalogue for additional systems.') }}</p>@endif
             <p><a class="underline" href="https://exoplanetarchive.ipac.caltech.edu/docs/PSCompPars.html">{{ __('Data: NASA Exoplanet Archive / PSCompPars') }}</a></p>

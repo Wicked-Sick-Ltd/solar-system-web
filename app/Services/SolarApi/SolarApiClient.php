@@ -205,8 +205,36 @@ class SolarApiClient
     public function galaxyMap(): GalaxyMap
     {
         $d = $this->cachedGet('/galaxy', [], $this->ttl['catalog']);
-        if (! is_array($d) || ! ($d['available'] ?? false)) {
+        if (! is_array($d) || ($d['available'] ?? null) !== true
+            || ! is_array($d['results'] ?? null) || ! array_is_list($d['results'])
+            || count($d['results']) > 10000) {
             throw new SolarApiException('Galaxy map is not available yet.');
+        }
+        if ((isset($d['unmapped_hosts']) && (! is_int($d['unmapped_hosts']) || $d['unmapped_hosts'] < 0))
+            || (isset($d['truncated']) && ! is_bool($d['truncated']))) {
+            throw new SolarApiException('Invalid galaxy coverage metadata.');
+        }
+        $ids = [];
+        foreach ($d['results'] as $host) {
+            if (! is_array($host) || ! is_string($host['id'] ?? null) || trim($host['id']) === ''
+                || ! is_string($host['name'] ?? null) || trim($host['name']) === ''
+                || isset($ids[$host['id']]) || ! is_int($host['planet_count'] ?? null) || $host['planet_count'] < 0) {
+                throw new SolarApiException('Invalid galaxy host identity.');
+            }
+            $ids[$host['id']] = true;
+            foreach (['distance_pc', 'x_pc', 'y_pc', 'z_pc', 'galactocentric_x_pc', 'galactocentric_y_pc', 'galactocentric_z_pc'] as $field) {
+                $value = $host[$field] ?? null;
+                if ((! is_float($value) && ! is_int($value)) || ! is_finite((float) $value)
+                    || ($field === 'distance_pc' && $value <= 0)) {
+                    throw new SolarApiException('Invalid galaxy host measurement.');
+                }
+            }
+            foreach (['distance_error_plus_pc', 'distance_error_minus_pc'] as $field) {
+                $value = $host[$field] ?? null;
+                if ($value !== null && ((! is_float($value) && ! is_int($value)) || ! is_finite((float) $value))) {
+                    throw new SolarApiException('Invalid galaxy distance uncertainty.');
+                }
+            }
         }
 
         return GalaxyMap::fromArray($d);
