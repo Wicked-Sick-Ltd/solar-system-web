@@ -28,10 +28,36 @@ null remains null; zero remains zero. Values are serialized without display
 rounding. Numeric values retain their JSON/PHP numeric representation; this is not
 an arbitrary-precision decimal interchange format.
 
-The API does not expose an immutable snapshot identifier. `snapshot_id` is null.
-Generation time is not a snapshot identity, and the catalogue can change between
-requests. Each record's `retrieved_at` is preserved separately from export time.
-NASA's composite parameters can combine studies rather than one consistent model.
+When the backend reports `catalogue_snapshot` alongside an exoplanet page, the
+export preserves that exact validated object. Its `association` is
+`same-read-transaction`: the backend read the page rows and catalogue identity
+metadata within one SQLite read transaction. This is a reported association, not
+an independent rehash or verification of the downloaded rows.
+
+- A known identity sets `snapshot_id` to that page's `catalogue_id` and retains
+  the build identifier and `catalogue-logical-v1` hash policy.
+- An associated unknown identity leaves `snapshot_id` null and preserves the
+  backend reason (`not_recorded`, `not_finalized_or_changed`, `invalid_metadata`,
+  `unsupported_metadata` or `schema_changed`). It remains distinct from an
+  unavailable response and from an older unassociated backend.
+- An older response without the member has `catalogue_snapshot: null`,
+  `snapshot_association: "unassociated"` and `snapshot_id: null`. A separately
+  observed `/catalogue` identity never supplies a missing page identity.
+- Present but malformed metadata fails closed with HTTP 503 for both formats;
+  it is never silently downgraded to legacy or a successful empty download.
+
+For associated responses `snapshot_association` is `same-read-transaction`.
+The identifier applies only to the exported page. Another page, host detail or
+later request can belong to another catalogue; this endpoint does not pin a
+multi-page session or promise an atomic upstream NASA model. NASA's composite
+parameters can combine studies. A mismatch with separately probed global metadata
+does not relabel a correctly associated page.
+
+Cached rows retain their own associated identity, including while a stale copy is
+served during background refresh. `generated_at` records export serialization
+time, not the time backend rows were read; the metadata says this explicitly.
+Each record's source `retrieved_at` remains separate. An export may use a cached
+page and must not be described as a fresh live catalogue query.
 
 ## CSV
 
