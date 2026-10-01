@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, 'codex/public-universe-foundation']
     types: [opened, synchronize, reopened, edited, ready_for_review]
 
 permissions:
