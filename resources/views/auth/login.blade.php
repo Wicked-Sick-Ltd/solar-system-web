@@ -1,6 +1,6 @@
 <x-layouts.app>
     <x-page-header :title="__('Sign in')"
-                   :lead="__('Sign in to manage your object visibility alerts.')" />
+                   :lead="__('Sign in for visibility alerts and optional private observing backups.')" />
 
     <section class="surface mx-auto max-w-lg p-6" aria-labelledby="login-heading">
         <h2 id="login-heading" class="font-serif text-2xl font-medium">{{ __('Welcome back') }}</h2>

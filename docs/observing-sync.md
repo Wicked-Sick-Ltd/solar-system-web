@@ -2,9 +2,8 @@
 
 Guest equipment, sites, lists and journals continue to live in browser storage.
 Signing in does not upload or download them. The server API provides an optional
-private copy through explicit operations; the browser consent/preview interface
-is a separate integration. No background synchronization or automatic merging
-is implemented.
+private copy through explicit operations at `/account/observing-backup`.
+No background synchronization or automatic merging is implemented.
 
 ## Account and request boundary
 
@@ -91,3 +90,27 @@ deletion. Restoring server data to a browser should explicitly warn that the
 shared guest workspace will be replaced, perform local stale checks, and clear
 all account previews on navigation/logout/account changes. Do not persist
 private account previews or account payloads in unscoped browser storage.
+
+## Browser transfer workflow
+
+The authenticated page initially loads no account payload and reads no guest
+records. Users explicitly preview each side, then select a consent checkbox for
+the desired transfer. Uploads compare the captured guest keys and use the account
+revision. Restores recheck the authenticated account/revision before replacing
+guest keys and clear active-site selection without changing `observer_location`.
+Account payloads exist only in page memory; navigation/pagehide clears them and
+aborts pending requests. Restored back/forward pages reload their authenticated
+document. A new account cannot reuse the prior page's opaque scope token.
+
+Local storage has no multi-key transaction or atomic compare-and-swap. The restore
+checks both captured keys before starting, checks each again before writing, and
+conditionally rolls back earlier writes after failure. It preserves detected
+interleaved changes and reports incomplete recovery. Another process can still
+write between a check and a write; export a backup and avoid concurrent editing
+during replacement. Server revisions provide the stronger database-side guard.
+
+Responses are read through a decoded stream capped at 1.5 MiB, with a 20-second
+client timeout. Uncertain network/mutation outcomes discard the revision and
+require an explicit fresh account check; they are never retried automatically.
+The API emits unescaped Unicode so valid canonical payloads fit the transport
+bound. Private fields are rendered as counts rather than inserted HTML.

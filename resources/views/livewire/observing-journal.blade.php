@@ -1,6 +1,7 @@
 <div data-observing-journal class="mx-auto max-w-4xl space-y-8">
     <x-page-header :title="__('Observing lists and journal')" :eyebrow="__('Your nights outside')" :lead="__('Plan what to look for and record what you actually observed. These records stay in this browser, without an account.')" />
     <p>{{ __('Signing in does not upload this journal. Anyone using this browser can read it. Export a private backup before clearing browser storage or moving to another domain.') }}</p>
+    <p><a class="underline" href="{{ route('observing.sync.page') }}">{{ __('Optional private account backup') }}</a></p>
     <p role="status" data-journal-status></p><p role="alert" data-journal-error></p>
     <noscript><p>{{ __('This private journal needs JavaScript. Catalogue browsing and the night planner remain available without it.') }}</p></noscript>
     <div class="flex flex-wrap gap-3 print:hidden"><button type="button" data-journal-reload class="min-h-11 rounded border px-4">{{ __('Reload journal and equipment') }}</button><button type="button" data-journal-undo hidden class="min-h-11 rounded border px-4">{{ __('Undo last removal or import') }}</button></div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\ExoplanetExportController;
 use App\Http\Controllers\GalaxyDataController;
 use App\Http\Controllers\NightPlannerController;
 use App\Http\Controllers\ObservingSyncController;
+use App\Http\Controllers\ObservingSyncPageController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
 use App\Http\Controllers\ReleaseController;
@@ -111,6 +112,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/account/observing-workspace', [ObservingSyncController::class, 'show'])->middleware('throttle:30,1')->name('observing.sync.show');
     Route::put('/account/observing-workspace', [ObservingSyncController::class, 'update'])->middleware('throttle:10,1')->name('observing.sync.update');
     Route::delete('/account/observing-workspace', [ObservingSyncController::class, 'destroy'])->middleware('throttle:10,1')->name('observing.sync.destroy');
+    Route::get('/account/observing-backup', ObservingSyncPageController::class)->name('observing.sync.page');
     Route::get('/alerts', [VisibilityAlertController::class, 'index'])->name('alerts.index');
     Route::delete('/alerts/{alert}', [VisibilityAlertController::class, 'destroy'])->name('alerts.destroy');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');

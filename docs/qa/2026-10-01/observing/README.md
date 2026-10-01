@@ -31,3 +31,14 @@ widths and broader foundation journeys. The earlier download event timeout was
 caused by an outstanding native Save dialog; completing it verified journal
 download. Unit tests do not substitute for these remaining browser checks.
 Physical touch/device performance was not tested.
+
+Private-backup browser checks use a separate disposable SQLite database and
+synthetic `observing-qa@example.invalid` account on loopback port18016. The initial
+account revision0 and empty browser preview required explicit actions. Creating
+a synthetic guest list did not upload it. Consent plus upload produced revision1
+with one list; explicit restore of that same preview succeeded. Sign-out followed
+by browser Back redirected to sign-in, without reopening the private preview.
+Desktop and390×844screenshots show controls/status; mobile page/client widths
+both375px, and the viewport was restored. Multi-tab conflicts, account-switch
+guards, failed writes and decoded response caps have automated coverage; they
+were not all reproduced manually in Chrome.
