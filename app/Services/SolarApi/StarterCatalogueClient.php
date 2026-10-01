@@ -18,9 +18,7 @@ final class StarterCatalogueClient
 
     public function catalogue(string $q = '', string $family = '', int $page = 1): StarterPage
     {
-        $key = $this->cacheKey('list', [$q, $family, $page]);
-
-        return Cache::remember($key, 3600, fn () => $this->fetchCatalogue($q, $family, $page));
+        return $this->cached('list', [$q, $family, $page], fn () => $this->fetchCatalogue($q, $family, $page));
     }
 
     private function fetchCatalogue(string $q, string $family, int $page): StarterPage
@@ -61,7 +59,7 @@ final class StarterCatalogueClient
 
     public function target(string $id): ?StarterTarget
     {
-        return Cache::remember($this->cacheKey('detail', [$id]), 3600, fn () => $this->fetchTarget($id));
+        return $this->cached('detail', [$id], fn () => $this->fetchTarget($id));
     }
 
     private function fetchTarget(string $id): ?StarterTarget
@@ -79,10 +77,58 @@ final class StarterCatalogueClient
         return StarterTarget::fromArray($data, StarterSource::fromArray($data['provenance'] ?? null, $data['source']));
     }
 
-    /** @param list<string|int> $input */
-    private function cacheKey(string $operation, array $input): string
+    /**
+     * @param  list<string|int>  $input
+     * @param  callable(): (StarterPage|StarterTarget|null)  $fetch
+     */
+    private function cached(string $operation, array $input, callable $fetch): mixed
     {
-        return 'starter-catalogue:v2:'.hash('sha256', (string) config('services.solar.base_url').$operation.json_encode($input));
+        $context = app(CatalogueContext::class);
+        $state = $context->current();
+        $path = 'starter:v3:'.$operation;
+        $query = ['input' => $input];
+        $key = $context->key($path, $query, $state);
+        $entry = $state['token'] === 'checking' ? null : Cache::get($key);
+        if (is_array($entry) && array_key_exists('value', $entry)) {
+            return $this->restore($entry['value']);
+        }
+        $value = $fetch();
+        if ($state['token'] !== 'checking' && $context->key($path, $query) === $key) {
+            Cache::put($key, ['value' => $this->serialize($value)], $state['identity']->known() ? 3600 : CatalogueContext::UNKNOWN_DATA_SECONDS);
+        }
+
+        return $value;
+    }
+
+    /** @return array<string,mixed> */
+    private function serialize(StarterPage|StarterTarget|null $value): array
+    {
+        if ($value instanceof StarterPage) {
+            return ['total' => $value->total,
+                'targets' => array_map(static fn (StarterTarget $target) => $target->data, $value->targets),
+                'sources' => array_map(static fn (StarterSource $source) => $source->data, $value->sources)];
+        }
+
+        return ['target' => $value?->data, 'source' => $value?->provenance->data];
+    }
+
+    /** @param array<string,mixed> $value */
+    private function restore(array $value): StarterPage|StarterTarget|null
+    {
+        if (isset($value['targets'], $value['sources'], $value['total'])) {
+            $sources = [];
+            foreach ($value['sources'] as $name => $source) {
+                $sources[$name] = StarterSource::fromArray($source, $name);
+            }
+            $targets = array_map(static fn ($row) => StarterTarget::fromArray($row, $sources[$row['source']]), $value['targets']);
+
+            return new StarterPage($targets, $value['total'], $sources);
+        }
+        if ($value['target'] === null) {
+            return null;
+        }
+
+        return StarterTarget::fromArray($value['target'], StarterSource::fromArray($value['source'], $value['target']['source']));
     }
 
     /** @param array<string,string|int> $query */

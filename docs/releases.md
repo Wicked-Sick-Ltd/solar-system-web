@@ -151,3 +151,11 @@ The automatic readiness check certifies the web build and release database. It
 does not prove scheduler, queue worker or email delivery health. Resume drained
 processes after the required smoke checks and verify their logs before marking
 the operational rollout complete; never send real visibility alerts as a test.
+
+## Current unreleased editorial packet
+
+The [1.0.0 review packet](RELEASE-1.0.0-REVIEW.md) maps the expanded draft to its
+unmerged topic PRs and distinguishes forthcoming integration from accepted
+behavior. The [programme gap review](plans/2026-10-02-programme-gap-review.md)
+records remaining work. These review documents and rendered draft notes do not
+change the bootstrap version or authorize publication.

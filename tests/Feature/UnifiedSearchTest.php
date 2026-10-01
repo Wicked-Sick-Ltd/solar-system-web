@@ -166,3 +166,22 @@ it('treats a null search update as clearing the search', function () {
     Livewire::test(SearchPage::class)->set('q', null)->assertSet('q', '')->assertSee('Start typing');
     Http::assertNothingSent();
 });
+
+it('publishes the validated native title for each live search update', function () {
+    fakeSolar();
+    $brand = config('site.name');
+    Livewire::withQueryParams(['q' => 'Saturn'])->test(SearchPage::class)
+        ->assertDispatched('search-title-updated', title: "Search: Saturn · {$brand}")
+        ->set('q', ' TRAPPIST-1 ')
+        ->assertDispatched('search-title-updated', title: "Search: TRAPPIST-1 · {$brand}")
+        ->set('q', '')
+        ->assertDispatched('search-title-updated', title: "Search · {$brand}")
+        ->set('q', str_repeat('x', 201))
+        ->assertDispatched('search-title-updated', title: "Search · {$brand}")
+        ->set('q', ['Saturn'])
+        ->assertDispatched('search-title-updated', title: "Search · {$brand}");
+    $unsafe = '<script>alert(1)</script>';
+    Livewire::test(SearchPage::class)->set('q', $unsafe)
+        ->assertDispatched('search-title-updated', title: "Search: {$unsafe} · {$brand}");
+    $this->get('/search?q=Saturn')->assertSee("<title>Search: Saturn · {$brand}</title>", false);
+});

@@ -55,6 +55,10 @@ final class SearchPage extends Component
             ->description(__('Search solar-system objects, exoplanets and their host systems by name.'))
             ->noindex();
 
+        // The layout head is not morphed by subsequent Livewire renders. Send
+        // the same validated title used by native GET requests as plain text.
+        $this->dispatch('search-title-updated', title: app(Seo::class)->fullTitle())->self();
+
         $results = [];
         $solarUnavailable = false;
         $solarHasMore = false;

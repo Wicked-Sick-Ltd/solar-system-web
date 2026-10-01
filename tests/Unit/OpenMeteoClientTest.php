@@ -42,7 +42,7 @@ it('explicitly requests documented metre-per-second units and a bounded UTC fore
         ->and($weather->windSpeedMS)->toBe(3.0)->and($weather->dewRisk)->toBe('High dew risk')
         ->and($weather->visibilityMetres)->toBe(12000)->and($weather->cloudCoverPercent)->toBe(20);
     Http::assertSent(fn ($request) => $request['wind_speed_unit'] === 'ms' && $request['timezone'] === 'UTC'
-        && $request['timeformat'] === 'iso8601' && $request['forecast_days'] === 2
+        && $request['timeformat'] === 'iso8601' && $request['forecast_days'] === 7
         && $request['latitude'] === 51.51 && $request['longitude'] === -0.13);
     app(OpenMeteoClient::class)->tonightOutlook(51.5074, -0.1278, '2026-10-01T22:45:00+00:00');
     Http::assertSentCount(1);
@@ -152,7 +152,7 @@ it('fails gracefully for HTTP errors and unreadable forecast bodies', function (
     expect(app(OpenMeteoClient::class)->tonightOutlook(0, 0, null))->toBeNull();
 })->with([200, 503]);
 
-it('accepts exactly two UTC days and refuses oversized responses', function (int $count, bool $valid) {
+it('accepts exactly seven UTC days and refuses oversized responses', function (int $count, bool $valid) {
     $payload = hourlyWeatherPayload();
     $payload['hourly']['time'] = [];
     for ($hour = 0; $hour < $count; $hour++) {
@@ -162,7 +162,7 @@ it('accepts exactly two UTC days and refuses oversized responses', function (int
         $payload['hourly'][$field] = array_fill(0, $count, 20);
     }
     expect(weatherFromPayload($payload) !== null)->toBe($valid);
-})->with([[48, true], [49, false]]);
+})->with([[168, true], [169, false]]);
 
 it('matches the containing hour independently of response order and preserves a missing slot', function () {
     $payload = hourlyWeatherPayload();

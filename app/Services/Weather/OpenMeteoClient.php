@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Weather;
 
+use App\Services\Weather\Data\HourlyForecast;
 use App\Services\Weather\Data\WeatherOutlook;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\Lock;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 use Throwable;
 
 final class OpenMeteoClient
@@ -38,13 +41,7 @@ final class OpenMeteoClient
         if ($hour === null) {
             return null;
         }
-        $lat = round($lat, 2);
-        $lon = round($lon, 2);
-        $hourly = Cache::remember(
-            $this->cacheKey($lat, $lon),
-            $this->cacheSeconds,
-            fn () => $this->fetchHourlyForecast($lat, $lon),
-        );
+        $hourly = $this->hourlyForecast($lat, $lon)?->hours;
 
         // A missing hour must not silently become another date's forecast.
         if (! is_array($hourly) || ! isset($hourly[$hour]['cloud_cover'])) {
@@ -67,6 +64,51 @@ final class OpenMeteoClient
         );
     }
 
+    /** One validated snapshot shared by the observer and optional night forecast. */
+    public function hourlyForecast(float $lat, float $lon): ?HourlyForecast
+    {
+        if (! is_finite($lat) || ! is_finite($lon) || abs($lat) > 90 || abs($lon) > 180) {
+            return null;
+        }
+        $lat = round($lat, 2);
+        $lon = round($lon, 2);
+
+        $key = $this->cacheKey($lat, $lon);
+        $cached = Cache::get($key);
+        $cached = is_array($cached) ? HourlyForecast::fromCache($cached) : ($cached === false ? false : null);
+        if ($cached instanceof HourlyForecast || $cached === false) {
+            return $cached === false ? null : $cached;
+        }
+        // A cold concurrent lookup must not start another upstream request.
+        $lock = Cache::lock($key.':refresh', $this->timeout + 5);
+        if (! $lock->get()) {
+            return null;
+        }
+        try {
+            $cached = Cache::get($key);
+            $cached = is_array($cached) ? HourlyForecast::fromCache($cached) : ($cached === false ? false : null);
+            if ($cached instanceof HourlyForecast || $cached === false) {
+                return $cached === false ? null : $cached;
+            }
+            $hours = $this->fetchHourlyForecast($lat, $lon);
+            $snapshot = $hours === null ? null : new HourlyForecast(CarbonImmutable::now('UTC')->toIso8601ZuluString(), $hours);
+            // A producer paused beyond its lease cannot overwrite a newer snapshot.
+            try {
+                $ownsLease = $lock instanceof Lock && $lock->refresh();
+            } catch (RuntimeException) {
+                // Custom drivers without renewable locks can still return uncached weather.
+                $ownsLease = false;
+            }
+            if ($ownsLease) {
+                Cache::put($key, $snapshot === null ? false : ['fetched_at_utc' => $snapshot->fetchedAtUtc, 'hours' => $snapshot->hours], $snapshot === null ? 60 : $this->cacheSeconds);
+            }
+
+            return $snapshot;
+        } finally {
+            $lock->release();
+        }
+    }
+
     /** @return array<string, array<string, float|null>>|null */
     private function fetchHourlyForecast(float $lat, float $lon): ?array
     {
@@ -74,11 +116,12 @@ final class OpenMeteoClient
             $response = Http::baseUrl($this->baseUrl)
                 ->acceptJson()
                 ->timeout($this->timeout)
+                ->withOptions(['sink' => new BoundedWeatherStream, 'allow_redirects' => false])
                 ->get('/v1/forecast', [
                     'latitude' => $lat,
                     'longitude' => $lon,
                     'hourly' => 'cloud_cover,visibility,wind_speed_10m,relative_humidity_2m',
-                    'forecast_days' => 2,
+                    'forecast_days' => 7,
                     // https://open-meteo.com/en/docs: wind defaults to km/h.
                     // Dew-risk thresholds and the DTO use metres per second.
                     'wind_speed_unit' => 'ms',
@@ -88,7 +131,7 @@ final class OpenMeteoClient
         } catch (Throwable) {
             return null;
         }
-        if (! $response->successful()) {
+        if (! $response->successful() || strlen($response->body()) > BoundedWeatherStream::MAX_BYTES) {
             return null;
         }
         $data = $response->json();
@@ -114,7 +157,7 @@ final class OpenMeteoClient
 
         $hourly = $data['hourly'];
         $times = $hourly['time'] ?? null;
-        if (! is_array($times) || ! array_is_list($times) || $times === [] || count($times) > 48) {
+        if (! is_array($times) || ! array_is_list($times) || $times === [] || count($times) > 168) {
             return null;
         }
         $series = [];
@@ -158,7 +201,7 @@ final class OpenMeteoClient
     {
         // Never reinterpret forecasts cached before explicit m/s units and
         // strict payload validation were introduced.
-        return sprintf('weather:open-meteo:v2-ms:%0.2f:%0.2f', $lat, $lon);
+        return sprintf('weather:open-meteo:v4-7day:%s:%s:%0.2f:%0.2f', hash('sha256', $this->baseUrl), CarbonImmutable::now('UTC')->toDateString(), $lat, $lon);
     }
 
     private function normaliseHour(string $time, bool $exactHour = false): ?string

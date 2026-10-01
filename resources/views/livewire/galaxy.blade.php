@@ -30,7 +30,7 @@
                     <p data-map-status role="status" class="absolute bottom-3 left-3 z-10 max-w-[90%] rounded bg-slate-950/90 px-3 py-2 text-sm text-slate-200">{{ __('Load the map to explore in 3D, or browse the accessible system directory.') }}</p>
                 </div>
                 <aside class="surface space-y-5 p-5">
-                    <div><p class="mb-3 text-sm" style="color: var(--muted)">{{ __('Load the 3D map to use these controls, or follow a system link below.') }}</p><label for="galaxy-system" class="mb-2 block text-sm">{{ __('Choose a system') }}</label>
+                    <div><p data-map-instruction class="mb-3 text-sm" style="color: var(--muted)">{{ __('Load the 3D map to use these controls, or follow a system link below.') }}</p><label for="galaxy-system" class="mb-2 block text-sm">{{ __('Choose a system') }}</label>
                         <select id="galaxy-system" data-system disabled class="w-full rounded border p-2" style="background: var(--bg); border-color: var(--border)">
                             <option value="">{{ __('Select a host') }}</option>
                         </select></div>

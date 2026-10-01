@@ -59,6 +59,7 @@ function harness() {
 
 test('no renderer or catalogue request until explicit activation; duplicate clicks load once', async () => {
     const h = harness();
+    assert.equal(h.nodes.get('[data-map-instruction]').hidden, false);
     assert.equal(h.imports.length, 0);
     assert.equal(h.requests.length, 0);
     h.nodes.get('[data-load-map]').dispatchEvent(new Event('click'));
@@ -71,11 +72,14 @@ test('no renderer or catalogue request until explicit activation; duplicate clic
     await completion;
     assert.equal(h.mounts.length, 1);
     assert.equal(h.nodes.get('[data-load-map]').hidden, true);
+    assert.equal(h.nodes.get('[data-map-instruction]').hidden, true);
     h.page.load();
     assert.equal(h.requests.length, 1);
     h.page.dispose();
     h.page.dispose();
     assert.equal(h.disposals, 1);
+    assert.equal(h.nodes.get('[data-map-instruction]').hidden, false);
+    assert.equal(h.nodes.get('[data-system]').disabled, true);
 });
 
 test('navigation aborts data fetch and a late dynamic import cannot create a renderer', async () => {
@@ -119,10 +123,12 @@ for (const failure of ['network', 'chunk', 'invalid-json', 'status', 'mount']) {
         assert.equal(h.requests[0].options.signal.aborted, true);
         assert.equal(h.nodes.get('[data-load-map]').disabled, false);
         assert.equal(h.nodes.get('[data-load-map]').hidden, false);
+        assert.equal(h.nodes.get('[data-map-instruction]').hidden, false);
         const retry = h.page.load();
         h.ready(1);
         await retry;
         assert.equal(h.mounts.length, 1);
+        assert.equal(h.nodes.get('[data-map-instruction]').hidden, true);
         h.page.dispose();
     });
 }

@@ -41,7 +41,7 @@ final class SetResponseHeaders
         // Shared caches must select the anonymous representation before lookup,
         // and account pages must not remain in the browser cache after logout.
         $response->setVary('Cookie', false);
-        if ($request->is('observe/night')) {
+        if ($request->is('observe/night', PrivateNightWeather::PATH)) {
             // Include validation, throttle and exception responses for this private form.
             $response->headers->set('Cache-Control', 'private, no-store');
             $response->headers->set('Referrer-Policy', 'no-referrer');
@@ -103,11 +103,13 @@ final class SetResponseHeaders
             $response->headers->removeCookie($cookie->getName(), $cookie->getPath(), $cookie->getDomain());
         }
 
-        // Revalidate in browsers; longer shared (CDN) cache with background refresh.
-        // The catalogue only changes nightly, so this is comfortably safe.
+        // Catalogue-bearing HTML must not hide a changed observed build behind
+        // the previous day's stale edge response. Static API guidance retains
+        // its existing longer policy. Already cached responses need rollout purge.
+        $cataloguePage = in_array($request->route()->getName(), ['home', 'planets.index', 'about', 'dwarf-planets'], true);
         $response->headers->set(
             'Cache-Control',
-            'public, max-age=0, s-maxage=600, stale-while-revalidate=86400',
+            $cataloguePage ? 'public, max-age=0, s-maxage=60' : 'public, max-age=0, s-maxage=600, stale-while-revalidate=86400',
         );
     }
 }
