@@ -26,30 +26,30 @@
             @elseif (! $view->neverRises)
                 <div>
                     <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Rises') }}</dt>
-                    <dd class="font-serif text-xl tabular-nums" style="color: var(--text);"><span x-text="local('{{ $view->riseUtc }}')">{{ $view->riseUtc }}</span></dd>
+                    <dd class="font-serif text-xl tabular-nums" style="color: var(--text);"><span x-text="local('{{ $view->riseUtc }}')">{{ $view->riseUtc }}</span><span class="block text-xs" style="color: var(--muted);">{{ $view->riseUtc ?? '—' }}</span></dd>
                 </div>
                 <div>
                     <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Highest') }}</dt>
-                    <dd class="font-serif text-xl tabular-nums" style="color: var(--text);"><span x-text="local('{{ $view->transitUtc }}')">{{ $view->transitUtc }}</span></dd>
+                    <dd class="font-serif text-xl tabular-nums" style="color: var(--text);"><span x-text="local('{{ $view->transitUtc }}')">{{ $view->transitUtc }}</span><span class="block text-xs" style="color: var(--muted);">{{ $view->transitUtc ?? '—' }}</span></dd>
                 </div>
                 <div>
                     <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Sets') }}</dt>
-                    <dd class="font-serif text-xl tabular-nums" style="color: var(--text);"><span x-text="local('{{ $view->setUtc }}')">{{ $view->setUtc }}</span></dd>
+                    <dd class="font-serif text-xl tabular-nums" style="color: var(--text);"><span x-text="local('{{ $view->setUtc }}')">{{ $view->setUtc }}</span><span class="block text-xs" style="color: var(--muted);">{{ $view->setUtc ?? '—' }}</span></dd>
                 </div>
             @endif
             <div>
                 <dt class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ __('Sun') }}</dt>
-                <dd class="text-sm" style="color: var(--text);">{{ $view->isDark ? __('Below the horizon — dark') : __('Up — daylight or twilight') }}</dd>
+                <dd class="text-sm" style="color: var(--text);">{{ $view->isDark ? __('Sun below −6° — past civil twilight') : __('Daylight or civil twilight') }}</dd>
             </div>
         </dl>
 
         @if ($weather)
             <div class="mt-4 rounded-lg border p-3" style="border-color: var(--border); background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--muted);">{{ __('Tonight\'s outlook') }}</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--muted);">{{ __('Hourly weather forecast') }}</p>
                 <dl class="mt-2 grid gap-y-2 text-sm">
                     <div class="flex items-baseline justify-between gap-3">
-                        <dt style="color: var(--muted);">{{ __('Best hour') }}</dt>
-                        <dd class="tabular-nums" style="color: var(--text);"><span x-text="local('{{ $weather->bestHourUtc }}')">{{ $weather->bestHourUtc }}</span></dd>
+                        <dt style="color: var(--muted);">{{ __('Forecast time') }}</dt>
+                        <dd class="tabular-nums" style="color: var(--text);"><span x-text="local('{{ $weather->bestHourUtc }}')">{{ $weather->bestHourUtc }}</span><span class="block text-xs" style="color: var(--muted);">{{ $weather->bestHourUtc }} UTC</span></dd>
                     </div>
                     <div class="flex items-baseline justify-between gap-3">
                         <dt style="color: var(--muted);">{{ __('Cloud cover') }}</dt>
@@ -60,18 +60,14 @@
                         <dd style="color: var(--text);">{{ $weather->dewRisk }}</dd>
                     </div>
                 </dl>
+                <p class="mt-3 text-xs leading-relaxed" style="color: var(--muted);">{{ __('Weather for the displayed forecast hour, using a modelled transit, rise or set time as a reference when available. Clear skies alone do not establish that this object is above the horizon, that it is dark, or that it can be observed.') }}</p>
             </div>
-        @endif
-
-        @if ($kitReadyNudge)
-            <p class="mt-3 text-sm leading-relaxed" style="color: var(--text);">
-                <span class="font-medium">{{ __('Kit-ready nudge:') }}</span>
-                <span x-text="localNudge(@js($kitReadyNudge))">{{ $kitReadyNudge }}</span>
-            </p>
+        @else
+            <p class="mt-4 text-sm" style="color: var(--muted);">{{ __('Hourly weather forecast unavailable. The sky calculation does not include weather conditions.') }}</p>
         @endif
 
         <p class="mt-4 text-xs" style="color: var(--color-faint);">
-            {{ __('For :lat, :lon. Times in your local time zone.', ['lat' => number_format((float) $view->lat, 2), 'lon' => number_format((float) $view->lon, 2)]) }}
+            {{ __('For :lat, :lon. Times are shown in your local time zone when JavaScript is available; the fallback timestamps are UTC.', ['lat' => number_format((float) $view->lat, 2), 'lon' => number_format((float) $view->lon, 2)]) }}
             <button type="button" class="link-quiet underline" @click="forget()">{{ __('Forget my location') }}</button>
             <a class="link-quiet underline" href="{{ route('settings') }}">{{ __('Your settings') }}</a>
         </p>
@@ -86,7 +82,7 @@
                     <button type="button" class="rounded-lg border px-3 py-1.5 text-sm"
                             style="border-color: var(--border); color: var(--text);"
                             wire:click="saveAlert">
-                        {{ __('Tell me when it is up after dark') }}
+                        {{ __('Tell me when it is up after civil twilight') }}
                     </button>
                 @endif
             @else
@@ -98,23 +94,27 @@
                 </p>
             @endauth
             @error('alert')
-                <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p>
+                <p class="mt-2 text-xs" style="color: var(--error);">{{ $message }}</p>
             @enderror
         </div>
     @else
         <p class="text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--muted);">{{ __('From your location') }}</p>
         <p class="mt-2 text-sm leading-relaxed" style="color: var(--text); max-width: 42ch;">
-            {{ __('See how high it is right now, whether it\'s up after dark, and when it rises and sets where you are.') }}
+            {{ __('See how high it is right now, whether it is up after civil twilight, and when it rises and sets where you are.') }}
         </p>
 
         @if ($failed)
-            <p class="mt-2 text-sm" style="color: #ffb4b4;">{{ __('Sorry — we couldn\'t work that out just now. Please try again later.') }}</p>
+            <p class="mt-2 text-sm" style="color: var(--error);">{{ __('Sorry — we couldn\'t work that out just now. Please try again later.') }}</p>
         @endif
 
+        @if ($invalidLocation)
+            <p id="observer-location-error" role="alert" class="mt-3 text-sm" style="color: var(--error);">{{ __('Enter a latitude between −90 and 90 and a longitude between −180 and 180. No sky or weather request was made for this location.') }}</p>
+        @endif
+        <noscript><p class="mt-3 text-sm">{{ __('Your location calculation needs JavaScript. The object’s general sky coordinates remain available above.') }}</p></noscript>
         <div class="mt-4 flex flex-wrap items-center gap-3">
             <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent); color: #07090f;"
                     @click="locate()" :disabled="busy" x-bind:aria-busy="busy">
-                <span x-show="!busy">{{ __('Get precise data for my location') }}</span>
+                <span x-show="!busy">{{ __('Calculate sky positions for my location') }}</span>
                 <span x-show="busy" x-cloak>{{ __('Locating…') }}</span>
             </button>
             <button type="button" class="link-quiet text-sm underline" @click="manual = !manual" :aria-expanded="manual">{{ __('or enter a location') }}</button>
@@ -124,14 +124,17 @@
         <form class="mt-3" x-show="manual" x-cloak @submit.prevent="submitText()">
             <label class="block text-xs" style="color: var(--muted);" for="observer-location-text">{{ __('Paste a location') }}</label>
             <div class="mt-1 flex flex-wrap items-stretch gap-2">
-                <input id="observer-location-text" type="text" x-model="text" required autocomplete="off" spellcheck="false"
+                <input id="observer-location-text"
+                       @if ($errors->hasAny(['text', 'lat', 'lon']) || $invalidLocation) aria-invalid="true"
+                       aria-describedby="{{ $errors->has('text') ? 'observer-text-error ' : '' }}{{ $errors->has('lat') ? 'observer-lat-error ' : '' }}{{ $errors->has('lon') ? 'observer-lon-error ' : '' }}{{ $invalidLocation ? 'observer-location-error' : '' }}" @endif
+                       type="text" x-model="text" required autocomplete="off" spellcheck="false"
                        placeholder="{{ $what3words ? __('51.51, -0.13  ·  a Google Maps link  ·  ///filled.count.soap') : __('51.51, -0.13  ·  or a Google Maps link') }}"
                        class="block w-full max-w-md rounded-lg border px-3 py-1.5 text-sm" style="background-color: var(--bg-elevated); border-color: var(--border); color: var(--text);">
                 <button type="submit" class="rounded-lg border px-3 py-1.5 text-sm" style="border-color: var(--border); color: var(--text);">{{ __('Use this') }}</button>
             </div>
-            @error('text') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
-            @error('lat') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
-            @error('lon') <p class="mt-2 text-xs" style="color: #ffb4b4;">{{ $message }}</p> @enderror
+            @error('text') <p id="observer-text-error" class="mt-2 text-xs" style="color: var(--error);">{{ $message }}</p> @enderror
+            @error('lat') <p id="observer-lat-error" class="mt-2 text-xs" style="color: var(--error);">{{ $message }}</p> @enderror
+            @error('lon') <p id="observer-lon-error" class="mt-2 text-xs" style="color: var(--error);">{{ $message }}</p> @enderror
 
             <details class="mt-3 text-xs leading-relaxed" style="color: var(--color-faint); max-width: 52ch;">
                 <summary class="cursor-pointer" style="color: var(--muted);">{{ __('How do I find my coordinates?') }}</summary>

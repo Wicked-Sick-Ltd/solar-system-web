@@ -11,7 +11,7 @@ it('shows the sky panel with RA, Dec, constellation and hemisphere', function ()
         ->assertSee('23h 12m 04s')
         ->assertSee('Aquarius')
         ->assertSee('both hemispheres')
-        ->assertSee('Get precise data for my location');
+        ->assertSee('Calculate sky positions for my location');
 });
 
 it('hides the sky panel when the backend has no sky data', function () {

@@ -52,10 +52,10 @@ final readonly class ObserverView
             return __('Never rises from here');
         }
         if ($this->isUp && $this->isDark) {
-            return __('Up now, and it\'s dark');
+            return __('Up now, past civil twilight');
         }
         if ($this->isUp) {
-            return __('Up now, but it\'s daylight');
+            return __('Up now, in daylight or twilight');
         }
 
         return __('Below the horizon');

@@ -33,7 +33,7 @@ it('lets a signed-in user save and remove one alert for current object and locat
     expect($user->visibilityAlerts()->count())->toBe(1);
 
     $component->call('removeAlert')
-        ->assertSee('Tell me when it is up after dark');
+        ->assertSee('Tell me when it is up after civil twilight');
 
     expect($user->visibilityAlerts()->count())->toBe(0);
 });

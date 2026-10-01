@@ -8,7 +8,6 @@ use App\Models\VisibilityAlert;
 use App\Services\SolarApi\Data\SkyPosition;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
-use App\Services\Weather\Data\WeatherOutlook;
 use App\Services\Weather\OpenMeteoClient;
 use App\Services\What3Words\What3WordsClient;
 use App\Services\What3Words\What3WordsException;
@@ -37,9 +36,9 @@ final class SkyObserver extends Component
     #[Locked]
     public string $objectId;
 
-    public ?float $lat = null;
+    public mixed $lat = null;
 
-    public ?float $lon = null;
+    public mixed $lon = null;
 
     public bool $failed = false;
 
@@ -53,25 +52,33 @@ final class SkyObserver extends Component
         $this->objectId = $objectId;
     }
 
-    public function setLocation(float $lat, float $lon): void
+    /** @return array{lat:float,lon:float} */
+    public function setLocation(mixed $lat, mixed $lon): array
     {
         $this->lat = $lat;
         $this->lon = $lon;
         $this->failed = false;
         $this->alertSaved = false;
+        $this->resetErrorBag(['text', 'lat', 'lon']);
 
         $this->validate([
             'lat' => ['required', 'numeric', 'between:-90,90'],
             'lon' => ['required', 'numeric', 'between:-180,180'],
         ]);
+        $this->lat = round((float) $this->lat, 2);
+        $this->lon = round((float) $this->lon, 2);
+
+        return ['lat' => $this->lat, 'lon' => $this->lon];
     }
 
     /**
      * One paste box, three inputs: decimal or DMS coordinates, a Google Maps
      * link, or a what3words address (only when a key is configured — the
      * words are sent to what3words to convert them, which the panel says).
+     *
+     * @return array{lat:float,lon:float}|null
      */
-    public function setFromText(string $text, ?What3WordsClient $w3w = null): void
+    public function setFromText(string $text, ?What3WordsClient $w3w = null): ?array
     {
         $this->text = trim($text);
         $this->resetErrorBag('text');
@@ -81,14 +88,14 @@ final class SkyObserver extends Component
             if (! $w3w->enabled()) {
                 $this->addError('text', __('what3words addresses aren\'t available here — paste coordinates instead.'));
 
-                return;
+                return null;
             }
 
             $key = 'w3w:'.(request()->ip() ?? 'unknown');
             if (RateLimiter::tooManyAttempts($key, self::LOOKUPS_PER_MINUTE)) {
                 $this->addError('text', __('Too many what3words lookups — please try again in a minute, or paste coordinates.'));
 
-                return;
+                return null;
             }
             RateLimiter::hit($key, 60);
 
@@ -97,25 +104,25 @@ final class SkyObserver extends Component
             } catch (What3WordsException $e) {
                 $this->addError('text', $e->getMessage());
 
-                return;
+                return null;
             }
-            $this->setLocation($coords['lat'], $coords['lon']);
 
-            return;
+            return $this->setLocation($coords['lat'], $coords['lon']);
         }
 
         $coords = LocationParser::parse($this->text);
         if ($coords === null) {
             $this->addError('text', __('Sorry, we couldn\'t read that. Try "51.51, -0.13", a Google Maps link, or ///three.word.address.'));
 
-            return;
+            return null;
         }
 
-        $this->setLocation($coords['lat'], $coords['lon']);
+        return $this->setLocation($coords['lat'], $coords['lon']);
     }
 
     public function forget(): void
     {
+        $this->text = '';
         $this->lat = null;
         $this->lon = null;
         $this->failed = false;
@@ -154,7 +161,7 @@ final class SkyObserver extends Component
 
     public function removeAlert(): void
     {
-        if (! Auth::check() || $this->lat === null || $this->lon === null) {
+        if (! Auth::check() || ! $this->validCoordinates()) {
             return;
         }
 
@@ -172,26 +179,30 @@ final class SkyObserver extends Component
     {
         $sky = null;
         $weather = null;
-        $kitReadyNudge = null;
-        if ($this->lat !== null && $this->lon !== null && $this->getErrorBag()->isEmpty()) {
+        // Both public properties can be changed directly in a Livewire request.
+        // Validate before any API, weather or saved-alert lookup, not only in actions.
+        $validLocation = $this->validCoordinates();
+        $invalidLocation = ! $validLocation && ($this->lat !== null || $this->lon !== null);
+        $this->failed = false;
+        $this->alertSaved = false;
+        if ($validLocation && ! $this->getErrorBag()->hasAny(['text', 'lat', 'lon'])) {
             try {
-                $sky = $api->sky($this->objectId, null, $this->lat, $this->lon);
+                $sky = $api->sky($this->objectId, null, (float) $this->lat, (float) $this->lon);
             } catch (SolarApiException) {
                 $this->failed = true;
             }
-            $this->failed = $this->failed || ! $sky instanceof SkyPosition || $sky->observer === null;
+            $this->failed = ! $sky instanceof SkyPosition || $sky->observer === null;
 
             if (! $this->failed && $sky->observer !== null) {
                 $weather = app(OpenMeteoClient::class)->tonightOutlook(
-                    $this->lat,
-                    $this->lon,
-                    $this->bestHourForOutlook($sky),
+                    (float) $this->lat,
+                    (float) $this->lon,
+                    $this->forecastReferenceTime($sky),
                 );
-                $kitReadyNudge = $this->kitReadyNudge($sky, $weather);
             }
         }
 
-        if (Auth::check() && $this->lat !== null && $this->lon !== null) {
+        if (Auth::check() && $validLocation) {
             $this->alertSaved = VisibilityAlert::query()
                 ->where('user_id', Auth::id())
                 ->where('object_id', $this->objectId)
@@ -203,12 +214,12 @@ final class SkyObserver extends Component
         return view('livewire.sky-observer', [
             'sky' => $sky,
             'weather' => $weather,
-            'kitReadyNudge' => $kitReadyNudge,
+            'invalidLocation' => $invalidLocation,
             'what3words' => app(What3WordsClient::class)->enabled(),
         ]);
     }
 
-    private function bestHourForOutlook(SkyPosition $sky): ?string
+    private function forecastReferenceTime(SkyPosition $sky): ?string
     {
         $observer = $sky->observer;
         if ($observer === null) {
@@ -218,25 +229,15 @@ final class SkyObserver extends Component
         return $observer->transitUtc ?? $observer->riseUtc ?? $observer->setUtc;
     }
 
-    private function kitReadyNudge(SkyPosition $sky, ?WeatherOutlook $weather): ?string
+    private function validCoordinates(): bool
     {
-        if ($weather === null || $sky->observer === null) {
-            return null;
-        }
-        if ($weather->verdict !== __('Clear')) {
-            return null;
-        }
-
-        $name = $sky->name ?? __('This object');
-        $from = $sky->observer->riseUtc;
-
-        if ($from !== null) {
-            return __('Clear tonight from your location; :name up from :time. Get the kit out.', [
-                'name' => $name,
-                'time' => $from,
-            ]);
+        foreach (['lat' => 90, 'lon' => 180] as $field => $limit) {
+            $value = $this->{$field};
+            if (! is_numeric($value) || ! is_finite((float) $value) || abs((float) $value) > $limit) {
+                return false;
+            }
         }
 
-        return __('Clear tonight from your location; :name is observable. Get the kit out.', ['name' => $name]);
+        return true;
     }
 }

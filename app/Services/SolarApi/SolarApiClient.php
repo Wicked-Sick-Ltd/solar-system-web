@@ -479,6 +479,11 @@ class SolarApiClient
      */
     public function sky(string $idOrName, ?string $datetime = null, ?float $lat = null, ?float $lon = null): ?SkyPosition
     {
+        if (($lat === null) !== ($lon === null)
+            || ($lat !== null && (! is_finite($lat) || abs($lat) > 90))
+            || ($lon !== null && (! is_finite($lon) || abs($lon) > 180))) {
+            throw new SolarApiException('Invalid observer coordinates.');
+        }
         $observer = $lat !== null && $lon !== null;
         $when = $datetime !== null
             ? CarbonImmutable::parse($datetime)->utc()
@@ -495,7 +500,68 @@ class SolarApiClient
 
         $data = $this->cachedGet('/sky/'.$this->encodePath($idOrName), $query, $this->ttl['positions']);
 
-        return is_array($data) ? SkyPosition::fromArray($data) : null;
+        if ($data === null) {
+            return null;
+        }
+        if (! is_array($data) || ! is_string($data['name'] ?? null) || trim($data['name']) === '') {
+            throw new SolarApiException('Invalid sky-position response.');
+        }
+        foreach (['input_datetime', 'resolved_from', 'ra_hms', 'dec_dms', 'hemisphere', 'visible_from', 'accuracy_note'] as $field) {
+            if (isset($data[$field]) && ! is_string($data[$field])) {
+                throw new SolarApiException('Invalid sky-position metadata.');
+            }
+        }
+        foreach (['ra_deg' => [0, 360], 'dec_deg' => [-90, 90], 'elongation_deg' => [0, 180],
+            'distance_from_earth_au' => [0, PHP_FLOAT_MAX], 'distance_from_sun_au' => [0, PHP_FLOAT_MAX]] as $field => [$min, $max]) {
+            $value = $data[$field] ?? null;
+            if ($value !== null && (! is_numeric($value) || ! is_finite((float) $value) || (float) $value < $min || (float) $value > $max)) {
+                throw new SolarApiException('Invalid sky-position measurement.');
+            }
+        }
+        if (isset($data['constellation'])) {
+            if (! is_array($data['constellation'])) {
+                throw new SolarApiException('Invalid constellation metadata.');
+            }
+            foreach (['name', 'abbr'] as $field) {
+                if (isset($data['constellation'][$field]) && ! is_string($data['constellation'][$field])) {
+                    throw new SolarApiException('Invalid constellation label.');
+                }
+            }
+        }
+        $view = $data['observer'] ?? null;
+        if (($observer && ! is_array($view)) || ($view !== null && ! is_array($view))) {
+            throw new SolarApiException('Observer calculation unavailable.');
+        }
+        if (is_array($view)) {
+            foreach (['lat' => [-90, 90], 'lon' => [-180, 180], 'altitude_deg' => [-90, 90],
+                'azimuth_deg' => [0, 360], 'sun_altitude_deg' => [-90, 90]] as $field => [$min, $max]) {
+                $value = $view[$field] ?? null;
+                if (! is_numeric($value) || ! is_finite((float) $value) || (float) $value < $min || (float) $value > $max) {
+                    throw new SolarApiException('Invalid observer measurement.');
+                }
+            }
+            foreach (['is_up', 'is_dark', 'circumpolar', 'never_rises'] as $field) {
+                if (! is_bool($view[$field] ?? null)) {
+                    throw new SolarApiException('Invalid observer status.');
+                }
+            }
+            foreach (['rise_utc', 'transit_utc', 'set_utc'] as $field) {
+                $value = $view[$field] ?? null;
+                if ($value === null) {
+                    continue;
+                }
+                try {
+                    $date = is_string($value) ? CarbonImmutable::createFromFormat('!Y-m-d\TH:i:s\Z', $value, 'UTC') : null;
+                } catch (Throwable) {
+                    $date = null;
+                }
+                if (! $date || $date->year < 1 || $date->format('Y-m-d\TH:i:s\Z') !== $value) {
+                    throw new SolarApiException('Invalid observer event time.');
+                }
+            }
+        }
+
+        return SkyPosition::fromArray($data);
     }
 
     /**
