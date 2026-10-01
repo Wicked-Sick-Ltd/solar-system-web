@@ -99,3 +99,12 @@
         </div>
     @endif
 </div>
+
+@script
+<script>
+    const root = $wire.$el;
+    $wire.on('search-title-updated', ({ title }) => {
+        if (root.isConnected) document.title = title;
+    });
+</script>
+@endscript
