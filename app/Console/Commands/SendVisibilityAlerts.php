@@ -9,6 +9,8 @@ use App\Notifications\VisibilityUpAfterDarkNotification;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 final class SendVisibilityAlerts extends Command
 {
@@ -18,13 +20,32 @@ final class SendVisibilityAlerts extends Command
 
     public function handle(SolarApiClient $api): int
     {
+        // Covers manual invocations as well as the scheduler. Production must
+        // use a shared cache and enforce a runtime shorter than this lock lease.
+        $lock = Cache::lock('alerts:send-visibility', 3600);
+        if (! $lock->get()) {
+            $this->info('Another visibility alert run is already active.');
+
+            return self::SUCCESS;
+        }
+
+        try {
+            return $this->sendAlerts($api);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function sendAlerts(SolarApiClient $api): int
+    {
+        $failed = 0;
         $sent = 0;
         $checked = 0;
 
         VisibilityAlert::query()
             ->where('active', true)
             ->with('user')
-            ->chunkById(100, function ($alerts) use ($api, &$sent, &$checked): void {
+            ->chunkById(100, function ($alerts) use ($api, &$sent, &$checked, &$failed): void {
                 foreach ($alerts as $alert) {
                     $checked++;
 
@@ -41,10 +62,25 @@ final class SendVisibilityAlerts extends Command
 
                     $observer = $sky?->observer;
                     $objectName = $sky?->name;
-                    $upAfterDark = $observer !== null && $observer->isUp && $observer->isDark;
+                    // An unavailable observer calculation is not a transition
+                    // below the horizon: preserve the previous notification state.
+                    if ($observer === null) {
+                        continue;
+                    }
+
+                    $upAfterDark = $observer->isUp && $observer->isDark;
 
                     if ($upAfterDark && $alert->last_state_up_after_dark !== true) {
-                        $alert->user->notify(new VisibilityUpAfterDarkNotification($alert, $objectName));
+                        try {
+                            $alert->user->notify(new VisibilityUpAfterDarkNotification($alert, $objectName));
+                        } catch (Throwable $exception) {
+                            report($exception);
+                            $failed++;
+
+                            // Leave the transition pending for the next run and
+                            // continue delivering other users' alerts.
+                            continue;
+                        }
                         $sent++;
                         $alert->last_triggered_at = now();
                     }
@@ -57,6 +93,10 @@ final class SendVisibilityAlerts extends Command
 
         $this->info("Checked {$checked} alerts; sent {$sent} notifications.");
 
-        return self::SUCCESS;
+        if ($failed > 0) {
+            $this->error("Failed to send {$failed} notifications; they remain pending.");
+        }
+
+        return $failed > 0 ? self::FAILURE : self::SUCCESS;
     }
 }
