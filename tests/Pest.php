@@ -3,6 +3,7 @@
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Tests\CatalogueObservation;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)->in('Feature', 'Unit');
@@ -23,6 +24,7 @@ function fakeSolar(): void
 {
     config(['cache.default' => 'array']);
     Cache::flush();
+    CatalogueObservation::prime();
 
     Http::fake(function ($request) {
         $url = $request->url();

@@ -45,6 +45,47 @@
             <a class="underline" style="color: var(--link);" href="{{ config('site.download_url') }}" rel="noopener" target="_blank">{{ __('Get the latest manifest') }}</a>.
         </p>
 
+        <section class="surface space-y-4 p-4" aria-labelledby="catalogue-version-heading">
+            <h3 id="catalogue-version-heading" class="text-lg font-semibold">{{ __('Catalogue versions and checksums') }}</h3>
+            @if ($catalogueIdentity->known())
+                <p>{{ __('The API reports this catalogue identity. Website caches check for changes about once a minute; a separate page response is not an atomically pinned snapshot.') }}</p>
+                <dl class="space-y-2 text-sm">
+                    <div><dt class="font-semibold">{{ __('API logical catalogue ID') }}</dt><dd class="break-all font-mono">{{ $catalogueIdentity->catalogueId }}</dd></div>
+                    <div><dt class="font-semibold">{{ __('API build ID') }}</dt><dd class="break-all font-mono">{{ $catalogueIdentity->buildIdentifier }}</dd></div>
+                    <div><dt class="font-semibold">{{ __('Recorded build finish (UTC offset included)') }}</dt><dd>{{ $catalogueIdentity->builtAt }}</dd></div>
+                </dl>
+            @else
+                <p>{{ __('The current API catalogue identity is unknown or unavailable. Older backends may not record it; a date or object count cannot establish a snapshot ID.') }}</p>
+            @endif
+            @if ($downloadManifest)
+                <p class="font-semibold">{{ __('API-reported downloadable file') }}: <span class="break-all font-mono">{{ $downloadManifest->artifact }}</span></p>
+                <dl class="space-y-2 text-sm">
+                    <div><dt class="font-semibold">{{ __('Compressed file SHA-256') }}</dt><dd class="break-all font-mono">{{ $downloadManifest->compressedSha256 }}</dd></div>
+                    @if ($downloadManifest->sqliteSha256)
+                        <div><dt class="font-semibold">{{ __('Uncompressed SQLite SHA-256') }}</dt><dd class="break-all font-mono">{{ $downloadManifest->sqliteSha256 }}</dd></div>
+                    @endif
+                    @if ($downloadManifest->identity->known())
+                        <div><dt class="font-semibold">{{ __('Download logical catalogue ID') }}</dt><dd class="break-all font-mono">{{ $downloadManifest->identity->catalogueId }}</dd></div>
+                        <div><dt class="font-semibold">{{ __('Download build ID') }}</dt><dd class="break-all font-mono">{{ $downloadManifest->identity->buildIdentifier }}</dd></div>
+                    @endif
+                </dl>
+                @if ($catalogueIdentity->known() && $downloadManifest->identity->known())
+                    @if ($catalogueIdentity->buildIdentifier === $downloadManifest->identity->buildIdentifier)
+                        <p>{{ __('The latest observed API and download metadata report the same build ID. Recheck the manifest when downloading; it can change independently.') }}</p>
+                    @elseif ($catalogueIdentity->catalogueId === $downloadManifest->identity->catalogueId)
+                        <p>{{ __('The API and download report the same logical data ID but different build provenance. They are not the same build.') }}</p>
+                    @else
+                        <p>{{ __('The API and downloadable catalogue currently report different data IDs. The downloadable file may be ahead of or behind the API; do not treat them as the same snapshot.') }}</p>
+                    @endif
+                @else
+                    <p>{{ __('A shared snapshot cannot be established because at least one catalogue identity is unknown.') }}</p>
+                @endif
+            @else
+                <p>{{ __('Download version metadata is unavailable here. Use the manifest link and inspect its recorded checksums before using a downloaded file.') }}</p>
+            @endif
+            <p class="text-sm" style="color: var(--muted);">{{ __('Logical data IDs, build IDs and file checksums serve different purposes. Keep the downloaded file and its manifest together, including source metadata and licences. Check the actual manifest you download against these values: configured download links can differ from the API-reported source. IDs do not guarantee that historical files remain hosted, and absent upstream source versions remain unknown.') }}</p>
+        </section>
+
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Credits & source code') }}</h2>
         <p>
             {{ __('The catalogue and API are open source.') }}

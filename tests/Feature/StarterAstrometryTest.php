@@ -9,6 +9,7 @@ use App\Services\SolarApi\StarterCatalogueClient;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Tests\CatalogueObservation;
 
 function astrometryFixture(): array
 {
@@ -35,6 +36,7 @@ beforeEach(function () {
     $this->withoutVite();
     config(['cache.default' => 'array']);
     Cache::flush();
+    CatalogueObservation::prime();
     fakeAstrometry(astrometryFixture());
 });
 
@@ -76,6 +78,7 @@ it('distinguishes zero proper motion from missing and preserves tiny values', fu
     fakeAstrometry($fixture);
     $this->get('/observing-targets/bsc5p:hr2491')->assertOk()->assertSee('0 arcsec/year')->assertSee('10⁻⁸ arcsec/year');
     Cache::flush();
+    CatalogueObservation::prime();
     $fixture['results'][0]['source_data']['pmra'] = '';
     $fixture['results'][0]['astrometry']['pm_ra_cosdec_arcsec_per_year'] = null;
     $fixture['results'][0]['astrometry']['motion_model'] = 'static_catalogue_direction';

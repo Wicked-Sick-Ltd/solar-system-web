@@ -21,10 +21,13 @@ it('sends baseline security headers on every page', function () {
 it('makes non-interactive public pages edge-cacheable and cookie-less', function (string $uri) {
     $response = $this->get($uri)->assertOk();
 
-    expect($response->headers->get('Cache-Control'))
-        ->toContain('public')
-        ->toContain('s-maxage=600')
-        ->toContain('stale-while-revalidate');
+    $headers = $response->headers->get('Cache-Control');
+    expect($headers)->toContain('public');
+    if ($uri === '/api') {
+        expect($headers)->toContain('s-maxage=600')->toContain('stale-while-revalidate');
+    } else {
+        expect($headers)->toContain('s-maxage=60')->not->toContain('stale-while-revalidate');
+    }
 
     // No session cookie, so a shared cache can store one copy for everyone.
     expect($response->headers->getCookies())->toBe([]);

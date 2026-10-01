@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Services\SolarApi\CatalogueContext;
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Data\ObjectSummary;
 use App\Services\SolarApi\Data\SkyPosition;
@@ -21,7 +22,7 @@ function client(): SolarApiClient
 /** The cache key positionsBatch() reads and writes for one body on one date. */
 function positionKey(string $id, string $date): string
 {
-    return 'solar:'.sha1("/positions/{$id}?".http_build_query(['date' => $date]));
+    return app(CatalogueContext::class)->key("/positions/{$id}", ['date' => $date]);
 }
 
 it('maps an object list into typed DTOs', function () {

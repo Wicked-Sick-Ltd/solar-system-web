@@ -7,6 +7,7 @@ use App\Services\SolarApi\StarterCatalogueClient;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Tests\CatalogueObservation;
 
 function starterFixture(): array
 {
@@ -49,6 +50,7 @@ function fakeStarter(?array $fixture = null): void
 beforeEach(function () {
     config(['cache.default' => 'array']);
     Cache::flush();
+    CatalogueObservation::prime();
     Http::preventStrayRequests();
     fakeStarter();
 });
@@ -160,6 +162,7 @@ it('caches only validated public records and scopes keys to the configured backe
     $api->catalogue();
     Http::assertSentCount(1);
     config(['services.solar.base_url' => 'https://other.test/api/v1']);
+    CatalogueObservation::prime();
     $api->catalogue();
     Http::assertSentCount(2);
 });
