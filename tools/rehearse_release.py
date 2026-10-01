@@ -115,6 +115,7 @@ def main() -> None:
 
         proxy = ThreadingHTTPServer(('127.0.0.1', 0), Proxy)
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
         context.load_cert_chain(certificate, key)
         proxy.socket = context.wrap_socket(proxy.socket, server_side=True)
         origin = f'https://127.0.0.1:{proxy.server_port}'
