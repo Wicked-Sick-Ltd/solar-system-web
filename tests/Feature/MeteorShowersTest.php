@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Livewire\MeteorShowers;
 use App\Services\SolarApi\SolarApiClient;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -182,3 +183,30 @@ it('rejects malformed list envelopes without changing the solar-system client', 
     'missing count' => [['items' => []]],
     'scalar item' => [['items' => ['invalid'], 'count' => 1]],
 ]);
+it('rejects malformed raw meteor query types without looking up another selection', function (array $query) {
+    fakeMeteorCatalogue();
+    $this->get('/meteor-showers?'.http_build_query($query))->assertOk()->assertSee('Reset filters');
+    Http::assertNotSent(fn ($r) => str_contains($r->url(), '/meteor-showers'));
+})->with([
+    [['active_on' => ['2026-12-14']]], [['established_only' => ['1']]], [['established_only' => 'potato']],
+]);
+
+it('keeps malformed date errors until the date is corrected or filters reset', function () {
+    fakeMeteorCatalogue([meteorParameterPayload()]);
+    $component = Livewire::withQueryParams(['active_on' => ['2026-12-14']])->test(MeteorShowers::class);
+    $component->set('establishedOnly', true)->assertSee('Choose a single activity date');
+    Http::assertNotSent(fn ($r) => str_contains($r->url(), '/meteor-showers'));
+
+    $component->set('activeOn', '2026-12-14')->assertDontSee('Choose a single activity date');
+    Http::assertSent(fn ($r) => ($r['active_on'] ?? null) === '2026-12-14' && ($r['established_only'] ?? null) === 'true');
+});
+
+it('rejects invalid meteor Livewire update types before coercion', function (string $field, mixed $value) {
+    fakeMeteorCatalogue([meteorParameterPayload()]);
+    $component = Livewire::test(MeteorShowers::class);
+    Cache::flush();
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    $component->set($field, $value)->assertHasErrors($field);
+    Http::assertNothingSent();
+})->with([['activeOn', ['2026-12-14']], ['activeOn', null], ['establishedOnly', 'potato']]);

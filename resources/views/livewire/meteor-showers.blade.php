@@ -21,7 +21,14 @@
     </p>
 
     <div aria-live="polite">
-        @if($invalidDate)
+        @if($rawInputErrors !== [])
+            <div role="alert">
+                @foreach($rawInputErrors as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+                <a href="{{ route('meteor-showers.index') }}" class="underline">{{ __('Reset filters') }}</a>
+            </div>
+        @elseif($invalidDate)
             <p id="meteor-date-error" role="alert">{{ __('Enter a real date in YYYY-MM-DD format, from year 0001 to 9999, or clear the date filter.') }}</p>
         @elseif($apiDown)
             <x-api-down :section="__('The meteor-shower catalogue')" />
