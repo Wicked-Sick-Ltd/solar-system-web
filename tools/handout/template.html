@@ -2,7 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
-<title>Solar — a field guide to the solar system</title>
+<title>{{SITE_NAME}} — astronomy for everyone</title>
 <style>
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; }
@@ -61,6 +61,8 @@
   .dev h3 { color: #ffffff; margin-bottom: 1.8mm; }
   .dev p { margin: 0 0 1.8mm 0; color: #c9c3b6; font-size: 9pt; }
   .dev code { font-family: "DejaVu Sans Mono", monospace; font-size: 7.8pt; color: #ffd98a; word-break: normal; white-space: nowrap; }
+  a { color: inherit; text-decoration: none; }
+  .dev code.endpoint { white-space: normal; word-wrap: break-word; word-break: break-all; }
   .dev .tools { margin: 0; color: #c9c3b6; font-size: 8.6pt; line-height: 1.75; }
   .dev .tools code { white-space: nowrap; }
   .dev li { margin-bottom: .8mm; }
@@ -137,20 +139,20 @@
 <div class="page">
 
   <div class="mast">
-    <div class="eyebrow">Free &middot; Open data &middot; No sign-up</div>
-    <h1>Solar</h1>
-    <p class="sub">A field guide to the solar system.</p>
+    <div class="eyebrow">Free to explore &middot; Source-linked data</div>
+    <h1>{{SITE_NAME}}</h1>
+    <p class="sub">Astronomy for everyone.</p>
     <div class="url-row">
-      <span class="url">sol.wickedsick.com</span>
+      <a class="url" href="{{SITE_URL}}">{{SITE_URL_LABEL}}</a>
       <span class="pills"><span>Browse</span><span>Free API</span><span>MCP server</span><span>Bulk download</span></span>
     </div>
   </div>
 
   <p class="lead">
-    Solar is a clean, public reference for everything orbiting our Sun — planets, moons, dwarf planets,
-    asteroids, comets and the icy worlds beyond Neptune. Every record is drawn from <b>NASA/JPL</b> and the
-    <b>IAU Minor Planet Center</b>, rebuilt nightly, and free to browse, query or download.
-    Built and maintained by Wicked Sick Ltd.
+    {{SITE_NAME}} makes astronomical data easier to explore — from our solar system to exoplanets
+    and a map of their host stars. Browse, learn and use the data for free, with references to
+    <b>NASA/JPL</b>, the <b>NASA Exoplanet Archive</b> and the <b>IAU</b>.
+    This handout focuses on our solar system. Built and maintained by Wicked Sick Ltd.
   </p>
 
   <div class="stats">
@@ -164,7 +166,7 @@
         <td><span class="num">{{N_TNOS}}</span><span class="lbl">TNOs</span></td>
       </tr>
     </table>
-    <div class="stats-foot">About {{N_TOTAL_M}} million catalogued objects &middot; rebuilt every night from source &middot; public domain data</div>
+    <div class="stats-foot">About {{N_TOTAL_M}} million solar-system objects &middot; catalogue counts at generation time</div>
   </div>
 
   <div class="block">
@@ -173,13 +175,13 @@
       <tr>
         <td>
           <h3>Browse &amp; search</h3>
-          <p>Search 1.5&nbsp;million objects by name, designation or discoverer. Filter and sort by type, size,
-             orbit class or discovery date — every view has a shareable URL.</p>
+          <p>Search solar-system objects by name, designation or discoverer, and exoplanets by planet or host name.
+             Filter asteroids by size, orbit class or discovery year.</p>
         </td>
         <td>
           <h3>See it move</h3>
-          <p>An interactive orrery plots the planets where they actually are. Object pages carry orbital elements,
-             physical data, rings, moons and close approaches.</p>
+          <p>Explore a solar-system orrery and a map of known exoplanet hosts. Position models, schematic
+             galaxy context and their limitations are explained alongside the maps.</p>
         </td>
         <td>
           <h3>Teach and explore</h3>
@@ -197,14 +199,15 @@
         <td>
           <h3>REST API</h3>
           <p>Free, read-only, no key and no sign-up.</p>
-          <p><code>api.sol.wickedsick.com/api/v1</code></p>
-          <p>Objects, planets, moons, comets, close approaches, search and stats. Cursor pagination.
-             Roughly 60 requests/minute and 1,000/day per IP.</p>
-          <p><code>/docs</code> Swagger &nbsp;·&nbsp; <code>/openapi.json</code></p>
+          <p><a href="{{API_BASE}}"><code class="endpoint">{{API_BASE_LABEL}}</code></a></p>
+          <p>Solar-system objects, exoplanets, meteor showers, search and more. See the API documentation
+             for endpoints, pagination and request limits.</p>
+          <p><a href="{{API_DOCS_URL}}"><code>/docs</code> API reference</a></p>
         </td>
         <td>
           <h3>MCP server</h3>
           <p>Plug the catalogue straight into Claude, Cursor or any MCP client — stdio locally, or streamable HTTP.</p>
+          <p><a href="{{MCP_URL}}"><code class="endpoint">{{MCP_URL_LABEL}}</code></a></p>
           <p class="tools">
             <code>find_objects</code> &middot; <code>get_object</code> &middot; <code>search</code> &middot;
             <code>list_moons</code> &middot; <code>list_neos</code> &middot; <code>list_tnos</code> &middot;
@@ -217,7 +220,7 @@
           <h3>Take the whole thing</h3>
           <p>The entire catalogue as a compressed SQLite database, rebuilt nightly at 03:00&nbsp;UTC with manifest,
              checksum and licence file.</p>
-          <p><code>download.sol.wickedsick.com</code><br><code>/latest.json</code></p>
+          <p><a href="{{DOWNLOAD_URL}}"><code class="endpoint">{{DOWNLOAD_URL_LABEL}}</code></a></p>
           <p>Both repositories are MIT-licensed — run your own instance if you'd rather.</p>
         </td>
       </tr>
@@ -232,15 +235,16 @@
           <p>NASA Jet Propulsion Laboratory — planets, moons, orbital elements, close approaches</p>
           <p>JPL Small-Body Database — asteroids and comets</p>
           <p>NASA Planetary Fact Sheets — physical data</p>
+          <p>NASA Exoplanet Archive — planets beyond our solar system</p>
           <p>IAU Minor Planet Center — designations and orbits</p>
           <p>IAU Meteor Data Center — meteor showers</p>
-          <p class="note" style="margin-top:2.5mm;">All sources are public domain or freely redistributable.
+          <p class="note" style="margin-top:2.5mm;">Source terms and attribution requirements vary; consult the linked records and download licence.
              Attribution: <i>Data: IAU Minor Planet Center</i>; <i>IAU Meteor Data Center (Jenniskens et al. 2020; Hajduková &amp; Rudawska)</i>.</p>
         </td>
         <td>
           <h2>One thing to be clear about</h2>
           <p class="callout">This is astronomy, not astrology.</p>
-          <p class="note" style="margin-top:2mm;">No horoscopes, houses, transits or natal charts —
+          <p class="note" style="margin-top:2mm;">No horoscopes or natal charts —
              just observational data from NASA/JPL and the IAU, presented plainly and kept current.</p>
         </td>
       </tr>
@@ -273,7 +277,7 @@
     <span>Positions computed by two-body Kepler propagation from J2000 elements &mdash; the same method as the site&rsquo;s orrery. Source: NASA/JPL via <code>{{API_HOST}}</code></span>
   </div>
   <div class="foot">
-    <span><code>sol.wickedsick.com</code> &middot; free API, MCP server and nightly database download</span>
+    <span><a href="{{SITE_URL}}"><code>{{SITE_URL_LABEL}}</code></a> &middot; free API, MCP server and nightly database download</span>
     <span>Wicked Sick Ltd &middot; Wiz Media Group &nbsp;&nbsp;|&nbsp;&nbsp; Page 2 of {{N_PAGES}}</span>
   </div>
 </div>
@@ -328,7 +332,7 @@
   </div>
 
   <div class="foot">
-    <span><code>sol.wickedsick.com</code> &middot; free API, MCP server and nightly database download</span>
+    <span><a href="{{SITE_URL}}"><code>{{SITE_URL_LABEL}}</code></a> &middot; free API, MCP server and nightly database download</span>
     <span>Wicked Sick Ltd &middot; Wiz Media Group &nbsp;&nbsp;|&nbsp;&nbsp; Page 3 of {{N_PAGES}}</span>
   </div>
 </div>

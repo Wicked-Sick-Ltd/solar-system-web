@@ -1,17 +1,19 @@
-# Solar handout
+# Public Universe handout
 
-A two-page A4 leave-behind for [sol.wickedsick.com](https://sol.wickedsick.com),
-generated from live data.
+A two-page A4 introduction to Public Universe, served at the existing
+[sol.wickedsick.com](https://sol.wickedsick.com) origin until the domain move.
+The planetary pages remain a solar-system snapshot generated from API data.
 
-- **Page 1** — what Solar is, the catalogue counts, the free REST API, the MCP
+- **Page 1** — what Public Universe is, the catalogue counts, the free REST API, the MCP
   server and the nightly database download.
 - **Page 2** — a dated snapshot of where the eight planets are, one dial each.
 - **Page 3** *(optional, `--moons-page`)* — today's moon count per planet against the
   sixty known in 1991.
 
 Both pages are built from the public API at run time: the counts come from
-`/stats`, the J2000 orbital elements from `/objects/planet-<name>`. Nothing is
-hard-coded, so re-running the script always produces a current sheet.
+`/stats`, the J2000 orbital elements from `/objects/planet-<name>`. The optional
+1991 moon counts are documented historical constants; current counts come from
+the selected API. The generator does not claim a complete universe census.
 
 ## Build one
 
@@ -36,7 +38,10 @@ brew install --cask wkhtmltopdf       # macOS
 | `--moons-page` | Add page 3: moons known in 1991 vs today |
 | `--date 2027-03-20T12:00:00Z` | Positions for a given UTC instant rather than now |
 | `--out path/to/file.pdf` | Where to write the PDF |
-| `--api-base http://127.0.0.1:8003/api/v1` | Build against a local `solar-system-db` |
+| `--api-base http://127.0.0.1:8003/api/v1` | Build against a local `solar-system-db`; also controls printed API/MCP/docs links |
+| `--site-name "Public Universe"` | Visitor-facing title and introduction |
+| `--site-url https://sol.wickedsick.com` | Printed website links |
+| `--download-url https://s3.wickedsick.com/solar-system-db/latest.json` | Printed catalogue manifest link |
 | `--keep-html` | Keep the intermediate HTML beside the PDF |
 | `--html-only` | Write the HTML and stop — no wkhtmltopdf needed |
 | `--wkhtmltopdf /path/to/bin` | Use a wkhtmltopdf that isn't on `PATH` |
@@ -103,5 +108,42 @@ After a change, check both pages still come out at two pages and edge to edge.
 
 ## Astronomy, not astrology
 
-Same rule as the rest of the repo. No horoscopes, houses, transits or natal
-charts.
+Same rule as the rest of the repo. No horoscopes or natal charts. Astronomical transits remain part of the
+science.
+
+
+## Branding and endpoint configuration
+
+Command-line flags override `SITE_NAME`, `APP_URL`, `API_BASE_URL` and
+`SOLAR_DOWNLOAD_URL` environment variables, respectively. The generator does
+not load Laravel or read `.env` files. Defaults print **Public Universe** while
+retaining the existing website/API origins and the same S3 manifest default as
+the website configuration. Merely changing the brand does not move a service.
+API documentation and MCP links use the configured API origin plus `/docs` and
+`/mcp`; website and download links can be configured independently. Printed
+public URLs must use HTTP(S) without credentials, query parameters or fragments.
+Brand text and URL substitutions are HTML-escaped.
+
+The default `solar-handout-<date>.pdf` filename and workflow artifact name are
+retained for automation compatibility. Before a domain cutover, configure the
+verified new endpoints explicitly and check the links in the generated artifact.
+Source-specific reuse terms apply; the repositories' MIT licences do not make
+all contributed scientific data public domain.
+
+## Offline checks and PDF release prerequisite
+
+```bash
+python3 -B tools/handout/test_generate.py
+```
+
+These tests use isolated fixture counts and mocked fetches, exercise HTML-only
+CLI output without network access or a PDF renderer, check optional planetary
+pages, and verify branding, escaping and endpoint configuration. `--html-only`
+itself still fetches API data in ordinary use; tests replace those reads.
+
+**PDF rendering remains a release prerequisite.** The Public Universe template
+changes have been checked as HTML and have not yet been rendered with
+`wkhtmltopdf`. Before publishing a handout, render both the two-page default and
+three-page `--moons-page` version, confirm A4 page counts and working links, and
+inspect every page for clipping and overflow, especially the longer masthead and
+endpoint labels. HTML tests do not establish PDF pagination or visual acceptance.

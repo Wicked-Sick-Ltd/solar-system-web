@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the two-page A4 Solar handout as a PDF.
+"""Build the two-page A4 Public Universe handout as a PDF.
 
 Page 1 is an overview of the site, the free API, the MCP server and the
 nightly database download. Page 2 is a dated snapshot of where the eight
@@ -27,20 +27,27 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import html
 import json
 import math
+import os
+import re
 import shutil
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
 DEFAULT_API = "https://api.sol.wickedsick.com/api/v1"
+DEFAULT_SITE_NAME = "Public Universe"
+DEFAULT_SITE_URL = "https://sol.wickedsick.com"
+DEFAULT_DOWNLOAD_URL = "https://s3.wickedsick.com/solar-system-db/latest.json"
 J2000_JD = 2451545.0
 AU_KM = 149_597_870.7
 HTTP_TIMEOUT = 30
-USER_AGENT = "solar-handout-generator/1.0 (+https://sol.wickedsick.com)"
+USER_AGENT = "public-universe-handout/1.0 (+https://sol.wickedsick.com)"
 
 PLANETS = ("mercury", "venus", "earth", "mars",
            "jupiter", "saturn", "uranus", "neptune")
@@ -334,9 +341,24 @@ def moons_page_values(counts: dict) -> dict:
     }
 
 
+def public_http_url(value: str) -> str:
+    """Public printable endpoints only; never embed credentials in a handout."""
+    try:
+        parsed = urllib.parse.urlsplit(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("use a valid HTTP(S) URL") from exc
+    if (parsed.scheme not in ("http", "https") or not parsed.hostname
+            or parsed.username is not None or parsed.password is not None
+            or parsed.query or parsed.fragment or any(ord(c) < 32 for c in value)):
+        raise argparse.ArgumentTypeError("use an HTTP(S) URL without credentials, query or fragment")
+    return value.rstrip("/")
+
+
 def build_html(template: str, stats: dict, panels: list[str],
                when: dt.datetime, api_base: str,
-               moons: dict | None = None) -> str:
+               moons: dict | None = None, *, site_name: str = DEFAULT_SITE_NAME,
+               site_url: str = DEFAULT_SITE_URL,
+               download_url: str = DEFAULT_DOWNLOAD_URL) -> str:
     start, end = "<!--PAGE3_START-->", "<!--PAGE3_END-->"
     if moons is None:
         head, _, rest = template.partition(start)
@@ -350,7 +372,18 @@ def build_html(template: str, stats: dict, panels: list[str],
     values = dict(stats)
     values["PANELS"] = grid
     values["DATE_HUMAN"] = f"{day}, {when:%H:%M} UTC"
-    values["API_HOST"] = api_base.split("//", 1)[-1].split("/", 1)[0]
+    api_base = public_http_url(api_base)
+    site_url = public_http_url(site_url)
+    download_url = public_http_url(download_url)
+    origin = urllib.parse.urlsplit(api_base)
+    api_origin = urllib.parse.urlunsplit((origin.scheme, origin.netloc, "", "", ""))
+    values["SITE_NAME"] = html.escape(site_name)
+    values["API_HOST"] = html.escape(origin.netloc)
+    for key, url in {"SITE_URL": site_url, "API_BASE": api_base,
+                     "DOWNLOAD_URL": download_url, "MCP_URL": api_origin + "/mcp",
+                     "API_DOCS_URL": api_origin + "/docs"}.items():
+        values[key] = html.escape(url, quote=True)
+        values[key + "_LABEL"] = html.escape(url.split("//", 1)[-1])
     values["N_PAGES"] = "3" if moons else "2"
     if moons:
         values.update(moons_page_values(moons))
@@ -358,7 +391,7 @@ def build_html(template: str, stats: dict, panels: list[str],
     for key, value in values.items():
         template = template.replace("{{" + key + "}}", value)
 
-    leftover = [t for t in ("{{PANELS}}", "{{DATE_HUMAN}}") if t in template]
+    leftover = re.findall(r"\{\{[A-Z_]+\}\}", template)
     if leftover:
         raise SystemExit(f"template placeholders left unfilled: {leftover}")
     return template
@@ -404,9 +437,18 @@ def parse_when(raw: str | None) -> dt.datetime:
 def main() -> None:
     here = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(
-        description="Build the two-page A4 Solar handout as a PDF.")
-    parser.add_argument("--api-base", default=DEFAULT_API,
-                        help=f"REST API root (default: {DEFAULT_API})")
+        description="Build the two-page A4 Public Universe handout as a PDF.")
+    parser.add_argument("--api-base", type=public_http_url,
+                        default=os.environ.get("API_BASE_URL", DEFAULT_API),
+                        help="REST API root (API_BASE_URL, otherwise the existing public API)")
+    parser.add_argument("--site-name", default=os.environ.get("SITE_NAME", DEFAULT_SITE_NAME),
+                        help="printed name (SITE_NAME, otherwise Public Universe)")
+    parser.add_argument("--site-url", type=public_http_url,
+                        default=os.environ.get("APP_URL", DEFAULT_SITE_URL),
+                        help="website URL (APP_URL, otherwise the existing public website)")
+    parser.add_argument("--download-url", type=public_http_url,
+                        default=os.environ.get("SOLAR_DOWNLOAD_URL", DEFAULT_DOWNLOAD_URL),
+                        help="manifest URL (SOLAR_DOWNLOAD_URL, otherwise the existing S3 manifest)")
     parser.add_argument("--date", default=None,
                         help="UTC instant for the planet positions, ISO 8601 "
                              "(default: now, rounded down to the hour)")
@@ -457,7 +499,9 @@ def main() -> None:
               f"{sum(MOONS_1991.values())} known in 1991", file=sys.stderr)
 
     html_path.write_text(
-        build_html(template, stats, panels, when, api_base, moons),
+        build_html(template, stats, panels, when, api_base, moons,
+                   site_name=args.site_name, site_url=args.site_url,
+                   download_url=args.download_url),
         encoding="utf-8")
 
     if args.html_only:
