@@ -9,28 +9,30 @@
         <div data-galaxy-root data-data-url="{{ route('galaxy.data') }}" wire:ignore>
             <div class="surface mb-4 flex flex-wrap items-end gap-4 p-4">
                 <div><label for="galaxy-view" class="mb-2 block text-sm">{{ __('View') }}</label>
-                    <select id="galaxy-view" data-view class="rounded border p-2" style="background: var(--bg); border-color: var(--border)">
+                    <select id="galaxy-view" data-view disabled class="rounded border p-2" style="background: var(--bg); border-color: var(--border)">
                         <option value="nearby">{{ __('Nearby systems') }}</option><option value="galaxy">{{ __('Milky Way overview') }}</option>
                     </select></div>
                 <div><label for="galaxy-radius" class="mb-2 block text-sm">{{ __('Distance from the Sun') }}</label>
-                    <select id="galaxy-radius" data-radius class="rounded border p-2" style="background: var(--bg); border-color: var(--border)">
+                    <select id="galaxy-radius" data-radius disabled class="rounded border p-2" style="background: var(--bg); border-color: var(--border)">
                         <option value="25">{{ __('Within 82 light-years') }}</option><option value="100">{{ __('Within 326 light-years') }}</option>
                         <option value="1000">{{ __('Within 3,262 light-years') }}</option><option value="all">{{ __('All returned systems') }}</option>
                     </select></div>
-                <button type="button" data-reset class="rounded border px-4 py-2" style="border-color: var(--border)">{{ __('Reset camera') }}</button>
+                <button type="button" data-reset disabled class="rounded border px-4 py-2" style="border-color: var(--border)">{{ __('Reset camera') }}</button>
                 <a class="ml-auto py-2 underline" href="{{ route('exoplanets.index') }}">{{ __('Browse exoplanets') }} →</a>
             </div>
             <div class="grid gap-4 lg:grid-cols-[1fr_18rem]">
                 <div data-viewport class="relative overflow-hidden rounded-xl border" style="height: clamp(340px, 58vh, 650px); background: #070c18; border-color: var(--border)">
-                    <span data-sun-label class="pointer-events-none absolute z-10 text-sm text-amber-200">{{ __('Sun') }}</span>
+                    <div class="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+                        <button type="button" data-load-map hidden class="pointer-events-auto rounded border border-slate-400 bg-slate-950 px-6 py-3 text-slate-100">{{ __('Load 3D map') }}</button>
+                    </div>
+                    <span data-sun-label hidden class="pointer-events-none absolute z-10 text-sm text-amber-200">{{ __('Sun') }}</span>
                     <span data-centre-label class="pointer-events-none absolute z-10 text-sm text-slate-300" hidden>{{ __('Galactic centre') }}</span>
-                    <p data-map-status role="status" class="absolute bottom-3 left-3 z-10 max-w-[90%] rounded bg-slate-950/90 px-3 py-2 text-sm text-slate-200">{{ __('Loading 3D view…') }}</p>
+                    <p data-map-status role="status" class="absolute bottom-3 left-3 z-10 max-w-[90%] rounded bg-slate-950/90 px-3 py-2 text-sm text-slate-200">{{ __('Load the map to explore in 3D, or browse the accessible system directory.') }}</p>
                 </div>
                 <aside class="surface space-y-5 p-5">
-                    <div><label for="galaxy-system" class="mb-2 block text-sm">{{ __('Choose a system') }}</label>
-                        <select id="galaxy-system" data-system class="w-full rounded border p-2" style="background: var(--bg); border-color: var(--border)">
+                    <div><p class="mb-3 text-sm" style="color: var(--muted)">{{ __('Load the 3D map to use these controls, or follow a system link below.') }}</p><label for="galaxy-system" class="mb-2 block text-sm">{{ __('Choose a system') }}</label>
+                        <select id="galaxy-system" data-system disabled class="w-full rounded border p-2" style="background: var(--bg); border-color: var(--border)">
                             <option value="">{{ __('Select a host') }}</option>
-                            @foreach($map->hosts as $host)<option value="{{ $host['id'] }}">{{ $host['name'] }}</option>@endforeach
                         </select></div>
                     <div data-selection aria-live="polite"><p>{{ __('Each blue point is a host system. The amber point is our Sun.') }}</p></div>
                     <p class="text-sm" style="color: var(--muted)">{{ __('Drag to rotate, scroll or pinch to zoom. Select a point or choose a system above. Use arrow keys on the map to pan; + and − zoom.') }}</p>
