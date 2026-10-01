@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PARSEC_TO_LY, SUN_GALACTOCENTRIC, position, visibleHosts } from './galaxy-data.js';
+import { PARSEC_TO_LY, SUN_GALACTOCENTRIC, position, visibleHosts, distanceUncertainty } from './galaxy-data.js';
 
 let disposeCurrent;
 let generation = 0;
@@ -52,9 +52,7 @@ async function initialise() {
         detail.textContent = `${host.planet_count} catalogued planets · ${distanceText(host.distance_pc)} light-years`;
         const uncertainty = document.createElement('p');
         uncertainty.className = 'mt-2 text-sm';
-        if (Number.isFinite(host.distance_error_plus_pc) && Number.isFinite(host.distance_error_minus_pc)) {
-            uncertainty.textContent = `Distance uncertainty: +${distanceText(Math.abs(host.distance_error_plus_pc))} / −${distanceText(Math.abs(host.distance_error_minus_pc))} light-years`;
-        }
+        uncertainty.textContent = distanceUncertainty(host, document.documentElement.lang);
         const link = document.createElement('a');
         link.href = `/systems/${encodeURIComponent(host.id)}`;
         link.className = 'mt-4 inline-block underline';

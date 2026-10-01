@@ -1,6 +1,6 @@
 <x-layouts.app>
     <x-page-header :title="__('Measured exoplanet systems')" :eyebrow="__('Host directory')"
-        :lead="__('Browse every host in the galaxy map’s returned sample, with names, distances and links to its planets. These are measured exoplanet host systems, not a list of every star or every planetary system.')" />
+        :lead="__('Find measured planetary systems by name or distance. Explore their planets, or locate them on the galaxy map.')" />
 
     <form action="{{ route('systems.index') }}" method="get" role="search" class="surface mb-6 grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4" aria-label="{{ __('Filter measured host systems') }}">
         <div class="min-w-0">
@@ -22,8 +22,16 @@
     </form>
 
     <div class="mb-8 space-y-3 text-sm" style="color: var(--muted);">
+        <p>{{ __('This directory covers measured exoplanet hosts in the available map sample. Hosts without usable positions are omitted.') }}</p>
+        <details class="surface p-4">
+            <summary class="cursor-pointer font-medium">{{ __('About this sample and its measurements') }}</summary>
+            <div class="mt-3 space-y-3">
         <p>{{ __('The known sample is incomplete and unevenly observed. Hosts without a usable measured position are not listed here. Name and distance filters apply only to the sample returned by the map, not to all stars or all exoplanet hosts.') }}</p>
         <p>{{ __('Distances and available uncertainties are in parsecs; light-years are also shown. A missing uncertainty is unknown, not zero. Recorded planet counts describe the catalogue, not a complete census.') }}</p>
+            <p>{{ __('Distance filters use the reported value, not its uncertainty range. Catalogue updates can change results between pages.') }}</p>
+            <p>{{ __('Source:') }} <a class="underline" href="https://exoplanetarchive.ipac.caltech.edu/docs/PSCompPars.html">{{ __('NASA Exoplanet Archive, Planetary Systems Composite Parameters (PSCompPars)') }}</a></p>
+            </div>
+        </details>
         @if ($map)
             <p>{{ __(':count hosts returned by the map.', ['count' => \App\Support\Format::count(count($map->hosts))]) }}</p>
             @if ($map->unmappedHosts === null)
@@ -37,7 +45,6 @@
                 <p role="status" class="surface p-4">{{ __('This response does not say whether the map sample was limited. Additional measured hosts may be omitted.') }}</p>
             @endif
         @endif
-        <p>{{ __('Source:') }} <a href="https://exoplanetarchive.ipac.caltech.edu/docs/PSCompPars.html" class="underline" target="_blank" rel="noopener noreferrer">{{ __('NASA Exoplanet Archive, Planetary Systems Composite Parameters (PSCompPars)') }}</a></p>
         <p><a href="{{ route('galaxy') }}" class="underline">{{ __('Open galaxy explorer') }}</a> · <a href="{{ route('exoplanets.index') }}" class="underline">{{ __('Search the exoplanet catalogue') }}</a></p>
     </div>
 
@@ -57,7 +64,7 @@
                 {{ __('Try another name, increase the distance or reset the filters. Unmapped or omitted hosts may still appear in the exoplanet catalogue.') }}
             </x-empty-state>
         @else
-            <p class="mb-4 text-sm" style="color: var(--muted);">{{ __(':count matching hosts in this returned sample · page :page of :pages', ['count' => \App\Support\Format::count($selection->total), 'page' => $filters->page, 'pages' => $selection->pages]) }}</p>
+            <p class="mb-4 text-sm" style="color: var(--muted);">{{ trans_choice(':count matching host in this returned sample · page :page of :pages|:count matching hosts in this returned sample · page :page of :pages', $selection->total, ['count' => \App\Support\Format::count($selection->total), 'page' => $filters->page, 'pages' => $selection->pages]) }}</p>
             <ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="{{ __('Measured host systems') }}">
                 @foreach ($selection->hosts as $host)
                     <li class="surface min-w-0 space-y-4 p-5">

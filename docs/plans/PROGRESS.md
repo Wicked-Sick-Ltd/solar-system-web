@@ -1,7 +1,39 @@
 # Public Universe progress and continuation
 
-Updated: 2026-10-01. Available foundation scope complete; follow-on dependencies listed below.
+Updated: 2026-10-01. Foundation and accessible-system follow-on complete.
 See [development plan](2026-10-01-public-universe.md).
+
+## Completed follow-on: accessible measured-system directory
+
+Craig requested autonomous continuation on 1 October. Delivered `/systems`, a
+native GET directory for the measured exoplanet hosts returned by the existing
+map endpoint, beyond its 20-item accessible fallback. Name/distance filters,
+deterministic sorting, 24-item pagination and reset work through ordinary GET
+requests. All filters have strict raw input validation and explicit out-of-range
+recovery. Map, Learn, Explore and footer links connect the directory to journeys.
+
+Small, zero, missing and one-sided uncertainties remain distinct in the directory
+and map. Missing truncation/omission metadata is unknown, never assumed complete
+or zero. Shared map payload validation rejects malformed measurements, duplicate
+IDs and oversized responses. Scientific coverage details use native expandable
+content; truncation warnings remain visible.
+
+Implementation branch `codex/public-universe-systems` was integrated as
+`9ceb234`; shared boundary validation is `c499568`, followed by reviewed
+integration refinements. Independent review found two precision/coverage gaps;
+both were fixed and regression-tested. No production changes were made.
+
+Current web validation: **471 PHP tests / 1,806 assertions**, **6 JavaScript
+tests**, full Pint/PHPStan and production asset build pass. Existing galaxy
+chunk warning remains. Backend and deployment code are unchanged in this pass;
+the earlier checks below apply to that foundation checkpoint.
+
+Browser: native filter submission, name-sort page 2→3, keyboard details,
+390×844 layouts, and Proxima directory→map selection verified. Proxima's small
+errors now display +1.109E-3 / −1.142E-3 light-years in the map. Full ordinary-GET
+flows also have HTTP feature coverage without a JS runtime; browser JavaScript
+was left enabled. See [feature notes](../measured-systems.md) and
+[QA screenshots](../qa/2026-10-01/README.md).
 
 ## Delivery
 
@@ -26,7 +58,7 @@ See [development plan](2026-10-01-public-universe.md).
   inclusive-boundary tolerance. Original database checkout and handoff retained.
 - Agent branches/worktrees remain available under `../.worktrees/` for audit.
 
-## Validation
+## Foundation validation (before the directory follow-on)
 
 - Web: **418 PHP tests / 1,610 assertions**, full Pint and PHPStan pass.
 - JavaScript: **5 tests** pass. Production assets build successfully. Existing

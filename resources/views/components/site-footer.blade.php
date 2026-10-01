@@ -16,6 +16,7 @@
             <ul class="mt-3 space-y-2 text-sm">
                 <li><a class="link-quiet" href="{{ route('explore') }}">{{ __('Explore') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('exoplanets.index') }}">{{ __('Exoplanets') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('systems.index') }}">{{ __('Measured systems') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('planets.index') }}">{{ __('Planets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('dwarf-planets') }}">{{ __('Dwarf planets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('asteroids') }}">{{ __('Asteroids') }}</a></li>

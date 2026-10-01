@@ -236,3 +236,6 @@ Deployment-order regressions use fake commands and never deploy:
 Handout branding/links are verified offline with
 `python3 -B tools/handout/test_generate.py` (also in CI). PDF release checks are
 listed in [the handout guide](tools/handout/README.md).
+
+The [measured-system directory](docs/measured-systems.md) provides a searchable,
+paginated alternative to the 3D map that works without JavaScript.

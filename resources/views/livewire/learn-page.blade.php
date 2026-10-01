@@ -5,8 +5,9 @@
         <section id="distances" class="surface scroll-mt-24 p-6" aria-labelledby="distance-heading">
             <h2 id="distance-heading" class="text-2xl">{{ __('How far away is a star?') }}</h2>
             <p class="mt-3 leading-relaxed">{{ __('A light-year measures distance: how far light travels through empty space in a year. A star ten light-years away is so distant that the light we see has travelled for about ten years.') }}</p>
-            <p class="mt-3 leading-relaxed"><strong>{{ __('Try it:') }}</strong> {{ __('Choose two systems on the galaxy map. Read their distances. Which light has travelled longer to reach us? Write down the names and distances so someone else can follow your comparison.') }}</p>
+            <p class="mt-3 leading-relaxed"><strong>{{ __('Try it:') }}</strong> {{ __('Choose two systems on the galaxy map or in the measured system directory. Read their distances. Which light has travelled longer to reach us? Write down the names and distances so someone else can follow your comparison.') }}</p>
             <a class="mt-4 inline-block underline" href="{{ route('galaxy') }}">{{ __('Compare systems on the map') }} →</a>
+            <a class="ml-4 mt-4 inline-block underline" href="{{ route('systems.index') }}">{{ __('Use the system directory') }} →</a>
             <details class="mt-4 border-t pt-4" style="border-color: var(--border)">
                 <summary class="cursor-pointer font-medium">{{ __('Go deeper: reading the map') }}</summary>
                 <p class="mt-3 leading-relaxed">{{ __('The map positions represent catalogued host stars. Their markers are enlarged so you can select them. Missing points can mean missing measurements, and areas with many discoveries can reflect where telescopes looked. The outline of the Milky Way is schematic.') }}</p>

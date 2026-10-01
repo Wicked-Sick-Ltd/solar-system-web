@@ -47,6 +47,7 @@ it('preserves zero coordinates and missing or one-sided uncertainties', function
     expect($map->hosts[0]['x_pc'])->toBe(0)
         ->and($map->hosts[0]['distance_error_plus_pc'])->toBe(0.0000001)
         ->and($map->hosts[0])->not->toHaveKey('distance_error_minus_pc')
-        ->and($map->unmappedHosts)->toBeNull();
-    $this->get('/galaxy')->assertOk()->assertSee('omitted: not reported');
+        ->and($map->unmappedHosts)->toBeNull()
+        ->and($map->truncated)->toBeNull();
+    $this->get('/galaxy')->assertOk()->assertSee('omitted: not reported')->assertSee('did not report whether its map limit');
 });

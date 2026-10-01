@@ -13,3 +13,17 @@ export function visibleHosts(hosts, radius) {
         && ['x_pc', 'y_pc', 'z_pc', 'galactocentric_x_pc', 'galactocentric_y_pc', 'galactocentric_z_pc'].every(key => Number.isFinite(host[key]))
         && (radius === 'all' || host.distance_pc <= Number(radius)));
 }
+
+// Keep small errors nonzero and preserve an unknown side instead of inventing it.
+export function distanceUncertainty(host, locale) {
+    const error = (value, sign) => {
+        if (!Number.isFinite(value)) return 'not reported';
+        const ly = Math.abs(value) * PARSEC_TO_LY;
+        const text = new Intl.NumberFormat(locale, {
+            maximumSignificantDigits: 4,
+            notation: ly !== 0 && (ly < 0.01 || ly >= 1e6) ? 'scientific' : 'standard',
+        }).format(ly);
+        return `${sign}${text} light-years`;
+    };
+    return `Distance uncertainty: upper ${error(host.distance_error_plus_pc, '+')}; lower ${error(host.distance_error_minus_pc, '−')}.`;
+}

@@ -53,3 +53,24 @@ Additional evidence: [desktop search](search-desktop.png),
 [mobile homepage](home-mobile.png), [mobile learning page](learn-mobile.png),
 [asteroid filters](asteroids-mobile.png), [meteor detail](meteors-mobile.png),
 [scientific exports](exports-mobile.png).
+
+
+## Accessible measured-system directory follow-on
+
+- `/systems` renders all 4,747 returned measured hosts across 198 pages in the
+  retained local snapshot; coverage also reports 28 hosts without positions.
+- A native form search for TRAPPIST-1 yielded one host and seven recorded planets.
+  Cards show parsec distance/uncertainties and a light-year equivalent.
+- Name-sort page 2 began with 4 UMa, 47 UMa and 51 Eri; Next retained `order=name`
+  and moved to page 3 beginning BD+05 4868 A, BD+14 4559 and BD+15 2375.
+- The explanatory native disclosure opened with Enter. On mobile (390×844),
+  labels, inputs, buttons, scientific errors and host links fit the viewport.
+- Proxima's map link selected Proxima with two recorded planets and preserved
+  tiny upper/lower errors (+1.109E-3 / −1.142E-3 light-years), instead of zero.
+- Browser JS remained enabled. Ordinary-GET feature tests exercise results,
+  filtering, sorting, pagination and recovery without a JavaScript runtime;
+  forms/links contain no required Livewire actions. Physical-device limitations
+  above still apply. Viewport override was reset.
+
+Evidence: [desktop directory](systems-desktop.png),
+[mobile controls](systems-mobile.png), [mobile result](systems-mobile-result.png).

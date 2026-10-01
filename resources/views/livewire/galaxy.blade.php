@@ -1,6 +1,8 @@
 <div>
     <x-page-header :title="__('Galaxy explorer')" :eyebrow="__('Our stellar neighbourhood')"
         :lead="__('Locate known exoplanet systems around the Sun. Select a host to explore its planets.')" />
+    <p class="mb-6"><a class="underline" href="{{ route('systems.index') }}">{{ __('Search measured systems in the accessible directory') }} →</a>
+        <span class="text-sm" style="color: var(--muted)">{{ __('Works without JavaScript or a 3D display.') }}</span></p>
     @if($apiDown)
         <x-api-down :section="__('The galaxy explorer')" />
     @elseif($map && count($map->hosts))
@@ -13,7 +15,7 @@
                 <div><label for="galaxy-radius" class="mb-2 block text-sm">{{ __('Distance from the Sun') }}</label>
                     <select id="galaxy-radius" data-radius class="rounded border p-2" style="background: var(--bg); border-color: var(--border)">
                         <option value="25">{{ __('Within 82 light-years') }}</option><option value="100">{{ __('Within 326 light-years') }}</option>
-                        <option value="1000">{{ __('Within 3,262 light-years') }}</option><option value="all">{{ __('All measured systems') }}</option>
+                        <option value="1000">{{ __('Within 3,262 light-years') }}</option><option value="all">{{ __('All returned systems') }}</option>
                     </select></div>
                 <button type="button" data-reset class="rounded border px-4 py-2" style="border-color: var(--border)">{{ __('Reset camera') }}</button>
                 <a class="ml-auto py-2 underline" href="{{ route('exoplanets.index') }}">{{ __('Browse exoplanets') }} →</a>
@@ -36,10 +38,12 @@
                 </aside>
             </div>
         </div>
+        <noscript><p class="surface mt-4 p-4">{{ __('The interactive map needs JavaScript. Browse measured systems using the directory link above, or open a nearby system from the list below.') }}</p></noscript>
         @vite('resources/js/galaxy.js')
         <div class="mt-5 space-y-2 text-sm" style="color: var(--muted)">
             <p>{{ __('The map shows known detections, not the distribution of all planets. Systems without usable positions are omitted: :count.', ['count' => $map->unmappedHosts === null ? __('not reported') : \App\Support\Format::count($map->unmappedHosts)]) }}</p>
             <p>{{ __('Positions use NASA catalogue astrometry, without stellar-motion propagation. Nearby axes follow Galactic coordinates. The overview places the Sun 8,122 parsecs from the Galactic centre and 20.8 parsecs above its plane.') }}</p>
+            @if($map->truncated === null)<p>{{ __('The catalogue did not report whether its map limit was reached; this view may be incomplete.') }}</p>@endif
             @if($map->truncated)<p>{{ __('The map response reached its display limit; browse the catalogue for additional systems.') }}</p>@endif
             <p><a class="underline" href="https://exoplanetarchive.ipac.caltech.edu/docs/PSCompPars.html">{{ __('Data: NASA Exoplanet Archive / PSCompPars') }}</a></p>
         </div>

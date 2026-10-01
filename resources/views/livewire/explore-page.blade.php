@@ -35,6 +35,7 @@
             <ul class="mt-5 space-y-3">
                 <li><a class="underline" href="{{ route('orrery') }}">{{ __('Solar-system orrery') }}</a></li>
                 <li><a class="underline" href="{{ route('galaxy') }}">{{ __('Galaxy explorer') }}</a></li>
+                <li><a class="underline" href="{{ route('systems.index') }}">{{ __('Measured system directory') }}</a></li>
                 <li><a class="underline" href="{{ route('meteor-showers.index') }}">{{ __('Meteor showers and their parent bodies') }}</a></li>
                 <li><a class="underline" href="{{ route('random') }}">{{ __('Surprise me with an object') }}</a></li>
             </ul>

@@ -103,8 +103,8 @@ it('preserves a measured zero uncertainty without inventing an unknown upper err
 
 it('accepts the maximum query length and treats boolean-looking text literally', function () {
     fakeDirectory([directoryHost(1, 'true'), directoryHost(2, str_repeat('é', 200))]);
-    $this->get('/systems?q=true')->assertOk()->assertSee('1 matching hosts')->assertSee('true')->assertDontSee('host-002');
-    $this->get('/systems?'.http_build_query(['q' => str_repeat('é', 200)]))->assertOk()->assertSee('1 matching hosts')->assertSee('host-002');
+    $this->get('/systems?q=true')->assertOk()->assertSee('1 matching host')->assertSee('true')->assertDontSee('host-002');
+    $this->get('/systems?'.http_build_query(['q' => str_repeat('é', 200)]))->assertOk()->assertSee('1 matching host')->assertSee('host-002');
 });
 
 it('rejects malformed raw filters before making any API request', function (array $query) {

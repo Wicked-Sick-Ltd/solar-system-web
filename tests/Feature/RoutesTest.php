@@ -30,6 +30,7 @@ it('renders every public P0 route', function (string $uri) {
     'exoplanet detail' => '/exoplanets/exo-proxima-b',
     'exoplanet system' => '/systems/host-proxima',
     'galaxy' => '/galaxy',
+    'systems directory' => '/systems',
     'meteor showers' => '/meteor-showers',
     'close approaches' => '/close-approaches',
     'about' => '/about',
