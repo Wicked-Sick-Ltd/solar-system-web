@@ -85,7 +85,8 @@ final class ObservingSyncController extends Controller
     /** @param array<string,mixed> $body */
     private function reply(array $body, int $status = 200): JsonResponse
     {
-        return response()->json($body, $status, ['X-Observing-Sync-Response' => '1', 'Cache-Control' => 'private, no-store', 'Referrer-Policy' => 'no-referrer']);
+        return response()->json($body, $status, ['X-Observing-Sync-Response' => '1', 'Cache-Control' => 'private, no-store', 'Referrer-Policy' => 'no-referrer'],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS);
     }
 
     private function sameAccount(Request $request): bool

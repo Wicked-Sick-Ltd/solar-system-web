@@ -279,3 +279,24 @@ it('enforces each canonical document limit within the larger transport envelope'
     $this->putJson('/account/observing-workspace', syncUpload(0, $largeWorkspace))->assertUnprocessable();
     $this->assertDatabaseCount('private_observing_workspaces', 0);
 });
+
+it('downloads valid Unicode-heavy journals within the browser response byte limit', function () {
+    syncAs($this, User::factory()->create());
+    $payload = syncFixture();
+    $observation = $payload['journal']['observations'][0];
+    $observation['equipmentAndSite'] = null;
+    $observation['notes'] = str_repeat('🪐', 2000);
+    $payload['journal']['observations'] = [];
+    for ($i = 100; $i < 200; $i++) {
+        $payload['journal']['observations'][] = [...$observation, 'id' => sprintf('00000000-0000-4000-8000-%012d', $i)];
+    }
+    // Match browser JSON.stringify, rather than the test helper's ASCII escapes.
+    $raw = json_encode(syncUpload(0, $payload), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+    $this->call('PUT', '/account/observing-workspace', [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_OBSERVING_ACCOUNT' => ObservingAccountScope::forUser(auth()->user()),
+    ], $raw)->assertOk();
+    $download = $this->getJson('/account/observing-workspace')->assertOk();
+    expect(strlen($download->getContent()))->toBeLessThan(PrivateObservingSync::MAX_BYTES);
+    expect($download->json('payload.journal.observations.99.notes'))->toBe($observation['notes']);
+});
