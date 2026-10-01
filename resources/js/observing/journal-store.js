@@ -29,7 +29,7 @@ function instant(value) {
     return value;
 }
 function timezone(value) {
-    if (typeof value !== 'string' || value.length > 100) fail('A recognised IANA timezone is required.');
+    if (typeof value !== 'string' || value.length > 100 || !/^[A-Za-z_]+(?:\/[A-Za-z0-9_+\-]+)*$/.test(value)) fail('A recognised IANA timezone is required.');
     try { return new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone; }
     catch { fail('A recognised IANA timezone is required.'); }
 }
