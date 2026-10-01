@@ -141,3 +141,44 @@ it('handles a temporarily unavailable detail honestly', function () {
     fakeMeteorCatalogue(detail: meteorDetailPayload([]), status: 503);
     $this->get('/meteor-showers/GEM')->assertOk()->assertSee('reach the catalogue');
 });
+
+it('degrades rather than dropping or rendering a malformed campaign', function (string $field, mixed $value) {
+    fakeMeteorCatalogue([array_replace(meteorParameterPayload(), [$field => $value])]);
+    $this->get('/meteor-showers')->assertOk()->assertSee('reach the catalogue')
+        ->assertDontSee('matching parameter sets grouped');
+})->with([
+    'missing name' => ['name', null], 'array name' => ['name', ['Geminids']],
+    'empty code' => ['code', ''], 'array identifier' => ['iau_no', [4]],
+    'fractional campaign number' => ['ad_no', 1.2], 'array reference' => ['reference', ['unsafe']],
+    'array source' => ['source', ['MDC']], 'numeric parent ID' => ['parent_object_id', 42],
+    'array measurement' => ['ra_deg', [112.4]], 'text measurement' => ['vg_km_s', 'unknown'],
+    'fractional member count' => ['n_members', 4.5],
+]);
+
+it('rejects malformed detail identity and inconsistent campaign identities', function (array $overrides) {
+    fakeMeteorCatalogue(detail: array_replace(meteorDetailPayload([meteorParameterPayload()]), $overrides));
+    $this->get('/meteor-showers/GEM')->assertOk()->assertSee('reach the catalogue');
+})->with([
+    'missing title' => [['name' => null]],
+    'array code' => [['code' => ['GEM']]],
+    'invalid identity' => [['iau_no' => 'unknown']],
+    'non-list campaigns' => [['parameter_sets' => ['first' => meteorParameterPayload()]]],
+    'scalar campaign' => [['parameter_sets' => ['unknown']]],
+    'inconsistent IAU identity' => [['parameter_sets' => [meteorParameterPayload(0, 5)]]],
+    'malformed campaign reference' => [['parameter_sets' => [array_replace(meteorParameterPayload(), ['reference' => ['unexpected']])]]],
+]);
+
+it('rejects malformed list envelopes without changing the solar-system client', function (array $payload) {
+    Http::fake([
+        '*/meteor-showers*' => Http::response($payload),
+        '*/objects/planet-saturn' => Http::response(saturnDetail()),
+        '*' => Http::response(['status' => 'ok']),
+    ]);
+    $this->get('/meteor-showers')->assertOk()->assertSee('reach the catalogue');
+    expect(app(SolarApiClient::class)->object('planet-saturn')->name)->toBe('Saturn');
+})->with([
+    'non-list items' => [['items' => ['first' => meteorParameterPayload()], 'count' => 1]],
+    'incorrect returned count' => [['items' => [meteorParameterPayload()], 'count' => 2]],
+    'missing count' => [['items' => []]],
+    'scalar item' => [['items' => ['invalid'], 'count' => 1]],
+]);

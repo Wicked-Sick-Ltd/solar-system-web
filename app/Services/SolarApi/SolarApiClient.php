@@ -68,11 +68,12 @@ class SolarApiClient
             $query['active_on'] = $activeOn;
         }
         $data = $this->cachedGet('/meteor-showers', $query, $this->ttl['catalog']);
-        if (! is_array($data) || ! isset($data['items']) || ! is_array($data['items'])) {
+        if (! is_array($data) || ! isset($data['items'], $data['count']) || ! is_array($data['items'])
+            || ! array_is_list($data['items']) || ! is_int($data['count']) || $data['count'] !== count($data['items'])) {
             throw new SolarApiException('Meteor shower catalogue is unavailable on this backend.');
         }
 
-        return MeteorCatalogue::fromRows(array_values($data['items']));
+        return MeteorCatalogue::fromRows($this->validatedMeteorRows($data['items']));
     }
 
     public function meteorShower(string $code): ?MeteorShower
@@ -81,11 +82,67 @@ class SolarApiClient
         if ($data === null) {
             return null;
         }
-        if (! isset($data['iau_no'], $data['code'], $data['name'], $data['parameter_sets']) || ! is_array($data['parameter_sets'])) {
+        if (! is_int($data['iau_no'] ?? null) || $data['iau_no'] < 0
+            || ! is_string($data['code'] ?? null) || trim($data['code']) === ''
+            || ! is_string($data['name'] ?? null) || trim($data['name']) === ''
+            || ! is_array($data['parameter_sets'] ?? null) || ! array_is_list($data['parameter_sets'])) {
             throw new SolarApiException('Meteor shower detail is unavailable on this backend.');
         }
 
+        $data['parameter_sets'] = $this->validatedMeteorRows($data['parameter_sets']);
+        foreach ($data['parameter_sets'] as $set) {
+            if ($set['iau_no'] !== $data['iau_no']) {
+                throw new SolarApiException('Meteor shower parameter sets have inconsistent identities.');
+            }
+        }
+
         return MeteorShower::fromArray($data);
+    }
+
+    /**
+     * Validate the REST boundary before typed DTO construction. Never drop a
+     * malformed campaign silently or let an upstream shape error crash a page.
+     *
+     * @param  list<mixed>  $rows
+     * @return list<array<string,mixed>>
+     */
+    private function validatedMeteorRows(array $rows): array
+    {
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                throw new SolarApiException('Malformed meteor shower parameter set.');
+            }
+            foreach (['iau_no', 'ad_no'] as $field) {
+                if (! is_int($row[$field] ?? null) || $row[$field] < 0) {
+                    throw new SolarApiException('Malformed meteor shower identifier.');
+                }
+            }
+            foreach (['code', 'name'] as $field) {
+                if (! is_string($row[$field] ?? null) || trim($row[$field]) === '') {
+                    throw new SolarApiException('Malformed meteor shower name or code.');
+                }
+            }
+            foreach (['status_label', 'activity', 'parent_body', 'parent_object_id', 'shower_group',
+                'technique', 'reference', 'submitted_on', 'source'] as $field) {
+                if (isset($row[$field]) && ! is_string($row[$field])) {
+                    throw new SolarApiException('Malformed meteor shower text field.');
+                }
+            }
+            foreach (['status_code', 'n_members'] as $field) {
+                if (isset($row[$field]) && ! is_int($row[$field])) {
+                    throw new SolarApiException('Malformed meteor shower integer field.');
+                }
+            }
+            foreach (['solar_longitude_deg', 'ra_deg', 'dec_deg', 'dra_deg_per_day', 'ddec_deg_per_day',
+                'vg_km_s', 'a_au', 'q_au', 'e', 'peri_deg', 'node_deg', 'incl_deg'] as $field) {
+                $value = $row[$field] ?? null;
+                if ($value !== null && ((! is_int($value) && ! is_float($value)) || ! is_finite($value))) {
+                    throw new SolarApiException('Malformed meteor shower measurement.');
+                }
+            }
+        }
+
+        return $rows;
     }
 
     /** @param array<string,mixed> $filters

@@ -24,7 +24,11 @@ The date filter means the reported peak solar longitude is within 15 degrees
 not imply visibility, exact seasonal boundaries or an hourly meteor rate.
 Sets without a reported peak cannot match that date filter.
 
-A 404/failed request or unexpected envelope is shown as unavailable. An empty
+A 404/failed request or unexpected envelope is shown as unavailable. Required
+identities, returned counts and parameter-set field types are validated before
+DTO mapping; malformed rows fail the catalogue request rather than being
+silently omitted or converted into invented measurements. Detail sets must
+belong to the requested IAU identity. An empty
 `items` list can mean either no matches or an absent meteor-showers table: the
 backend returns the same response for both. The empty state explains this
 limitation without claiming the catalogue is complete or loaded.
