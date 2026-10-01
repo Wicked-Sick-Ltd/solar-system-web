@@ -9,7 +9,8 @@
       "Filter asteroids by their recorded properties and continue through the catalogue without skipping objects between pages.",
       "The galaxy explorer loads its 3D display only when you choose it, keeping the first page lighter while the measured-system directory remains available.",
       "More catalogue filters and page links work without JavaScript, preserve your selections and help you recover when a results page is no longer available.",
-      "Mobile navigation now has larger controls and an explicit search button. Keyboard focus is easier to see, and account form errors are linked to the fields that need attention."
+      "Mobile navigation now has larger controls and an explicit search button. Keyboard focus is easier to see, and account form errors are linked to the fields that need attention.",
+      "Settings choices support keyboard selection, and shared settings reject malformed locations while still asking before applying changes."
     ],
     "Learn from observations": [
       "New short activities explore stellar distances, planet-discovery methods and how to read measurements, with extra detail and links to NASA sources.",

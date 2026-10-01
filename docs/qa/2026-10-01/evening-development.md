@@ -42,6 +42,13 @@ navigation handler, retaining ordinary new-tab/window behaviour. Malformed raw
 URL/Livewire state has regression coverage; literal `true`/`false` search text
 is preserved. Empty later pages offer recovery instead of claiming no matches.
 
+Settings choices use native labelled radio groups. Page teardown removes its
+hash listener and copy timer, so old settings components cannot consume another
+page's shared token. Invalid coordinate values are rejected without coercing
+null, blank or booleans into a location. Importing a valid shared link still
+requires the visitor's explicit Apply action; fragment cleanup preserves the
+browser's existing navigation state.
+
 ## Observation accuracy
 
 The orrery accepts only real ISO calendar dates in years 1–9999, supplies native
@@ -67,10 +74,19 @@ production configuration. See [release instructions](../../releases.md).
 
 Independent review corrected an inherited HTTP-proxy path in the Python startup
 probe and added version metadata to the dedicated CI workflow's path triggers.
+Adversarial review also strengthened the retry check with changed synthetic
+notes/commit and a distinctive fixture date, then checked index and detail
+visibility both before and after rollback. These catch overwrites and an
+always-hidden release that weaker assertions could miss.
 The built-in PHP server disables opcode caching; this does not replace production
 FPM reload or environment-specific backup, worker, scheduler and edge checks.
 
 ## Browser limits and remaining visual checks
+
+Combined integration checks passed: 651 PHP tests / 2,527 assertions, 27 Node
+tests, 15 release metadata/hook tests, 8 deployment tests and 11 handout tests;
+Pint, PHPStan (512 MB) and the production build also passed. The build-budget
+test ran against the generated manifest with no skipped JavaScript tests.
 
 The existing local `/login` page loaded through native Chrome controls and
 exposed the updated shared navigation and labelled form in its accessibility
@@ -80,7 +96,8 @@ returning successful responses. No cause is inferred from these tool failures.
 
 Consequently the following are **not certified by this pass**: real network
 request timing, actual WebGL rendering after activation, physical touch,
-320px/landscape layout, visible keyboard outlines, Escape focus return, and a
+320px/landscape layout, visible keyboard outlines, Escape focus return, native
+settings radio arrow-key interaction, and a
 browser session with JavaScript disabled. Tests verify emitted HTML, GET flows
 and lifecycle logic, not these browser observations. Do not reuse earlier
 screenshots as evidence of the new layouts. Resume those checks when browser

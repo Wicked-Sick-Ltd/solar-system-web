@@ -23,6 +23,7 @@ import subprocess
 import tempfile
 import threading
 import time
+import urllib.error
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -130,11 +131,11 @@ def main() -> None:
             with sqlite3.connect(database) as connection:
                 return connection.execute('SELECT version, "commit", notes, published_at FROM community_releases ORDER BY version').fetchall()
 
-        def activate(version: str) -> str:
+        def activate(version: str, title_suffix: str = '') -> str:
             (checkout / 'version.txt').write_text(version+'\n')
             if version != '0.0.0':
                 notes = json.loads((checkout / 'resources/releases/1.0.0.json').read_text())
-                notes['title'] = 'LOCAL REHEARSAL '+version
+                notes['title'] = 'LOCAL REHEARSAL '+version+title_suffix
                 (checkout / f'resources/releases/{version}.json').write_text(json.dumps(notes))
             run('git', 'add', 'version.txt', 'resources/releases')
             run('git', 'commit', '--quiet', '--allow-empty', '-m', 'test: local release '+version)
@@ -178,19 +179,40 @@ def main() -> None:
             state['mode'] = 'normal'
             run('bash', 'scripts/release-deploy.sh', 'publish')
             first_rows = rows()
-            assert len(first_rows) == 1 and first_rows[0][1] == first_commit
+            assert len(first_rows) == 1 and first_rows[0][0] == '1.0.0' and first_rows[0][1] == first_commit
+            assert json.loads(first_rows[0][2])['title'] == 'LOCAL REHEARSAL 1.0.0'
+            # Only this disposable fixture is backdated: a timestamp-only rewrite
+            # must be observable even when both commands run in the same second.
+            with sqlite3.connect(database) as connection:
+                connection.execute("UPDATE community_releases SET published_at = '2001-01-01 00:00:00' WHERE version = '1.0.0'")
+            first_rows = rows()
+            retry_commit = activate('1.0.0', ' amended draft')
+            assert retry_commit != first_commit
             run('bash', 'scripts/release-deploy.sh', 'publish')
             assert rows() == first_rows, 'Repeated publication must preserve the original record.'
             checks.append('stable publication and immutable retry using the real SQLite ledger')
             activate('1.1.0')
             run('bash', 'scripts/release-deploy.sh', 'publish')
             assert len(rows()) == 2
+            for path in ('/whats-new', '/whats-new/1.1.0'):
+                with client.open(origin+path, timeout=10) as response:
+                    assert response.geturl() == origin+path, 'Release pages must resolve without redirects.'
+                    assert 'LOCAL REHEARSAL 1.1.0' in response.read().decode(), 'New publication must be visible before rollback.'
             run('git', 'checkout', '--quiet', '--detach', first_commit)
             run('bash', 'scripts/release-deploy.sh', 'prepare')
             run(str(wrapper), 'artisan', 'config:cache')
             with client.open(origin+'/whats-new', timeout=10) as response:
+                assert response.geturl() == origin+'/whats-new'
                 html = response.read().decode()
             assert 'LOCAL REHEARSAL 1.0.0' in html and 'LOCAL REHEARSAL 1.1.0' not in html
+            with client.open(origin+'/whats-new/1.0.0', timeout=10) as response:
+                assert response.geturl() == origin+'/whats-new/1.0.0'
+                assert 'LOCAL REHEARSAL 1.0.0' in response.read().decode()
+            try:
+                with client.open(origin+'/whats-new/1.1.0', timeout=10):
+                    raise AssertionError('A newer release detail must be hidden after rollback.')
+            except urllib.error.HTTPError as error:
+                assert error.code == 404
             assert len(rows()) == 2, 'Code rollback must not destroy publication history.'
             checks.append('cached-build rollback hides newer notes and preserves ledger records')
             paths = [request['path'] for request in state['checks']]

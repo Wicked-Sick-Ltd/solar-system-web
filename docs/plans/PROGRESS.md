@@ -1,7 +1,46 @@
 # Public Universe progress and continuation
 
-Updated: 2026-10-01. Foundation, accessible systems and release workflow implemented.
+Updated: 2026-10-01. Foundation, accessible systems, release workflow and evening usability pass implemented.
 See [development plan](2026-10-01-public-universe.md).
+
+## Evening development: usability, observation accuracy and release rehearsal
+
+Craig authorized an autonomous window of up to two hours from 18:42 UTC. Three
+isolated worktrees handled navigation, catalogue browsing and galaxy loading;
+follow-on observation/settings fixes received independent adversarial review.
+Changes are integrated on `codex/public-universe-foundation` as local commits.
+
+- The galaxy page now requests its 3D renderer and JSON only after activation.
+  Initial galaxy JavaScript fell from 557.56 kB to **3.59 kB** (1.62 kB gzip).
+  The optional 557.53 kB renderer remains; no device/network speed claim is made.
+  Pending navigation, failed loads, GPU cleanup and respectful focus continuation
+  have regression coverage. Text links and the measured-system directory remain.
+- Shared navigation has visible keyboard outlines, larger mobile targets,
+  explicit search submission, bounded menus and no-JavaScript fallbacks. Native
+  catalogue forms and pagination preserve selections and modified link clicks.
+  Strict raw input validation avoids filter broadening and malformed-state errors.
+- The orrery rejects impossible dates and discloses missing positions. Close
+  approaches distinguish unavailable/empty data, disclose the nearest-200 cap,
+  and preserve null, zero and sub-precision positive measurements.
+- Settings use native radios, clean up listeners/timers on navigation, reject
+  malformed shared locations, and retain explicit confirmation before import.
+- A disposable loopback HTTPS rehearsal exercises real cached Laravel builds
+  and an isolated release ledger, with dedicated no-secret CI. Adversarial review
+  strengthened assertions for changed-note retries and before/after rollback
+  visibility. This is not a rehearsal of Forge, FPM, backups or live workers.
+- The reviewed **1.0.0 draft** now includes these changes. Version remains the
+  bootstrap `0.0.0`; no publication, tag, merge, deployment or domain change.
+
+Combined integration validation: **651 PHP tests / 2,527 assertions**, **27
+JavaScript tests**, **15 release metadata/hook tests**, **8 deployment tests**,
+and **11 handout tests** pass. Full Pint, PHPStan and production asset build pass.
+The optional renderer's existing chunk-size warning remains visible.
+
+Browser controls timed out and later reported no available Chrome window. The
+new layouts, native radio arrow-key interaction and WebGL activation therefore
+remain pending browser acceptance. Do not treat prior screenshots as evidence of
+these new changes. See [evening acceptance](../qa/2026-10-01/evening-development.md)
+for measurements, isolation limits and the exact remaining visual checks.
 
 ## Completed follow-on: real handout PDF validation
 
