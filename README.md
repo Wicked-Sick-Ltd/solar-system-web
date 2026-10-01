@@ -225,3 +225,10 @@ NASA directly. Map distances use parsecs internally and light-years in labels.
 Markers represent host systems; their sizes and the galaxy outline are illustrative.
 
 Additional JavaScript checks: `node --test tests/js/*.test.js`.
+
+Offline REST/MCP-function/website contract validation and fixture refresh:
+[Catalogue contracts](docs/catalogue-contract.md). Scientific page downloads:
+[Exoplanet exports](docs/exoplanet-exports.md).
+
+Deployment-order regressions use fake commands and never deploy:
+`python3 -m unittest discover -s tests/deployment -v` (also run in CI).

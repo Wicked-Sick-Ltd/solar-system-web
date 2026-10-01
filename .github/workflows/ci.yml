@@ -53,6 +53,9 @@ jobs:
       - name: Static analysis (Larastan)
         run: ./vendor/bin/phpstan analyse --no-progress
 
+      - name: Verify deployment ordering with fake executables
+        run: python3 -m unittest discover -s tests/deployment -v
+
       - name: Run tests (Pest)
         run: ./vendor/bin/pest
 
