@@ -25,6 +25,7 @@ class Element {
         return event;
     }
     click() { return this.emit('click'); }
+    focus() { this.focused = true; }
     all() { return this.children.flatMap(child => [child, ...child.all()]); }
     querySelectorAll(selector) {
         if (selector === 'input[name="equipmentIds"]:checked') return this.all().filter(child => child.tagName === 'input' && child.name === 'equipmentIds' && child.checked);
@@ -51,9 +52,9 @@ function disk(initial = {}) {
 }
 function harness({ journal = null, store = null, url = 'https://publicuniverse.test/observing-journal' } = {}) {
     store ??= disk(journal === null ? {} : { [JOURNAL_KEY]: typeof journal === 'string' ? journal : JSON.stringify(journal) });
-    const elements = Object.fromEntries(['error', 'status', 'lists', 'entries', 'empty-lists', 'empty-entries', 'undo', 'reload', 'equipment', 'include-locations', 'json', 'csv', 'print', 'import', 'import-preview', 'import-description', 'apply', 'cancel-import'].map(name => [name, new Element()]));
+    const elements = Object.fromEntries(['error', 'status', 'lists', 'entries', 'empty-lists', 'empty-entries', 'undo', 'reload', 'equipment', 'include-locations', 'json', 'csv', 'print', 'import', 'import-preview', 'import-description', 'apply', 'cancel-import', 'raw', 'correction-panel', 'correction-title', 'correction-reference', 'correction-list', 'correction-observation', 'cancel-correction'].map(name => [name, new Element()]));
     elements['import-preview'].hidden = true;
-    for (const name of ['list-form', 'target-form', 'entry-form']) {
+    for (const name of ['list-form', 'target-form', 'entry-form', 'correction-form']) {
         const form = new Element('form');
         form.elements = Object.fromEntries(['listName', 'catalogue', 'targetId', 'targetLabel', 'observedAtUtc', 'timezone', 'outcome', 'notes'].map(field => [field, new Element('input')]));
         form.elements.listId = new Element('select'); form.elements.siteId = new Element('select');
@@ -77,7 +78,7 @@ function harness({ journal = null, store = null, url = 'https://publicuniverse.t
     root.querySelector = selector => elements[selector.slice('[data-journal-'.length, -1)];
     root.querySelectorAll = selector => selector === 'fieldset[data-journal-controls]' ? controls : [];
     const mounted = mountJournal(root, store);
-    return { elements, store, mounted, controls, blobs, revoked, timers, downloads, view,
+    return { root, elements, store, mounted, controls, blobs, revoked, timers, downloads, view,
         read() { const raw = store.values.get(JOURNAL_KEY); return raw === undefined ? emptyJournal() : parseJournal(raw); },
         button(label) { const found = [...elements.lists.all(), ...elements.entries.all()].find(el => el.tagName === 'button' && el.textContent === label); assert.ok(found, `Missing button ${label}`); return found; },
         statusSelect(label) { return elements.lists.all().find(el => el.tagName === 'select' && el.attributes['aria-label'] === `Status for ${label}`); },
@@ -214,4 +215,129 @@ test('quota failures preserve observation input and dispose removes mounted form
     h.mounted.dispose(); h.store.deniedWrite = false;
     for (const element of Object.values(h.elements)) assert.equal([...element.listeners.values()].reduce((sum, set) => sum + set.size, 0), 0);
     await h.elements['entry-form'].emit('submit'); assert.equal(h.store.writes.length, 0);
+});
+
+
+test('list rename preserves stable list and target identities, can cancel and supports undo', async () => {
+    const original = documentWithList(), h = harness({ journal: original });
+    await h.button('Rename list Synthetic night list').click();
+    const form = h.elements['correction-form'];
+    assert.equal(form.elements.listName.focused, true);
+    form.elements.listName.value = 'Cancelled name';
+    await h.elements['cancel-correction'].click();
+    assert.deepEqual(h.read(), original); assert.equal(h.store.writes.length, 0);
+    await h.button('Rename list Synthetic night list').click();
+    form.elements.listName.value = 'Corrected list';
+    const event = await form.emit('submit');
+    assert.equal(event.defaultPrevented, true);
+    assert.equal(h.read().lists[0].name, 'Corrected list');
+    assert.equal(h.read().lists[0].id, original.lists[0].id);
+    assert.deepEqual(h.read().lists[0].items, original.lists[0].items);
+    assert.equal(h.elements['correction-panel'].hidden, true);
+    assert.equal(h.button('Rename list Corrected list').focused, true);
+    await h.elements.undo.click(); assert.deepEqual(h.read(), original);
+});
+
+test('observation correction preserves original target and historical snapshot even after current profiles change', async () => {
+    const setup = workspace(), h = harness({ store: disk({ [WORKSPACE_KEY]: JSON.stringify(setup) }) });
+    const fields = fillObservation(h); fields.siteId.value = setup.sites[0].id;
+    h.elements.equipment.all().find(el => el.tagName === 'input').checked = true;
+    await h.elements['entry-form'].emit('submit');
+    const original = h.read().observations[0];
+    h.store.values.set(WORKSPACE_KEY, '{unreadable newer workspace');
+    await h.button(`Correct observation of Saturn at ${original.observedAtUtc}`).click();
+    const form = h.elements['correction-form'];
+    assert.equal(form.elements.notes.value, original.notes);
+    form.elements.observedAtUtc.value = '2026-10-02T01:00:05Z';
+    form.elements.timezone.value = 'Europe/London'; form.elements.outcome.value = 'uncertain';
+    form.elements.notes.value = 'Corrected notes';
+    // Extra/malicious form fields must never replace identity or historical data.
+    form.elements.targetId.value = 'planet-mars'; form.elements.targetLabel.value = 'Mars';
+    await form.emit('submit');
+    const saved = h.read().observations[0];
+    assert.deepEqual(saved, { ...original, observedAtUtc: '2026-10-02T01:00:05Z', timezone: 'Europe/London', outcome: 'uncertain', notes: 'Corrected notes' });
+    assert.equal(h.read().observations.length, 1);
+    await h.elements.undo.click(); assert.deepEqual(h.read().observations[0], original);
+});
+
+test('invalid correction values and quota failure keep saved data and pending fields until explicit cancellation', async () => {
+    const h = harness(); fillObservation(h); await h.elements['entry-form'].emit('submit');
+    const original = h.read();
+    await h.button('Correct observation of Saturn at 2026-10-01T22:30:00Z').click();
+    const form = h.elements['correction-form'];
+    for (const value of ['2026-02-30T22:00:00Z', '2026-10-02T01:00:00+01:00', '10000-01-01T00:00:00Z']) {
+        form.elements.observedAtUtc.value = value; await form.emit('submit');
+        assert.deepEqual(h.read(), original); assert.equal(form.elements.observedAtUtc.value, value);
+        assert.equal(h.elements['correction-panel'].hidden, false); assert.match(h.elements.error.textContent, /UTC/);
+    }
+    form.elements.observedAtUtc.value = '2026-10-01T23:00:00Z';
+    form.elements.timezone.value = '+01:00'; await form.emit('submit'); assert.match(h.elements.error.textContent, /IANA/);
+    form.elements.timezone.value = 'UTC'; form.elements.notes.value = 'x'.repeat(4001); await form.emit('submit');
+    assert.match(h.elements.error.textContent, /too long/); assert.deepEqual(h.read(), original);
+    form.elements.notes.value = 'Pending correction'; h.store.deniedWrite = true;
+    await form.emit('submit'); assert.match(h.elements.error.textContent, /Quota/);
+    assert.deepEqual(h.read(), original); assert.equal(form.elements.notes.value, 'Pending correction');
+    h.store.deniedWrite = false; await form.emit('submit');
+    assert.equal(h.read().observations[0].notes, 'Pending correction');
+});
+
+test('pending corrections block import, reload and other writes; stale-tab failure retains them for copying', async () => {
+    const h = harness({ journal: documentWithList() });
+    await h.button('Rename list Synthetic night list').click();
+    const form = h.elements['correction-form']; form.elements.listName.value = 'Pending rename';
+    await h.elements.reload.click(); assert.match(h.elements.error.textContent, /Save or cancel/);
+    await h.button('Remove Saturn from list').click(); assert.match(h.elements.error.textContent, /Save or cancel/);
+    await chooseFile(h, JSON.stringify(emptyJournal())); assert.match(h.elements.error.textContent, /Save or cancel/);
+    assert.equal(h.elements['import-preview'].hidden, true); assert.equal(h.store.writes.length, 0);
+    const newer = documentWithList(); newer.lists[0].name = 'Another tab';
+    h.store.values.set(JOURNAL_KEY, JSON.stringify(newer));
+    await form.emit('submit'); assert.match(h.elements.error.textContent, /another tab/);
+    assert.deepEqual(h.read(), newer); assert.equal(form.elements.listName.value, 'Pending rename');
+    await h.elements['cancel-correction'].click(); await h.elements.reload.click();
+    assert.match(h.elements.lists.textContent, /Another tab/);
+});
+
+test('opening a correction invalidates an earlier pending file read and exports only saved records', async () => {
+    const h = harness({ journal: documentWithList() }), file = deferred();
+    h.elements.import.files = [{ size: 10, text: () => file.promise }]; const pending = h.elements.import.emit('change');
+    await h.button('Rename list Synthetic night list').click();
+    h.elements['correction-form'].elements.listName.value = 'Unsaved name';
+    file.resolve(JSON.stringify(emptyJournal())); await pending;
+    assert.equal(h.elements['import-preview'].hidden, true);
+    await h.elements.json.click();
+    assert.equal(parseJournal(await h.blobs[0].text()).lists[0].name, 'Synthetic night list');
+    assert.match(h.elements.status.textContent, /open correction is excluded/);
+    h.mounted.dispose(); assert.ok(h.controls.every(control => control.disabled));
+});
+
+test('raw recovery preserves corrupt and unsupported storage exactly without parsing, redaction or writes', async () => {
+    for (const raw of ['{broken private notes', '{"schemaVersion":999,"privateSite":"test"}', 'unpaired: \ud800']) {
+        const h = harness({ journal: raw });
+        await h.elements.raw.click();
+        const recovery = JSON.parse(await h.blobs[0].text());
+        assert.equal(recovery.storageKey, JOURNAL_KEY); assert.equal(recovery.originalValue, raw);
+        assert.equal(h.store.values.get(JOURNAL_KEY), raw); assert.equal(h.store.writes.length, 0);
+        assert.match(h.elements.status.textContent, /without validation or redaction/);
+        assert.equal(h.downloads[0].name, 'public-universe-journal-recovery.json');
+    }
+    const empty = harness(); await empty.elements.raw.click(); assert.match(empty.elements.error.textContent, /no stored journal/);
+    const store = disk(); store.deniedRead = true; const denied = harness({ store });
+    await denied.elements.raw.click(); assert.match(denied.elements.error.textContent, /denied/); assert.equal(denied.blobs.length, 0);
+});
+
+
+test('bfcache remount clears an old editor instead of presenting fields with no active record', async () => {
+    const h = harness({ journal: documentWithList() });
+    await h.button('Rename list Synthetic night list').click();
+    h.elements['correction-form'].elements.listName.value = 'Unsaved prior page';
+    h.mounted.dispose();
+    const restored = mountJournal(h.root, h.store);
+    assert.equal(h.elements['correction-panel'].hidden, true);
+    assert.equal(h.elements['correction-form'].elements.listName.value, '');
+    assert.equal(h.elements['correction-list'].disabled, true);
+    assert.equal(h.elements['correction-observation'].disabled, true);
+    assert.equal(h.read().lists[0].name, 'Synthetic night list');
+    await h.button('Rename list Synthetic night list').click();
+    assert.equal(h.elements['correction-form'].elements.listName.value, 'Synthetic night list');
+    restored.dispose();
 });

@@ -10,7 +10,9 @@ it('serves guest journal controls without an API call or account', function () {
     Http::fake();
     $this->get('/observing-journal')->assertOk()->assertSee('Observing lists and journal')
         ->assertSee('Actual observation time in UTC')->assertSee('Include site names and coordinates in exports')
-        ->assertSee('No site snapshot')->assertSee('data-journal-controls disabled', false)
+        ->assertSee('No site snapshot')->assertSee('Save correction')->assertSee('Cancel correction')
+        ->assertSee('The record identifier, catalogue target and historical equipment/site snapshot stay unchanged.')
+        ->assertSee('Download original journal storage')->assertSee('data-journal-controls disabled', false)
         ->assertSee('noindex', false);
     Http::assertNothingSent();
 });

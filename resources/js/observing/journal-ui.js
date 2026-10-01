@@ -1,11 +1,13 @@
 import { loadWorkspace } from './workspace-store.js';
-import { JOURNAL_MAX_BYTES, emptyJournal, openJournal, parseJournal, journalExport, journalCsv, snapshotSetup, targetReference } from './journal-store.js';
+import { JOURNAL_KEY, JOURNAL_MAX_BYTES, emptyJournal, openJournal, parseJournal, journalExport, journalCsv, snapshotSetup, targetReference } from './journal-store.js';
 
 export function mountJournal(root, storage = null) {
     const doc = root.ownerDocument, view = doc.defaultView;
     const get = name => root.querySelector(`[data-journal-${name}]`);
     let session, current = emptyJournal(), pendingImport = null, undo = null, disposed = false, importSequence = 0;
     const cleanups = [];
+    let correction = null;
+    const correctionButtons = new Map();
     let privateSiteNodes = [];
     function updatePrintPrivacy() { for (const site of privateSiteNodes) site.className = get('include-locations').checked ? '' : 'print:hidden'; }
     function on(element, event, handler) { element.addEventListener(event, handler); cleanups.push(() => element.removeEventListener(event, handler)); }
@@ -19,7 +21,11 @@ export function mountJournal(root, storage = null) {
         get('error').textContent = '';
         try { action(); } catch (error) { get('error').textContent = `${error.message} Nothing new was saved.`; }
     }
-    function commit(next, undoable = false) {
+    function requireNoCorrection() {
+        if (correction) throw new Error('Save or cancel the open correction before changing or reloading other records.');
+    }
+    function commit(next, undoable = false, fromCorrection = false) {
+        if (!fromCorrection) requireNoCorrection();
         if (!session) throw new Error('Reload readable saved data before making changes.');
         const before = current;
         current = session.save(next);
@@ -32,12 +38,15 @@ export function mountJournal(root, storage = null) {
     }
     function render() {
         privateSiteNodes = [];
+        correctionButtons.clear();
         get('lists').replaceChildren(); get('entries').replaceChildren();
         const select = get('target-form').elements.listId, selected = select.value;
         select.replaceChildren();
         for (const list of current.lists) {
             const option = node('option', list.name); option.value = list.id; select.append(option);
             const article = node('article', '', 'surface space-y-3 p-4'); article.append(node('h3', list.name, 'text-xl'));
+            const rename = button(`Rename list ${list.name}`, () => startCorrection('list', list.id));
+            correctionButtons.set(list.id, rename); article.append(rename);
             article.append(button(`Remove list ${list.name}`, () => edit(next => { next.lists = next.lists.filter(row => row.id !== list.id); }, true)));
             const ordered = doc.createElement('ol'); ordered.className = 'space-y-3';
             list.items.forEach((item, index) => {
@@ -73,6 +82,8 @@ export function mountJournal(root, storage = null) {
             const equipmentLine = node('p', `Recorded equipment: ${setup?.equipment.map(row => row.name).join(', ') || 'not supplied'}.`);
             const siteLine = node('span', ` Site: ${setup?.sites[0]?.name ?? 'not supplied'}.`);
             privateSiteNodes.push(siteLine); equipmentLine.append(siteLine); article.append(equipmentLine);
+            const correct = button(`Correct observation of ${entry.target.label} at ${entry.observedAtUtc}`, () => startCorrection('observation', entry.id));
+            correctionButtons.set(entry.id, correct); article.append(correct);
             article.append(button(`Remove observation of ${entry.target.label}`, () => edit(next => { next.observations = next.observations.filter(row => row.id !== entry.id); }, true)));
             get('entries').append(article);
         }
@@ -81,7 +92,31 @@ export function mountJournal(root, storage = null) {
         get('undo').hidden = undo === null;
         updatePrintPrivacy();
     }
-    function reload() { session = openJournal(storage); current = session.read(); undo = null; render(); get('status').textContent = 'Loaded from this browser.'; }
+    function reload() { requireNoCorrection(); session = openJournal(storage); current = session.read(); undo = null; render(); get('status').textContent = 'Loaded from this browser.'; }
+    function startCorrection(kind, id) {
+        requireNoCorrection();
+        const record = (kind === 'list' ? current.lists : current.observations).find(row => row.id === id);
+        if (!record) throw new Error('The selected record is unavailable. Reload before correcting it.');
+        correction = { kind, id };
+        importSequence++; pendingImport = null; get('import-preview').hidden = true;
+        const form = get('correction-form'); form.reset();
+        const list = kind === 'list';
+        get('correction-title').textContent = list ? 'Rename observing list' : 'Correct recorded observation';
+        get('correction-reference').textContent = list ? record.name : `${record.target.label} · ${record.target.catalogue}:${record.target.id}`;
+        get('correction-list').hidden = !list; get('correction-list').disabled = !list;
+        get('correction-observation').hidden = list; get('correction-observation').disabled = list;
+        if (list) form.elements.listName.value = record.name;
+        else for (const key of ['observedAtUtc', 'timezone', 'outcome', 'notes']) form.elements[key].value = record[key];
+        get('correction-panel').hidden = false;
+        (list ? form.elements.listName : form.elements.observedAtUtc).focus();
+        get('status').textContent = 'Correction opened. Nothing changes until you save; other record changes wait until you save or cancel.';
+    }
+    function closeCorrection() {
+        const id = correction?.id;
+        correction = null; get('correction-panel').hidden = true; get('correction-form').reset();
+        get('correction-list').disabled = true; get('correction-observation').disabled = true;
+        correctionButtons.get(id)?.focus();
+    }
     function fillSetup() {
         const workspace = loadWorkspace(storage), form = get('entry-form');
         form.elements.siteId.replaceChildren(node('option', 'No site snapshot'));
@@ -97,11 +132,37 @@ export function mountJournal(root, storage = null) {
         if (!session) throw new Error('Load a readable journal before exporting.');
         const locations = get('include-locations').checked;
         const body = csv ? journalCsv(current, locations) : journalExport(current, locations);
-        const url = view.URL.createObjectURL(new Blob([body], { type: csv ? 'text/csv;charset=utf-8' : 'application/json' }));
-        const anchor = doc.createElement('a'); anchor.href = url; anchor.download = csv ? 'public-universe-observations.csv' : 'public-universe-journal-v1.json'; anchor.click();
-        view.setTimeout(() => view.URL.revokeObjectURL(url), 1000);
-        get('status').textContent = 'Export prepared. Keep the downloaded file private; notes may contain personal information.';
+        saveFile(body, csv ? 'public-universe-observations.csv' : 'public-universe-journal-v1.json', csv ? 'text/csv;charset=utf-8' : 'application/json');
+        get('status').textContent = 'Saved records exported; any open correction is excluded. Keep the downloaded file private; notes may contain personal information.';
     }
+    function saveFile(body, name, type) {
+        const url = view.URL.createObjectURL(new Blob([body], { type }));
+        const anchor = doc.createElement('a'); anchor.href = url; anchor.download = name; anchor.click();
+        view.setTimeout(() => view.URL.revokeObjectURL(url), 1000);
+    }
+    on(get('raw'), 'click', () => attempt(() => {
+        storage ??= view.localStorage;
+        const raw = storage.getItem(JOURNAL_KEY);
+        if (raw === null) throw new Error('There is no stored journal to recover.');
+        // A JSON string envelope preserves even unpaired UTF-16 code units.
+        // This is an original-data recovery file, not a valid journal import.
+        saveFile(JSON.stringify({ storageKey: JOURNAL_KEY, originalValue: raw }), 'public-universe-journal-recovery.json', 'application/json');
+        get('status').textContent = 'Original storage copied into a recovery envelope without validation or redaction. It may include private sites and notes. This file is not a journal import; no stored data was changed.';
+    }));
+    on(get('correction-form'), 'submit', event => { event.preventDefault(); attempt(() => {
+        if (!correction) return;
+        const next = structuredClone(current), form = event.currentTarget;
+        const record = (correction.kind === 'list' ? next.lists : next.observations).find(row => row.id === correction.id);
+        if (!record) throw new Error('The record is no longer available.');
+        if (correction.kind === 'list') record.name = form.elements.listName.value;
+        else for (const key of ['observedAtUtc', 'timezone', 'outcome', 'notes']) record[key] = form.elements[key].value;
+        // ID, target and the historical setup are never copied from editable inputs.
+        commit(next, true, true); closeCorrection();
+        get('status').textContent = 'Correction saved in this browser. Record identity and any historical equipment/site snapshot were preserved. Undo can restore the previous saved record.';
+    }); });
+    on(get('cancel-correction'), 'click', () => attempt(() => {
+        closeCorrection(); get('status').textContent = 'Correction cancelled. Saved records are unchanged.';
+    }));
     on(get('list-form'), 'submit', event => { event.preventDefault(); attempt(() => {
         const form = event.currentTarget;
         edit(next => next.lists.push({ id: view.crypto.randomUUID(), name: form.elements.listName.value, items: [] })); form.reset();
@@ -119,13 +180,14 @@ export function mountJournal(root, storage = null) {
             timezone: form.elements.timezone.value, outcome: form.elements.outcome.value, notes: form.elements.notes.value, equipmentAndSite: snapshot };
         edit(next => next.observations.push(record)); form.elements.notes.value = '';
     }); });
-    on(get('reload'), 'click', () => attempt(() => { importSequence++; pendingImport = null; get('import-preview').hidden = true; reload(); fillSetup(); }));
+    on(get('reload'), 'click', () => attempt(() => { requireNoCorrection(); importSequence++; pendingImport = null; get('import-preview').hidden = true; reload(); fillSetup(); }));
     on(get('undo'), 'click', () => attempt(() => { if (undo) commit(undo); }));
     on(get('json'), 'click', () => attempt(() => download()));
     on(get('csv'), 'click', () => attempt(() => download(true)));
     on(get('include-locations'), 'change', updatePrintPrivacy);
     on(get('print'), 'click', () => view.print());
     on(get('import'), 'change', async event => {
+        if (correction) { get('error').textContent = 'Save or cancel the open correction before importing a journal.'; return; }
         const sequence = ++importSequence;
         pendingImport = null; get('import-preview').hidden = true;
         const file = event.target.files?.[0]; if (!file) return;
@@ -139,6 +201,9 @@ export function mountJournal(root, storage = null) {
     });
     on(get('apply'), 'click', () => attempt(() => { if (pendingImport) { importSequence++; commit(pendingImport, true); pendingImport = null; get('import-preview').hidden = true; } }));
     on(get('cancel-import'), 'click', () => { importSequence++; pendingImport = null; get('import-preview').hidden = true; });
+    // A bfcache restore can reuse DOM from an earlier mounted instance.
+    // Unsaved correction/import previews do not survive navigation.
+    closeCorrection(); get('import-preview').hidden = true;
     let initialReady = false;
     attempt(() => { storage ??= view.localStorage; reload(); fillSetup(); initialReady = true; });
     if (initialReady) attempt(() => {
@@ -154,5 +219,5 @@ export function mountJournal(root, storage = null) {
     });
     // Enable only after listeners prevent accidental native submission.
     root.querySelectorAll('fieldset[data-journal-controls]').forEach(fieldset => fieldset.disabled = false);
-    return { dispose() { disposed = true; importSequence++; for (const cleanup of cleanups) cleanup(); } };
+    return { dispose() { disposed = true; importSequence++; for (const cleanup of cleanups) cleanup(); root.querySelectorAll('fieldset[data-journal-controls]').forEach(fieldset => fieldset.disabled = true); } };
 }
