@@ -106,3 +106,9 @@ class MetadataTest(unittest.TestCase):
                 self.check(False)
         (self.root / 'resources/releases/2.0.0.json').write_text(' ' * 32769)
         self.check(False)
+
+    def test_numeric_section_keys_cannot_pass_ci_but_fail_php(self):
+        for heading in ['123', '01', '-123']:
+            with self.subTest(heading=heading):
+                (self.root / 'resources/releases/2.0.0.json').write_text(json.dumps({**NOTES, 'sections': {heading: ['Bullet']}}))
+                self.check(False)

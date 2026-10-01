@@ -33,7 +33,7 @@ def check_notes(path):
     if not isinstance(sections, dict) or not 1 <= len(sections) <= 6:
         raise ValueError(f'{path}: expected 1–6 sections')
     for heading, items in sections.items():
-        if not text(heading, 80) or not isinstance(items, list) or not 1 <= len(items) <= 10:
+        if not text(heading, 80) or re.fullmatch(r'-?[0-9]+', heading) or not isinstance(items, list) or not 1 <= len(items) <= 10:
             raise ValueError(f'{path}: invalid section')
         if not all(text(item, 500) for item in items):
             raise ValueError(f'{path}: invalid bullet')
