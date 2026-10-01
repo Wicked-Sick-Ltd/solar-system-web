@@ -8,7 +8,7 @@
         <p>{{ __('This identifier is not present in the available bounded sample. Browse or search the starter catalogues for exact source identifiers.') }}</p>
     @else
         <x-page-header :title="$target->name" :eyebrow="__('Catalogue record')" :lead="implode(' · ', $target->aliases)" />
-        <x-save-observing-target catalogue="starter" :id="$target->id" :label="$target->name" />
+        <x-save-observing-target catalogue="starter" :target-id="$target->id" :target-label="$target->name" />
         @include('starter-targets.context')
         <dl class="surface mb-6 grid gap-4 p-5 sm:grid-cols-2">
             <div><dt>{{ __('Stable source identifier') }}</dt><dd class="break-all font-mono">{{ $target->id }}</dd></div>
