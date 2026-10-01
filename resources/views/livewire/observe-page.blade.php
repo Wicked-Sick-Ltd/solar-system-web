@@ -29,6 +29,11 @@
         <p class="mt-3 leading-relaxed">{{ __('Choose a date and approximate location for altitude charts, darkness and observing windows, with the calculation limits explained.') }}</p>
         <a class="mt-4 inline-block underline" href="{{ route('observe.night') }}">{{ __('Plan a night') }} →</a>
     </section>
+    <section class="surface mt-6 p-6" aria-labelledby="observe-starter-catalogues">
+        <h2 id="observe-starter-catalogues" class="text-2xl">{{ __('Explore stars and deep-sky objects') }}</h2>
+        <p class="mt-2">{{ __('Browse a sourced starter sample of bright stars, historical double-star records and Messier-associated deep-sky objects, with original measurements and data licences.') }}</p>
+        <a class="mt-4 inline-block min-h-11 content-center underline" href="{{ route('observing-targets.index') }}">{{ __('Browse observing targets') }} →</a>
+    </section>
     <section class="mt-8" aria-labelledby="observe-events">
         <h2 id="observe-events" class="text-2xl">{{ __('Follow astronomical events') }}</h2>
         <p class="mt-3 leading-relaxed">{{ __('Earth close approaches describe how near objects pass. Proximity alone does not tell you whether an object is bright enough to see.') }}</p>
