@@ -115,7 +115,7 @@ class Seo
     public function getImage(): ?string
     {
         // Fall back to the site's branded share card when a page sets none.
-        return $this->image ?? asset('images/og-default.png');
+        return $this->image ?? ShareImage::defaultUrl();
     }
 
     public function getType(): string

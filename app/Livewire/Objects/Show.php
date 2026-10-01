@@ -10,6 +10,7 @@ use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
 use App\Services\SolarApi\SolarApiClient;
 use App\Support\Seo;
+use App\Support\ShareImage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -188,7 +189,7 @@ final class Show extends Component
             ->description($description)
             ->type('article')
             ->canonical(route('objects.show', $object->id))
-            ->image(route('og.object', $object->id))   // per-object share card
+            ->image(ShareImage::objectUrl($object->id))   // per-object share card
             ->jsonLd($this->schema($object, $description));
     }
 

@@ -54,9 +54,22 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
   absolute URLs already published. A new vanity host must serve a usable
   manifest, not merely a redirect to an HTML landing page.
 - Review homepage, header at desktop/mobile widths, about page, metadata,
-  emails, favicon and share cards for the new name. Regenerate branded default
-  OG artwork and invalidate/version cached object cards when releasing the
-  brand. Confirm image content, not only the image URL.
+  emails, favicon and share cards for the new name. The committed default card
+  is now `public/images/og-public-universe.png`, rendered locally and visually
+  inspected at 1200×630 with Public Universe branding. Object-card disk paths
+  and public image URLs include a bounded hash of `SITE_NAME`, the tagline and
+  `OG_VERSION`; old immutable object images cannot occupy the new URL. Configure
+  the CDN to include the `v` query parameter in its image cache key. The old
+  `images/og-default.png` remains available for existing links.
+- When changing the public brand or card design again, run
+  `php artisan og:generate-default` with the intended local configuration and
+  inspect the resulting PNG before committing it. The command uses the existing
+  Imagick renderer/fonts and writes only the committed default image path.
+  Name/tagline changes automatically version object cards; bump `OG_VERSION`
+  for renderer/font/design changes. Regenerate the static default as well:
+  versioning a URL cannot change the text already baked into its image.
+  Confirm image content, not only the image URL. No production invalidation or
+  CDN configuration has been performed by this development change.
 - Update `tools/handout/template.html` and generator branding/URL configuration
   before publishing new handouts. The existing printed template still says
   Solar, has legacy URLs and broad reuse claims. Render and inspect all pages

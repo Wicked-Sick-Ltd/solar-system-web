@@ -153,6 +153,24 @@ php artisan cache:clear      # clears all API response caches + the sitemap
 
 Cache TTLs are tunable via `SOLAR_CACHE_*` env vars (see `config/services.php`).
 
+## Share images
+
+Object share cards are rendered with Imagick and cached with a bounded hash of
+`SITE_NAME`, the site tagline and `OG_VERSION`. Their public URLs carry the same
+version in `?v=...`; configure CDN cache keys to retain that parameter. Name or
+tagline changes invalidate object cards automatically. Bump `OG_VERSION` after
+renderer/font changes.
+
+The default/fallback card is committed at `public/images/og-public-universe.png`.
+Regenerate it after a brand or design change, then inspect the PNG before committing:
+
+```bash
+php artisan og:generate-default
+```
+
+This uses local configuration and bundled fonts. It does not deploy or purge
+remote caches. The legacy default image remains available for existing links.
+
 ## Tests
 
 ```bash

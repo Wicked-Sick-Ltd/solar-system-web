@@ -76,7 +76,7 @@ it('advertises a favicon and a default share image', function () {
         ->assertOk()
         ->assertSee('favicon.svg', escape: false)
         ->assertSee('og:image', escape: false)
-        ->assertSee('images/og-default.png', escape: false)
+        ->assertSee('images/og-public-universe.png', escape: false)
         ->assertSee('twitter:card', escape: false);
 });
 
