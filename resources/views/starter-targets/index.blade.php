@@ -29,6 +29,7 @@
                         <p class="text-sm">{{ implode(' · ', array_map(fn ($family) => __(\App\Services\SolarApi\Data\StarterTarget::FAMILIES[$family]), $target->families)) }}</p>
                         <p class="text-sm">{{ __('Recorded magnitude') }}: {{ $target->measurement('magnitude') }} {{ $target->data['magnitude_flag'] ?? '' }} · {{ $target->data['magnitude_band'] }}</p>
                         @if (in_array('double_star', $target->families, true))<p class="text-sm">{{ __('Historical separation') }}: {{ $target->measurement('separation_arcsec', 'arcsec') }} · {{ __('date unknown') }}</p>@endif
+                        @include('starter-targets.planning-link')
                         <p class="break-all text-xs" style="color: var(--muted);">{{ $target->id }}</p>
                     </li>
                 @endforeach

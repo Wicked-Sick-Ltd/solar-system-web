@@ -125,8 +125,9 @@ it('refuses incomplete contradictory or private provider metadata', function (st
 ]);
 
 it('keeps legacy missing method provenance unavailable instead of inferring a snapshot', function () {
-    $legacy = json_decode(file_get_contents(base_path('tests/fixtures/observing/night.json')), true, flags: JSON_THROW_ON_ERROR);
-    expect(fn () => NightProviderProvenance::validate($legacy['method']))->toThrow(SolarApiException::class);
+    $legacy = nightProvenanceFixture()['providers']['builtin'];
+    unset($legacy['erfa_version'], $legacy['iers']['data_version'], $legacy['iers']['snapshot']);
+    expect(fn () => NightProviderProvenance::validate($legacy))->toThrow(SolarApiException::class);
     $builtin = nightProvenanceFixture()['providers']['builtin'];
     $builtin['kernel'] = nightProvenanceFixture()['providers']['jpl']['kernel'];
     expect(fn () => NightProviderProvenance::validate($builtin))->toThrow(SolarApiException::class);

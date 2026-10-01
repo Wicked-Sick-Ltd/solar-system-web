@@ -9,6 +9,10 @@
     @else
         <x-page-header :title="$target->name" :eyebrow="__('Catalogue record')" :lead="implode(' · ', $target->aliases)" />
         <x-save-observing-target catalogue="starter" :target-id="$target->id" :target-label="$target->name" />
+        @include('starter-targets.planning-link')
+        @if (\App\Services\Observing\NightTargets::canPlan($target))
+            <p class="mb-5 text-sm">{{ __('This opens a form with this exact target selected. Review your date, location and observing constraints before calculating. Nothing is calculated or saved by following the link.') }}</p>
+        @endif
         @include('starter-targets.context')
         <dl class="surface mb-6 grid gap-4 p-5 sm:grid-cols-2">
             <div><dt>{{ __('Stable source identifier') }}</dt><dd class="break-all font-mono">{{ $target->id }}</dd></div>
