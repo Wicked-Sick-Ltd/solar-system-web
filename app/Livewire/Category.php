@@ -10,6 +10,7 @@ use App\Services\SolarApi\SolarApiClient;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -28,59 +29,104 @@ final class Category extends Component
     private const MAX_PAGE = 417;
 
     #[Url(except: '')]
-    public string $orbit = '';
+    public mixed $orbit = '';
 
     #[Url(except: false)]
-    public bool $neo = false;
+    public mixed $neo = false;
 
     #[Url(except: false)]
-    public bool $pha = false;
+    public mixed $pha = false;
 
     #[Url(except: false)]
-    public bool $named = false;
+    public mixed $named = false;
 
     #[Url(except: '')]
-    public string $diameter = '';
+    public mixed $diameter = '';
 
     #[Url(except: '')]
-    public string $moid = '';
+    public mixed $moid = '';
 
     #[Url(except: '')]
-    public string $quality = '';
+    public mixed $quality = '';
 
     #[Url(except: '')]
-    public string $discovered = '';
+    public mixed $discovered = '';
 
     #[Url(except: 'orbit')]
-    public string $order = 'orbit';
+    public mixed $order = 'orbit';
 
     #[Url(except: '')]
-    public string $after = '';
+    public mixed $after = '';
 
     public string $kind;
 
+    /** @var array<string, string> */
+    #[Locked]
+    public array $rawInputErrors = [];
+
     #[Url(as: 'page', except: 1)]
-    public int $page = 1;
+    public mixed $page = 1;
 
     public function mount(string $kind): void
     {
         $this->kind = $kind;
+        $fields = $kind === 'asteroid'
+            ? ['orbit', 'neo', 'pha', 'named', 'diameter', 'moid', 'quality', 'discovered', 'order', 'after', 'page']
+            : ['page'];
+        foreach ($fields as $field) {
+            if (! request()->query->has($field)) {
+                continue;
+            }
+            $value = request()->query()[$field];
+            if (($error = $this->rawInputError($field, $value, true)) !== null) {
+                $this->rawInputErrors[$field] = $error;
+            } elseif (in_array($field, ['neo', 'pha', 'named'], true)) {
+                $this->{$field} = in_array($value, [true, 1, '1', 'true'], true);
+            } elseif ($field === 'page') {
+                $this->page = (int) $value;
+            } else {
+                // Preserve literal text instead of Livewire's JSON coercion.
+                $this->{$field} = $value ?? '';
+            }
+        }
     }
 
     public function updated(string $property): void
     {
+        if (($error = $this->rawInputError($property, $this->{$property})) !== null) {
+            $this->rawInputErrors[$property] = $error;
+            $this->addError($property, $error);
+            $this->reset($property);
+        } else {
+            unset($this->rawInputErrors[$property]);
+            $this->resetValidation($property);
+        }
         if (! in_array($property, ['page', 'after'], true)) {
+            unset($this->rawInputErrors['page'], $this->rawInputErrors['after']);
             $this->reset(['page', 'after']);
         }
     }
 
     public function clearFilters(): void
     {
+        $this->rawInputErrors = [];
+        $this->resetValidation();
+        if (! in_array($this->order, ['orbit', 'id'], true)) {
+            $this->reset('order');
+        }
         $this->reset(['orbit', 'neo', 'pha', 'named', 'diameter', 'moid', 'quality', 'discovered', 'page', 'after']);
     }
 
     public function render(SolarApiClient $api): View
     {
+        // URL and Livewire payloads retain their raw types until validated.
+        // Reset bad controls only after retaining an error that blocks queries.
+        foreach (['orbit', 'neo', 'pha', 'named', 'diameter', 'moid', 'quality', 'discovered', 'order', 'after', 'page'] as $field) {
+            if (($error = $this->rawInputError($field, $this->{$field})) !== null) {
+                $this->rawInputErrors[$field] = $error;
+                $this->reset($field);
+            }
+        }
         $copy = $this->copy();
 
         app(Seo::class)->title($copy['title'])->description($copy['lead']);
@@ -138,7 +184,7 @@ final class Category extends Component
     /** @return list<string> */
     private function inputErrors(): array
     {
-        $errors = [];
+        $errors = array_values($this->rawInputErrors);
         if ($this->page < 1 || $this->page > self::MAX_PAGE) {
             $errors[] = __('Please use a page from 1 to :max, or browse the full catalogue by ID.', ['max' => self::MAX_PAGE]);
         }
@@ -158,6 +204,27 @@ final class Category extends Component
         }
 
         return $errors;
+    }
+
+    private function rawInputError(string $field, mixed $value, bool $fromUrl = false): ?string
+    {
+        if ($field === 'page') {
+            if ((! is_int($value) && ! is_string($value)) || ! preg_match('/^[1-9][0-9]*$/D', (string) $value)
+                || filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value > self::MAX_PAGE) {
+                return __('Choose a whole page number from 1 to :max.', ['max' => self::MAX_PAGE]);
+            }
+        } elseif (in_array($field, ['neo', 'pha', 'named'], true)) {
+            $allowed = $fromUrl ? [true, false, 1, 0, '1', '0', 'true', 'false'] : [true, false, 1, 0, '1', '0'];
+            if (! in_array($value, $allowed, true)) {
+                return __('Choose a valid on/off value for :filter.', ['filter' => $field]);
+            }
+        } elseif (in_array($field, ['orbit', 'diameter', 'moid', 'quality', 'discovered', 'order', 'after'], true)) {
+            if (! is_string($value) && ($value !== null || ! $fromUrl)) {
+                return __('Choose a single text value for :filter.', ['filter' => $field]);
+            }
+        }
+
+        return null;
     }
 
     /** @return array<string, array<string|int, string>> */

@@ -112,3 +112,48 @@ it('distinguishes a missing object endpoint from empty filtered data', function 
     Http::fake(['*/objects*' => Http::response([], 404)]);
     $this->get('/asteroids?neo=1')->assertOk()->assertSee('temporarily unavailable')->assertDontSee('No asteroids match');
 });
+
+it('rejects malformed raw URL types before Livewire can coerce them', function (array $query) {
+    $this->get('/asteroids?'.http_build_query($query))->assertOk()->assertSee('Reset filters and position');
+    Http::assertNothingSent();
+})->with([
+    [['orbit' => ['MBA']]], [['diameter' => ['10']]], [['after' => ['asteroid-1'], 'order' => 'id']],
+    [['page' => 'abc']], [['page' => '1.5']], [['page' => ['2']]], [['page' => '1e2']],
+    [['neo' => 'potato']], [['pha' => ['1']]], [['named' => '2']],
+]);
+
+it('accepts explicit boolean URLs and preserves a literal cursor', function () {
+    fakeSolar();
+    Livewire::withQueryParams(['neo' => 'false', 'pha' => 'true', 'order' => 'id', 'after' => 'true'])
+        ->test(Category::class, ['kind' => 'asteroid'])
+        ->assertSet('neo', false)->assertSet('pha', true)->assertSet('after', 'true');
+    Http::assertSent(fn ($r) => ($r['pha'] ?? null) === 'true' && ! isset($r['neo']) && ($r['after'] ?? null) === 'true');
+});
+
+it('does not clear malformed URL errors when an unrelated filter changes', function () {
+    $component = Livewire::withQueryParams(['orbit' => ['MBA']])->test(Category::class, ['kind' => 'asteroid']);
+    $component->set('neo', true)->assertSee('Choose a single text value for orbit.');
+    Http::assertNothingSent();
+
+    fakeSolar();
+    $component->set('orbit', 'MBA')->assertDontSee('Choose a single text value for orbit.');
+    Http::assertSent(fn ($r) => ($r['orbit_class'] ?? null) === 'MBA' && ($r['neo'] ?? null) === 'true');
+});
+
+it('rejects invalid Livewire update types without querying a coerced selection', function (string $field, mixed $value) {
+    fakeSolar();
+    $component = Livewire::test(Category::class, ['kind' => 'asteroid']);
+    Cache::flush();
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    $component->set($field, $value)->assertHasErrors($field);
+    Http::assertNothingSent();
+})->with([
+    ['page', '1.5'], ['page', []], ['page', null], ['page', true], ['page', 2.0], ['neo', 'potato'], ['neo', 2], ['orbit', ['MBA']], ['diameter', null],
+]);
+
+it('clears malformed initial selections and an invalid browse order', function () {
+    $component = Livewire::withQueryParams(['orbit' => ['MBA'], 'order' => 'bad'])->test(Category::class, ['kind' => 'asteroid']);
+    fakeSolar();
+    $component->call('clearFilters')->assertSet('rawInputErrors', [])->assertSet('order', 'orbit')->assertDontSee('Reset filters and position');
+});
