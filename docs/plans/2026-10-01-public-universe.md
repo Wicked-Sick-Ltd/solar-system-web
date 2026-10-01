@@ -91,6 +91,19 @@ limitation and requirements for a persistent cited registry are recorded in
 [contract/identity notes](../catalogue-contract.md). The plugin remains
 unavailable. These are follow-on dependencies, not claims of implemented support.
 
+### Follow-on: community releases and deployments
+
+Requested on 1 October after the accessible-system slice. Follow project-gambit:
+reviewed community notes and generated technical history, stable versions,
+exact-revision deployment verification and durable on-site publication. Use one
+JSON source for both `/whats-new` and locally rendered community copy. No
+outbound dispatcher is needed until a destination is selected.
+
+Implementation and validation are recorded in [progress](PROGRESS.md); operational
+steps are in [releases](../releases.md). First rollout must resolve the destination
+and verify current build, backups and scheduler/worker handling. Repository-scoped
+release-bot access and the publicuniverse.net migration are separate decisions.
+
 ### Later, separately sized work
 
 Artificial satellites, larger stellar catalogues, fuller curricula and

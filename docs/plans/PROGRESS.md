@@ -3,6 +3,25 @@
 Updated: 2026-10-01. Foundation, accessible systems and release workflow implemented.
 See [development plan](2026-10-01-public-universe.md).
 
+## Completed follow-on: real handout PDF validation
+
+The actual Debian wkhtmltopdf renderer reproduced and fixed an extra blank page
+and an orphaned footer. Both default and optional moon handouts now render as
+**2 and 3 A4 pages**, respectively. All five pages were visually inspected, and
+an independent reviewer checked text, dimensions, exact URI annotations and
+honest offline fixture labels. The integrated rerender produced byte-identical
+page PNGs to those inspected. **11 offline Python tests** and PDF smoke checks
+pass. No live astronomy requests were used for this acceptance.
+
+Counts now preserve exact small totals and actual positive/negative snapshot
+differences; the historical comparison explicitly covers the eight listed
+planets. Malformed count data or partial/repeated moon pages fail generation.
+A pinned official Debian image and network-disabled rendering make both variants
+reproducible locally and in CI. Generated PDFs remain ignored local artifacts.
+See [PDF acceptance](../qa/2026-10-01/handout-pdf.md) for renderer/data provenance,
+reproduction and limitations. New live data or custom branding still requires
+fresh rendering and visual inspection before publication.
+
 ## Community release workflow
 
 Craig requested deployments and full community/site release notes following
@@ -134,9 +153,9 @@ was left enabled. See [feature notes](../measured-systems.md) and
    identity/alias relation is present. See [identity notes](../catalogue-contract.md)
    and backend `docs/EXOPLANETS.md`; use persistent, explicitly sourced mappings
    when evidence is supplied, never inferred planet merges.
-3. Physical touch acceptance requires a real device. Handout PDF layout requires
-   the actual renderer before publishing a new PDF; HTML-only tests cannot
-   certify A4 pagination or clipping.
+3. Physical touch acceptance requires a real device. The default handout PDF
+   renderer gap is closed above; changed data/branding still requires fresh
+   rendering and visual inspection before publishing a new PDF.
 4. Execute staging rehearsal and the evidence checklist in
    [migration runbook](../PUBLIC-UNIVERSE-MIGRATION.md). Verify working API/MCP/
    download origins and the plugin. Production deployment, DNS/TLS cutover,

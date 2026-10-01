@@ -73,11 +73,14 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
 - The handout template and generator now use Public Universe with escaped,
   configurable branding and public URLs. Legacy website/API/download origins
   remain defaults; set the approved values explicitly when generating new
-  material. Six offline HTML tests verify branding, links and CLI configuration.
-  Before publishing, render and inspect all pages with `wkhtmltopdf`: verify two
-  A4 pages (three with `--moons-page`), correct links, no clipping, dated positions
-  and source-specific attribution. This foundation change has not regenerated
-  or visually verified those PDFs. See [handout instructions](../tools/handout/README.md).
+  material. Eleven offline tests cover generation and malformed-data handling.
+  Actual wkhtmltopdf now renders both variants as two/three A4 pages; all five
+  pages have been visually reviewed, with link and text-bound checks. This closes
+  the default-layout renderer gap using a clearly labelled retained QA fixture;
+  see [PDF acceptance evidence](qa/2026-10-01/handout-pdf.md). Before publishing
+  current or newly branded material, regenerate and inspect every page again:
+  verify links, no clipping, dated positions and source-specific attribution.
+  See [handout instructions](../tools/handout/README.md).
 
 ## Website cutover
 
