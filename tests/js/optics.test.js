@@ -81,3 +81,36 @@ test('tiny positive outputs retain significant values and diagram ratios without
     assert.notEqual(opticalNumber(tiny.fieldFraction), '0');
     assert.equal(opticalNumber(null), 'Unknown');
 });
+
+// Exact rectilinear geometry; small-angle approximations would not pass the wide-field case.
+import { cameraOptics, cameraComparison } from '../../resources/js/observing/optics.js';
+const sensor = { kind: 'camera', sensorWidthMm: 36, sensorHeightMm: 24, pixelSizeUm: 5 };
+test('camera sensor dimensions produce known angular width,height and central pixel scale', () => {
+    const result = cameraOptics(scope, sensor);
+    close(result.widthDeg, 2.062425339775906);
+    close(result.heightDeg, 1.3750327092781995);
+    close(result.pixelScaleArcsec, 1.0313240312333338);
+});
+test('wide camera field uses atan rather than a small-angle linear estimate', () => {
+    const result = cameraOptics({ ...scope, focalLengthMm: 18 }, sensor);
+    close(result.widthDeg, 90);
+    close(result.heightDeg, 67.38013505195957);
+});
+test('camera accessory scaling and unknown pixel size preserve independent sensor fields', () => {
+    const base = cameraOptics(scope, { ...sensor, pixelSizeUm: null });
+    assert.equal(base.pixelScaleArcsec, null);
+    assert.ok(base.widthDeg > 0 && base.heightDeg > 0);
+    const amplified = cameraOptics(scope, sensor, { kind: 'barlow', factor: 2 });
+    close(amplified.widthDeg, 2 * Math.atan(36 / 4000) * 180 / Math.PI);
+    for (const bad of [null, 0, -1, true, '36', Infinity]) assert.equal(cameraOptics(scope, { ...sensor, sensorWidthMm: bad }).widthDeg, null);
+    assert.equal(cameraOptics({ kind: 'binocular', magnification: 10 }, sensor).widthDeg, null);
+});
+test('camera comparison preserves projection aspect ratio rather than treating a rectangle as a circle', () => {
+    const field = cameraOptics({ ...scope, focalLengthMm: 18 }, sensor);
+    const comparison = cameraComparison(field.widthDeg, field.heightDeg, 60);
+    close(comparison.width / comparison.height, 1.5);
+    assert.equal(comparison.fits, true);
+    assert.equal(cameraComparison(field.widthDeg, field.heightDeg, 70 * 60).fits, false);
+    assert.equal(cameraComparison(field.widthDeg, field.heightDeg, 10800), null);
+    assert.equal(cameraComparison(null, 1, 60), null);
+});

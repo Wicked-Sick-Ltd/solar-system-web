@@ -74,3 +74,7 @@ non-persistence, unknown binocular fields and lifecycle cleanup. PHP checks
 cover guest rendering and disabled controls before JavaScript initialization.
 Real browser/keyboard/touch acceptance remains part of the draft feature review;
 mocked DOM tests do not establish that acceptance.
+
+Camera profiles and rectangular comparison were added in workspace schema v2.
+See [the schema and camera geometry notes](observing-workspace-schema.md) for
+exact arctangent fields, central-pixel interpretation and projection limits.

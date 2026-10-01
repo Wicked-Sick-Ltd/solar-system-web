@@ -9,13 +9,13 @@ class Element {
     setAttribute(key, value) { this.attributes[key] = value; }
     addEventListener(type, fn) { this.events.set(type, fn); }
     removeEventListener(type) { this.events.delete(type); }
-    emit(type) { this.events.get(type)?.(); }
+    emit(type, event = {}) { this.events.get(type)?.(event); }
 }
 function harness() {
     const root = new Element();
     const doc = { createElement: () => new Element() };
     root.ownerDocument = doc;
-    const keys = ['instrument', 'eyepiece', 'accessory', 'binocular-input', 'binocular-field', 'diameter', 'error', 'focal', 'magnification', 'pupil', 'field', 'method', 'diagram', 'comparison', 'field-circle', 'target-circle', 'diagram-description'];
+    const keys = ['mode', 'camera', 'camera-input', 'pixel', 'camera-diagram', 'sensor-rectangle', 'camera-target', 'camera-description', 'instrument', 'eyepiece', 'accessory', 'binocular-input', 'binocular-field', 'diameter', 'error', 'focal', 'magnification', 'pupil', 'field', 'method', 'diagram', 'comparison', 'field-circle', 'target-circle', 'diagram-description'];
     const elements = Object.fromEntries(keys.map(key => [key, new Element()]));
     root.querySelector = selector => elements[selector.replace('[data-optics-', '').replace(']', '')];
     let rows = [
@@ -26,7 +26,7 @@ function harness() {
         { id: 'bino2', name: 'Second binoculars', kind: 'binocular', apertureMm: 70, magnification: 15 },
     ];
     const mounted = mountOptics(root, () => rows);
-    return { root, elements, mounted, setRows(value) { rows = value; }, get rows() { return rows; }, select(key, value) { elements[key].value = value; root.emit('change'); }, input(key, value) { elements[key].value = value; root.emit('input'); } };
+    return { root, elements, mounted, setRows(value) { rows = value; }, get rows() { return rows; }, select(key, value) { elements[key].value = value; root.emit('change', { target: elements[key] }); }, input(key, value) { elements[key].value = value; root.emit('input', { target: elements[key] }); } };
 }
 test('UI starts with unknown results and selection produces accessible geometric equivalents', () => {
     const h = harness();
@@ -111,4 +111,38 @@ test('replacement equipment reusing an ID cannot inherit another binoculars stat
     assert.equal(h.elements['binocular-field'].value, '');
     assert.match(h.elements.field.textContent, /^Unknown/);
     assert.equal(h.elements.diagram.hidden, true);
+});
+
+test('camera mode gives rectangular field and truthful optional pixel values without eyepiece magnification', () => {
+    const h = harness();
+    h.setRows([...h.rows, { id: 'camera', name: 'Sensor', kind: 'camera', sensorWidthMm: 36, sensorHeightMm: 24, pixelSizeUm: null }]);
+    h.mounted.refresh(); h.select('mode', 'camera'); h.select('instrument', 'scope'); h.select('camera', 'camera'); h.input('diameter', '30');
+    assert.match(h.elements.field.textContent, /2.062° wide × 1.375° high/);
+    assert.match(h.elements.pixel.textContent, /^Unknown/);
+    assert.equal(h.elements.magnification.textContent, 'Not applicable to camera projection');
+    assert.equal(h.elements.eyepiece.disabled, true);
+    assert.equal(h.elements['camera-diagram'].hidden, false);
+    assert.equal(h.elements.diagram.hidden, true);
+    assert.match(h.elements.comparison.textContent, /rectangular field/);
+    assert.equal(h.elements['camera-description'].textContent, h.elements.comparison.textContent);
+    assert.equal(h.rows.at(-1).pixelSizeUm, null);
+});
+test('changing modes or removing the selected camera clears inappropriate results and diagrams', () => {
+    const h = harness();
+    h.setRows([...h.rows, { id: 'camera', name: 'Sensor', kind: 'camera', sensorWidthMm: 36, sensorHeightMm: 24, pixelSizeUm: 5 }]);
+    h.mounted.refresh(); h.select('mode', 'camera'); h.select('instrument', 'scope'); h.select('camera', 'camera'); h.input('diameter', '30');
+    assert.match(h.elements.pixel.textContent, /1.031 arcseconds/);
+    h.input('diameter', '10800');
+    assert.equal(h.elements['camera-diagram'].hidden, true);
+    assert.match(h.elements.error.textContent, /smaller than 180/);
+    h.input('diameter', '30');
+    h.setRows(h.rows.filter(row => row.kind !== 'camera')); h.mounted.refresh();
+    assert.equal(h.elements.camera.value, '');
+    assert.match(h.elements.field.textContent, /^Unknown/);
+    assert.equal(h.elements['camera-diagram'].hidden, true);
+    h.select('mode', 'visual'); h.select('eyepiece', 'eye');
+    assert.equal(h.elements.magnification.textContent, '50×');
+    assert.equal(h.elements.camera.disabled, true);
+    assert.equal(h.elements['camera-input'].hidden, true);
+    assert.equal(h.elements['camera-diagram'].hidden, true);
 });
