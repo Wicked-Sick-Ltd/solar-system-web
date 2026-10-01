@@ -80,20 +80,56 @@ retain reviewable diffs. The next combined branch is
 `codex/observing-integration-next`, with853PHP tests/3235assertions and173JS tests
 passing. These checkpoints are not releases.
 
-Active owners: private authenticated sync; selected observing hours and terrain
-constraints; primary-source coordinate-frame metadata for static-target planning;
-parent integration and browser consent/synchronization controls. Primary sources
-verify50 FK5/J2000 bright stars and107 ICRS/J2000 deep-sky records; the unmatched
-M45 addendum remains unsupported for coordinate-frame-dependent planning.
+Third-wave checkpoints:
 
-Remaining accepted scope includes complete equipment-aware planner journeys,
-selected hours/weather/exports, sourced catalogue planning integration, observing
-lists/journals, optional private synchronization, scientific snapshot identity and
-reproducible exports, and the remaining performance/browser acceptance. The
-current1.5MBnight-response check is buffered-envelope validation, not a streaming
-memory limit; P5 still needs that follow-up. Do not mark the programme complete
-after this first wave. Continue build/review/PR loops across sessions; preserve
-the original backend checkout and all topic worktrees.
+- [Web #74](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/74) provides
+  encrypted private account backups with revision conflicts, strict schemas,
+  bounded Unicode JSON and deletion tombstones; full893PHP/188JS checks passed.
+- [Web #76](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/76) adds
+  explicit local/account previews and consent for upload, restore and removal.
+  Full896PHP/200JS checks and independent review passed; real Chrome upload,
+  restore, logout/Back and mobile layout passed with synthetic account data.
+- [Database #36](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/36) and
+  [web #75](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/75) retain
+  primary-source coordinate frames, epochs and proper motion. Fifty FK5 bright
+  stars and107 ICRS deep-sky records are supported; M45 remains unsupported.
+- [Database #37](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/37)
+  applies selected UTC hours and circular terrain masks. Vectorized crossings
+  reduce repeated transformations; actual MCP integer inputs have regressions.
+- [Database #38](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/38)
+  improves indexed object/exoplanet queries with unchanged response hashes.
+  Synthetic52,431-object keyset first-page median fell31.610→0.629ms;228tests
+  pass. This is a local warmed-cache benchmark, not production latency.
+- [Database #39](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/39)
+  calculates mixed solar/star/deep-sky nights with explicit frame/motion limits,
+  source hashes, attribution and unknown stellar distance;387tests pass,
+  including actual DE440s, and independent scientific review passed.
+- [Database #40](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/40)
+  provides logical catalogue identities, build provenance and consistent export
+  checksums. Old or changed catalogues report unknown;245tests and independent
+  review pass. Full-catalogue finalization cost remains unmeasured.
+
+Current frontend terrain/hour slice builds on published integration checkpoint
+`codex/observing-session-integration`681f47b. It adds explicit saved-site copy,
+strict interval/mask validation, second-resolution times, responsive terrain
+charts and focusable tables. P5 now has a decoded1.5MB streaming sink limit:
+four real loopback HTTP tests cover normal, oversized, gzip and redirect cases.
+Full954PHP tests/3770assertions and203JS tests passed before the final display
+regression; static checks/build pass. Independent review and real desktop/mobile
+calculation/table keyboard checks passed. Screenshots and remaining browser
+gaps are recorded in the observing QA directory.
+
+Active owners: catalogue-planner frontend integration; explicit bounded weather
+lookup; catalogue identity/cache/download consumer; parent integration and
+remaining equipment-aware recommendations/session exports.
+
+Remaining accepted scope includes equipment-aware planner guidance,
+weather/session exports, complete sourced catalogue planning integration,
+remaining journal editing/recovery, scientific identity consumers/reproducible
+exports, and remaining performance/browser acceptance. These checkpoints are
+unmerged development PRs. Do not mark the programme complete after this wave.
+Continue build/review/PR loops across sessions; preserve the original backend
+checkout and all topic worktrees.
 
 ## Evening development: usability, observation accuracy and release rehearsal
 

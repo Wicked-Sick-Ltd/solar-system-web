@@ -18,7 +18,7 @@ final class NightRequest
     public static function parse(array $input): array
     {
         if (array_diff(array_keys($input), ['_token', 'date', 'timezone', 'lat', 'lon', 'targets',
-            'min_altitude_deg', 'sun_altitude_deg', 'min_moon_separation_deg']) !== []) {
+            'min_altitude_deg', 'sun_altitude_deg', 'min_moon_separation_deg', 'window_start_utc', 'window_end_utc', 'horizon']) !== []) {
             throw ValidationException::withMessages(['constraints' => 'An unsupported planning field was supplied.']);
         }
         $data = Validator::make($input, [
@@ -28,18 +28,24 @@ final class NightRequest
             'lon' => ['required', 'numeric', 'between:-180,180'],
             'targets' => ['required', 'array', 'list', 'min:1', 'max:8'],
             'targets.*' => ['required', 'string', 'distinct:strict', Rule::in(self::TARGETS)],
-            'min_altitude_deg' => ['required', 'numeric', 'between:0,85'],
+            'min_altitude_deg' => ['required', 'numeric', 'between:0,90'],
             'sun_altitude_deg' => ['required', Rule::in([-6, -12, -18])],
             'min_moon_separation_deg' => ['required', 'numeric', 'between:0,180'],
         ])->validate();
 
-        return [
+        $query = [
             'date' => $data['date'], 'timezone' => $data['timezone'],
             'lat' => round((float) $data['lat'], 2), 'lon' => round((float) $data['lon'], 2),
             'targets' => implode(',', $data['targets']),
             'min_altitude_deg' => (float) $data['min_altitude_deg'],
             'sun_altitude_deg' => (float) $data['sun_altitude_deg'],
             'min_moon_separation_deg' => (float) $data['min_moon_separation_deg'],
+            'window_start_utc' => ($input['window_start_utc'] ?? '') === '' ? null : ($input['window_start_utc'] ?? null),
+            'window_end_utc' => ($input['window_end_utc'] ?? '') === '' ? null : ($input['window_end_utc'] ?? null),
+            'horizon_mask' => NightConstraints::horizon($input['horizon'] ?? null),
         ];
+        NightConstraints::window($query);
+
+        return $query;
     }
 }

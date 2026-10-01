@@ -42,6 +42,23 @@ final class NightPlan
         }
         self::number($data['constraints']['min_sun_separation_deg'] ?? null, 30, 30);
         self::label($data['constraints']['moon_separation_rule'] ?? null);
+        [$windowStart, $windowEnd] = NightConstraints::window($request);
+        self::require(($data['constraints']['window_start_utc'] ?? null) === $windowStart);
+        self::require(($data['constraints']['window_end_utc'] ?? null) === $windowEnd);
+        self::require(array_key_exists('horizon_mask', $data['constraints']));
+        $mask = $request['horizon_mask'] ?? null;
+        $returnedMask = $data['constraints']['horizon_mask'];
+        self::require(($mask === null && $returnedMask === null) || (is_array($mask) && is_array($returnedMask) && array_is_list($returnedMask) && $returnedMask == $mask));
+        if (is_array($returnedMask)) {
+            foreach ($returnedMask as $point) {
+                self::require(is_array($point) && count($point) === 2);
+                self::number($point['azimuth_deg'] ?? null, 0, 359.99999999999994);
+                self::number($point['min_altitude_deg'] ?? null, -90, 90);
+            }
+        }
+        self::label($data['constraints']['horizon_rule'] ?? null);
+        $windowA = self::instant($windowStart);
+        $windowB = self::instant($windowEnd);
         $method = $data['method'];
         foreach (['provider', 'ephemeris', 'frame', 'refraction', 'accuracy_note', 'window_note'] as $key) {
             self::label($method[$key] ?? null);
@@ -52,7 +69,7 @@ final class NightPlan
         self::require(in_array($method['iers']['status'] ?? null, ['measured', 'predicted'], true));
         self::require(self::instant($method['iers']['start_utc'] ?? null) <= $start);
         self::require(self::instant($method['iers']['end_utc'] ?? null) >= $end);
-        self::windows($data['darkness']['intervals'] ?? null, $start, $end);
+        self::windows($data['darkness']['intervals'] ?? null, $windowA, $windowB);
         self::require(in_array($data['darkness']['status'] ?? null, ['unresolved_grazing', 'intervals_found', 'no_matching_interval'], true));
         self::status($data['darkness']['status'], $data['darkness']['intervals'], 'intervals_found', 'no_matching_interval');
         $moon = $data['moon'];
@@ -72,9 +89,21 @@ final class NightPlan
             $ids[] = $target['id'];
             self::label($target['name'] ?? null);
             self::require(in_array($target['status'] ?? null, ['unresolved_grazing', 'windows_found', 'no_matching_window'], true));
-            self::windows($target['windows'] ?? null, $start, $end);
+            self::windows($target['windows'] ?? null, $windowA, $windowB);
             self::status($target['status'], $target['windows'], 'windows_found', 'no_matching_window');
             self::samples($target['samples'] ?? null, $start, $end, $method['sample_minutes']);
+            foreach ($target['samples'] as $sample) {
+                self::require(array_key_exists('horizon_altitude_deg', $sample));
+                $expected = $mask === null ? null : NightConstraints::altitude($mask, $sample['azimuth_deg']);
+                if ($expected === null) {
+                    self::require($sample['horizon_altitude_deg'] === null);
+                } else {
+                    self::number($sample['horizon_altitude_deg'], -90, 90);
+                    self::require(abs($sample['horizon_altitude_deg'] - $expected) < 0.000001);
+                }
+                self::number($sample['required_min_altitude_deg'] ?? null, 0, 90);
+                self::require(abs($sample['required_min_altitude_deg'] - max($request['min_altitude_deg'], $expected ?? -90)) < 0.000001);
+            }
             self::require(array_column($target['samples'], 'time_utc') === array_column($moon['samples'], 'time_utc'));
         }
         self::require(implode(',', $ids) === $request['targets']);

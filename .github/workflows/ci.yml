@@ -78,6 +78,9 @@ jobs:
       - name: Run tests (Pest)
         run: ./vendor/bin/pest
 
+      - name: Verify bounded private planner HTTP transport on loopback
+        run: python3 -m unittest discover -s tests/transport -v
+
   assets:
     name: assets build
     runs-on: ubuntu-latest

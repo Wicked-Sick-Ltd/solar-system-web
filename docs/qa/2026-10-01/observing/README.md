@@ -26,8 +26,7 @@ observation, the selected equipment, and no site coordinates. Desktop and
 375px. The viewport override was restored. Notes identify the record as synthetic.
 
 Remaining: native file import (the extension requires file-URL access), workspace
-export, editing and deletion keyboard flows, final night charts/tables at narrow
-widths and broader foundation journeys. The earlier download event timeout was
+export, editing and deletion keyboard flows, broader foundation journeys. The earlier download event timeout was
 caused by an outstanding native Save dialog; completing it verified journal
 download. Unit tests do not substitute for these remaining browser checks.
 Physical touch/device performance was not tested.
@@ -42,3 +41,18 @@ Desktop and390×844screenshots show controls/status; mobile page/client widths
 both375px, and the viewport was restored. Multi-tab conflicts, account-switch
 guards, failed writes and decoded response caps have automated coverage; they
 were not all reproduced manually in Chrome.
+
+
+Terrain/hour planner: real loopback API calculation for 2026-10-01, London,
+20:00Z–04:00Z and a four-point synthetic horizon returned a clipped Moon window
+00:11:22–05:00:00+01:00, Saturn21:23:21–05:00:00+01:00 and no matching Jupiter
+window. Desktop and375×812screenshots show target/required-altitude lines and
+selected-hour shading. Enlarged mobile chart labels were visually checked.
+The expanded Moon table has a focusable286px container around614px of columns;
+ArrowRight moved its scrollLeft from0 to40, while page width stayed within the
+375px viewport. Viewport restored. Screenshots: [desktop](night-terrain-desktop.jpg)
+and [mobile](night-terrain-mobile.jpg). Saved-site copy has automated lifecycle,
+stale/deleted-site and no-write coverage; its complete browser journey is pending.
+The local backend used the builtin model; actual DE440s scientific regressions
+are covered separately in backend PR35/39. A legacy upstream accuracy sentence
+in this capture says no terrain; PR39 corrects it to no surveyed-terrain guarantee.

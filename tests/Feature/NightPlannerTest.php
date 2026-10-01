@@ -46,7 +46,7 @@ it('rejects invalid input before contacting the ephemeris', function (string $fi
     ['date', '2026-02-30'], ['date', '2101-01-01'], ['date', []], ['timezone', 'Bad/Zone'],
     ['lat', 91], ['lon', -181], ['lat', 'NaN'], ['lon', '1e309'], ['lat', true], ['lat', []],
     ['targets', []], ['targets', ['sun']], ['targets', ['moon', 'moon']], ['targets', 'moon'],
-    ['targets', [true]], ['targets', ['unexpected' => 'moon']], ['max_cloud_percent', 30], ['sun_altitude_deg', -10], ['min_altitude_deg', 86], ['min_moon_separation_deg', -1],
+    ['targets', [true]], ['targets', ['unexpected' => 'moon']], ['max_cloud_percent', 30], ['sun_altitude_deg', -10], ['min_altitude_deg', 91], ['min_moon_separation_deg', -1],
 ]);
 
 it('does not present malformed upstream data as an observing result', function (string $path, mixed $value) {
@@ -92,7 +92,7 @@ it('escapes upstream labels and keeps invalid numeric booleans out of results', 
 
 it('keeps valid form values while associating errors without session flashing', function () {
     Http::fake();
-    $this->post('/observe/night', array_replace(nightInput(), ['min_altitude_deg' => 86]))
+    $this->post('/observe/night', array_replace(nightInput(), ['min_altitude_deg' => 91]))
         ->assertStatus(422)->assertSee('value="Europe/London"', false)
         ->assertSee('value="2026-10-01"', false)->assertSee('value="51.5001"', false)
         ->assertSee('aria-describedby="night-error-min_altitude_deg"', false)
@@ -110,5 +110,5 @@ it('never turns an unresolved empty crossing into a confident absence claim', fu
     Http::fake(['*' => Http::response($data)]);
     $this->post('/observe/night', nightInput())->assertOk()
         ->assertSee('No confirmed interval')->assertSee('No confirmed window')
-        ->assertDontSee('None at the chosen threshold')->assertDontSee('No matching window in this local night');
+        ->assertDontSee('None at the chosen threshold')->assertDontSee('No matching window in the selected observing interval');
 });

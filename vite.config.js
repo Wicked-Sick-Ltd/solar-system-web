@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/galaxy.js', 'resources/js/observing/workspace.js', 'resources/js/observing/journal.js', 'resources/js/observing/sync.js'],
+            input: ['resources/css/app.css', 'resources/js/galaxy.js', 'resources/js/observing/workspace.js', 'resources/js/observing/journal.js', 'resources/js/observing/sync.js', 'resources/js/observing/night.js'],
             refresh: true,
             // Fonts are vendored via @fontsource and imported in app.css, so
             // they bundle deterministically with no build-time network fetch.

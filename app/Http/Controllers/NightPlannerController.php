@@ -18,7 +18,8 @@ final class NightPlannerController
     {
         app(Seo::class)->title(__('Plan a night'))->description(__('Choose a night and location for explained Moon and planet observing windows.'))->noindex();
         $input = ['date' => '', 'timezone' => 'UTC', 'lat' => '', 'lon' => '', 'targets' => ['moon', 'jupiter', 'saturn'],
-            'min_altitude_deg' => 20, 'sun_altitude_deg' => -12, 'min_moon_separation_deg' => 0];
+            'min_altitude_deg' => 20, 'sun_altitude_deg' => -12, 'min_moon_separation_deg' => 0,
+            'window_start_utc' => '', 'window_end_utc' => '', 'horizon' => ''];
         $plan = null;
         $problem = null;
         $validation = [];
@@ -31,7 +32,7 @@ final class NightPlannerController
                 if ($key === 'targets') {
                     $input[$key] = is_array($value) ? array_values(array_filter(array_slice($value, 0, 8),
                         static fn ($target): bool => is_string($target) && in_array($target, NightRequest::TARGETS, true))) : [];
-                } elseif ((is_string($value) || is_int($value) || is_float($value)) && strlen((string) $value) <= 100) {
+                } elseif ((is_string($value) || is_int($value) || is_float($value)) && strlen((string) $value) <= ($key === 'horizon' ? 5000 : 100)) {
                     $input[$key] = (string) $value;
                 }
             }
@@ -39,6 +40,7 @@ final class NightPlannerController
                 $query = NightRequest::parse($request->post());
                 $input = $query;
                 $input['targets'] = explode(',', $query['targets']);
+                $input['horizon'] = implode("\n", array_map(static fn (array $point): string => $point['azimuth_deg'].' '.$point['min_altitude_deg'], $query['horizon_mask'] ?? []));
                 $plan = $planner->calculate($query);
             } catch (ValidationException $exception) {
                 // Render here: never flash private coordinates to a session or URL.
