@@ -28,6 +28,7 @@ use App\Livewire\MeteorShowers;
 use App\Livewire\Objects\Index as ObjectsIndex;
 use App\Livewire\Objects\Show as ObjectsShow;
 use App\Livewire\ObservePage;
+use App\Livewire\ObservingWorkspace;
 use App\Livewire\Orrery;
 use App\Livewire\Planets\Index as PlanetsIndex;
 use App\Livewire\PrivacyPage;
@@ -41,6 +42,7 @@ Route::get('/whats-new', ReleaseController::class)->name('releases.index');
 Route::get('/whats-new/{version}', ReleaseController::class)->name('releases.show');
 Route::get('/explore', ExplorePage::class)->name('explore');
 Route::get('/observe', ObservePage::class)->name('observe');
+Route::get('/observatory', ObservingWorkspace::class)->name('observatory');
 Route::get('/learn', LearnPage::class)->name('learn');
 
 Route::get('/objects', ObjectsIndex::class)->name('objects.index');

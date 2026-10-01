@@ -1,6 +1,11 @@
 <div class="mx-auto max-w-3xl">
     <x-page-header :title="__('Observe the sky')" :eyebrow="__('From your part of Earth')"
         :lead="__('Find a target, check its position and look at the conditions before heading outside. You can use the observing tools without an account.')" />
+    <section class="surface mb-6 p-6" aria-labelledby="observe-workspace">
+        <h2 id="observe-workspace" class="text-2xl">{{ __('Your equipment and observing sites') }}</h2>
+        <p class="mt-3 leading-relaxed">{{ __('Keep your telescopes, binoculars, eyepieces and favourite sites in this browser. No account is needed.') }}</p>
+        <a class="mt-4 inline-block underline" href="{{ route('observatory') }}">{{ __('Open your observatory') }} →</a>
+    </section>
     <ol class="space-y-5">
         <li class="surface p-6">
             <h2 class="text-2xl">{{ __('1. Choose a target') }}</h2>

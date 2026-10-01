@@ -13,7 +13,9 @@ it('lists everything the site remembers, with a clear-all and a share link', fun
         ->assertSee('observer_location')
         ->assertSee('preferences')
         ->assertSee('theme')
-        ->assertSee('Clear everything this site remembers')
+        ->assertSee('Clear theme, location and display preferences')
+        ->assertSee(route('observatory'), false)
+        ->assertSee('It is not included in settings links')
         ->assertSee('Use these settings on another device')
         ->assertSee('Account and alert data are managed separately')
         ->assertSee('after the #');
