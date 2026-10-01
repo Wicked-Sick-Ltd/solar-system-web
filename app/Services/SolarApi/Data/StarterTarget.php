@@ -17,7 +17,7 @@ final readonly class StarterTarget
      * @param  array<string,mixed>  $data
      */
     private function __construct(public string $id, public string $name, public array $aliases, public array $families,
-        public string $source, public array $data, public StarterSource $provenance) {}
+        public string $source, public array $data, public StarterSource $provenance, public ?StarterAstrometry $astrometry) {}
 
     public static function fromArray(mixed $row, StarterSource $provenance): self
     {
@@ -85,7 +85,7 @@ final readonly class StarterTarget
             }
         }
 
-        return new self($row['id'], $row['name'], $row['aliases'], $row['families'], $row['source'], $row, $provenance);
+        return new self($row['id'], $row['name'], $row['aliases'], $row['families'], $row['source'], $row, $provenance, StarterAstrometry::fromTarget($row, $provenance));
     }
 
     public function measurement(string $field, string $unit = ''): string

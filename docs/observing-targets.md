@@ -36,3 +36,25 @@ schemas, missing provenance, nonfinite/wrong scalar types, invalid raw URLs,
 pagination recovery, literal query preservation, escaped source strings and
 failure recovery. Native GET routes add no JavaScript bundle. Browser keyboard
 and narrow-screen checks remain an integration acceptance step.
+
+The additive coordinate interpretation from backend PR36 is validated separately.
+Details distinguish FK5/ICRS frames, reference epoch 2000.0 and unknown individual
+observation dates. BSC proper-motion values include the RA cosine factor and are
+checked against the raw source fields; zero remains distinct from missing. No
+coordinates are propagated here. OpenNGC directions remain static; Mel022/M45 is
+explicitly unsupported because the pinned frame publication lacks that exact ID.
+
+Older catalogues with neither astrometry nor evidence remain browsable with a
+missing-metadata explanation. Partially present or inconsistent contracts produce
+the usual unavailable state and are not cached. Cache namespace v2 prevents reuse
+of serialized DTOs from the earlier consumer. Source sections include the publisher
+query, matched count, retrieval date and exact response hash. Existing data licences
+and source limitations still apply.
+
+`tests/fixtures/starter-astrometry.json` contains three exact normalized records
+and source metadata from backend commit `97ad0f4` (Sirius, NGC0224 and Mel022),
+including unmodified raw source fields. The OpenNGC portions retain CC BY-SA 4.0
+and the embedded author attribution; BSC5P credits Hoffleit/Warren and HEASARC, with
+CDS VizieR frame evidence. The tests exercise real metadata, legacy responses,
+malformed contracts, unknown/zero/tiny values and escaped source strings. Backend
+`docs/COORDINATE-FRAME-EVIDENCE.md` records the pinned original XML and reproduction.

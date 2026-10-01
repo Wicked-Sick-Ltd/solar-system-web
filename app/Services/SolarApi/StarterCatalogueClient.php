@@ -82,7 +82,7 @@ final class StarterCatalogueClient
     /** @param list<string|int> $input */
     private function cacheKey(string $operation, array $input): string
     {
-        return 'starter-catalogue:v1:'.hash('sha256', (string) config('services.solar.base_url').$operation.json_encode($input));
+        return 'starter-catalogue:v2:'.hash('sha256', (string) config('services.solar.base_url').$operation.json_encode($input));
     }
 
     /** @param array<string,string|int> $query */
