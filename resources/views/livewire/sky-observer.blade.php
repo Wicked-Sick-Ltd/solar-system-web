@@ -2,7 +2,7 @@
     use App\Support\Format;
     $view = $sky?->observer;
 @endphp
-<div x-data="skyObserver()" x-init="init()">
+<div x-data="skyObserver()">
     @if ($view)
         <p class="text-xs font-semibold uppercase tracking-[0.16em]" style="color: var(--muted);">{{ __('From your location') }}</p>
         <p class="mt-1 font-serif text-2xl font-medium" style="color: {{ $view->isUp && $view->isDark ? 'var(--accent)' : 'var(--text)' }};">{{ $view->status() }}</p>
@@ -171,64 +171,127 @@
 
 @script
 <script>
-    Alpine.data('skyObserver', () => ({
-        busy: false, manual: false, geoError: '', text: '',
-        KEY: 'observer_location',
-        init() {
-            try {
-                var saved = JSON.parse(localStorage.getItem(this.KEY) || 'null');
-                if (saved && typeof saved.lat === 'number' && typeof saved.lon === 'number' && @js($lat === null)) {
-                    $wire.setLocation(saved.lat, saved.lon);
-                }
-            } catch (e) {}
-        },
-        remember(lat, lon) {
-            try { localStorage.setItem(this.KEY, JSON.stringify({ lat: lat, lon: lon })); } catch (e) {}
-        },
-        locate() {
-            this.geoError = '';
-            if (!navigator.geolocation) { this.geoError = @js(__('Your browser has no location support — enter a location instead.')); this.manual = true; return; }
-            this.busy = true;
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
+    Alpine.data('skyObserver', () => {
+        // Keep pending requests outside Alpine's reactive state. A newer intent
+        // invalidates callbacks; serialization makes Forget follow an in-flight RPC.
+        let active = true, initialized = false, generation = 0, queue = Promise.resolve();
+        let navigateHandler, pagehideHandler, pageshowHandler;
+        return {
+            busy: false, manual: false, geoError: '', text: '',
+            KEY: 'observer_location',
+            init() {
+                if (initialized) return;
+                initialized = true;
+                navigateHandler = () => this.destroy();
+                pagehideHandler = () => { active = false; generation++; this.busy = false; };
+                pageshowHandler = event => { if (event.persisted) active = true; };
+                document.addEventListener('livewire:navigating', navigateHandler);
+                window.addEventListener('pagehide', pagehideHandler);
+                window.addEventListener('pageshow', pageshowHandler);
+                try {
+                    const saved = this.coordinates(JSON.parse(localStorage.getItem(this.KEY) || 'null'));
+                    if (saved && @js($lat === null)) {
+                        this.request(++generation, () => $wire.setLocation(saved.lat, saved.lon));
+                    }
+                } catch (e) {}
+            },
+            destroy() {
+                active = false;
+                generation++;
+                this.busy = false;
+                document.removeEventListener('livewire:navigating', navigateHandler);
+                window.removeEventListener('pagehide', pagehideHandler);
+                window.removeEventListener('pageshow', pageshowHandler);
+            },
+            coordinates(value) {
+                if (!value || typeof value.lat !== 'number' || typeof value.lon !== 'number'
+                    || !Number.isFinite(value.lat) || !Number.isFinite(value.lon)
+                    || Math.abs(value.lat) > 90 || Math.abs(value.lon) > 180) return null;
+                return { lat: Math.round(value.lat * 100) / 100, lon: Math.round(value.lon * 100) / 100 };
+            },
+            current(intent) { return active && intent === generation; },
+            request(intent, action, accepted = () => {}, required = false) {
+                queue = queue.then(async () => {
+                    if (!active || (!required && !this.current(intent))) return;
+                    try {
+                        const result = await action();
+                        if (this.current(intent)) accepted(result);
+                    } catch (e) {
+                        if (this.current(intent)) this.geoError = @js(__('Location could not be updated. Please try again.'));
+                    } finally {
+                        if (this.current(intent)) this.busy = false;
+                    }
+                });
+                return queue;
+            },
+            remember(value) {
+                const coords = this.coordinates(value);
+                if (!coords) return;
+                try { localStorage.setItem(this.KEY, JSON.stringify(coords)); } catch (e) {}
+            },
+            locate() {
+                if (!active) return;
+                const intent = ++generation;
+                this.geoError = '';
+                this.busy = false;
+                const unavailable = () => {
+                    if (!this.current(intent)) return;
                     this.busy = false;
-                    var lat = Math.round(pos.coords.latitude * 100) / 100, lon = Math.round(pos.coords.longitude * 100) / 100;
-                    this.remember(lat, lon);
-                    $wire.setLocation(lat, lon);
-                },
-                () => { this.busy = false; this.geoError = @js(__('Location not available — enter a location instead.')); this.manual = true; },
-                { timeout: 10000, maximumAge: 600000 }
-            );
-        },
-        async submitText() {
-            var text = (this.text || '').trim();
-            if (!text) return;
-            await $wire.setFromText(text);
-            // Remember only what the server accepted (already rounded to 2 dp).
-            if (typeof $wire.lat === 'number' && typeof $wire.lon === 'number') {
-                this.remember($wire.lat, $wire.lon);
+                    this.geoError = @js(__('Location not available — enter a location instead.'));
+                    this.manual = true;
+                };
+                if (!navigator.geolocation) { this.geoError = @js(__('Your browser has no location support — enter a location instead.')); this.manual = true; return; }
+                this.busy = true;
+                try {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            if (!this.current(intent)) return;
+                            const coords = this.coordinates({ lat: pos?.coords?.latitude, lon: pos?.coords?.longitude });
+                            if (!coords) { unavailable(); return; }
+                            this.request(intent, () => $wire.setLocation(coords.lat, coords.lon), result => this.remember(result));
+                        },
+                        unavailable,
+                        { timeout: 10000, maximumAge: 600000 }
+                    );
+                } catch (e) { unavailable(); }
+            },
+            submitText() {
+                if (!active) return Promise.resolve();
+                const intent = ++generation;
+                const text = typeof this.text === 'string' ? this.text.trim() : '';
+                this.geoError = '';
+                this.busy = false;
+                if (!text) return Promise.resolve();
+                this.busy = true;
+                return this.request(intent, () => $wire.setFromText(text), result => {
+                    // Validation errors resolve with null. Never reuse previous wire
+                    // coordinates or save a result after the input has been edited.
+                    if (typeof this.text === 'string' && this.text.trim() === text) this.remember(result);
+                });
+            },
+            forget() {
+                if (!active) return Promise.resolve();
+                const intent = ++generation;
+                this.busy = false;
+                this.geoError = '';
+                this.text = '';
+                try { localStorage.removeItem(this.KEY); } catch (e) {}
+                return this.request(intent, () => $wire.forget(), () => {}, true);
+            },
+            local(iso) {
+                if (!iso) return '—';
+                var d = new Date(iso);
+                if (isNaN(d)) return iso;
+                // Honour the visitor's time-format preference from /settings (auto = device default).
+                var opts = { hour: '2-digit', minute: '2-digit' };
+                try {
+                    var fmt = (JSON.parse(localStorage.getItem('preferences') || '{}') || {}).timeFormat;
+                    if (fmt === '12') opts.hour12 = true;
+                    if (fmt === '24') opts.hour12 = false;
+                } catch (e) {}
+                return d.toLocaleTimeString([], opts);
             }
-        },
-        forget() {
-            try { localStorage.removeItem(this.KEY); } catch (e) {}
-            $wire.forget();
-        },
-        local(iso) {
-            if (!iso) return '—';
-            var d = new Date(iso);
-            if (isNaN(d)) return iso;
-            // Honour the visitor's time-format preference from /settings (auto = device default).
-            var opts = { hour: '2-digit', minute: '2-digit' };
-            try {
-                var fmt = (JSON.parse(localStorage.getItem('preferences') || '{}') || {}).timeFormat;
-                if (fmt === '12') opts.hour12 = true;
-                if (fmt === '24') opts.hour12 = false;
-            } catch (e) {}
-            return d.toLocaleTimeString([], opts);
-        },
-        localNudge(text) {
-            return String(text || '').replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/g, (iso) => this.local(iso));
-        }
-    }));
+        };
+    });
 </script>
 @endscript
