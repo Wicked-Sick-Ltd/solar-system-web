@@ -2,6 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { telescopeOptics, binocularOptics, angularComparison, opticalNumber } from '../../resources/js/observing/optics.js';
 
+test('signed catalogue magnitudes use ordinary decimals while tiny values remain nonzero', () => {
+    assert.equal(opticalNumber(-1.46), '-1.46');
+    assert.equal(opticalNumber(-0.00001), '-1.000e-5');
+});
+
 const scope = { kind: 'telescope', apertureMm: 200, focalLengthMm: 1000 };
 const eyepiece = { kind: 'eyepiece', focalLengthMm: 20, apparentFovDeg: 60, fieldStopMm: null };
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-10, `${actual} != ${expected}`);

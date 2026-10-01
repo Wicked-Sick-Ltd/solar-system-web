@@ -57,7 +57,7 @@ export function opticalNumber(value) {
     if (value === null || !Number.isFinite(value)) return 'Unknown';
     if (value === 0) return '0';
     // Significant figures prevent small positive angles being displayed as 0.
-    return value < 0.001 || value >= 100000 ? value.toExponential(3) : Number(value.toPrecision(4)).toString();
+    return Math.abs(value) < 0.001 || Math.abs(value) >= 100000 ? value.toExponential(3) : Number(value.toPrecision(4)).toString();
 }
 
 export function cameraOptics(telescope, camera, accessory = null) {
