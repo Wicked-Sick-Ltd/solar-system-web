@@ -97,6 +97,36 @@ same metadata checks and reviewed notes can support a manually prepared release
 PR; keep the version file and manifest in agreement. Neither path authorizes a
 production merge, a domain cutover, new credentials or a community message.
 
+## Local rehearsal before a live rollout
+
+With locked PHP dependencies installed and assets built, run:
+
+```sh
+python3 -B tools/rehearse_release.py
+```
+
+The rehearsal clones committed HEAD into a temporary directory, copies the
+installed dependencies/assets, creates synthetic release records in an isolated
+SQLite database, and runs Laravel behind a loopback-only HTTPS proxy. An
+expiring local certificate is trusted only by those test processes; the system
+trust store and production configuration are untouched. Application subprocesses
+receive a minimal environment with no inherited credentials or proxies.
+
+It checks bootstrap readiness without publication, a missing release table,
+stale/redirected/cacheable health responses, stable publication, immutable retry,
+and rollback visibility while preserving the ledger. A fresh nonce and no-store
+request are checked on every publication attempt. PHP opcode caching is disabled
+for the local built-in server; production still requires its documented FPM
+reload. Both servers and temporary certificates/data are removed on completion.
+
+The report identifies the exact committed source revision and whether the source
+worktree was dirty; uncommitted application edits are not under test. Install
+matching dependencies and rebuild assets before running. Do not use Python `-O`,
+which would disable assertions. The dedicated local-rehearsal CI workflow runs
+without repository secrets. This is application-level acceptance, not evidence
+that Forge, backups, FPM, scheduler, workers or public edge configuration have
+been rehearsed. Those remain environment-specific rollout checks.
+
 ## Deployment and recovery
 
 Follow [DEPLOYMENT.md](../DEPLOYMENT.md) for persistent accounts, backup/drain,
