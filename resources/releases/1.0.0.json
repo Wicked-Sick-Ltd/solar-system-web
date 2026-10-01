@@ -6,12 +6,17 @@
       "Explore, Observe, Learn and Data give you clear starting points, whether you are curious about space, preparing an observing session, teaching or doing research.",
       "Search solar-system objects and exoplanets together. Results keep useful information available when one catalogue is temporarily unavailable.",
       "Browse measured planetary systems by name or distance without needing JavaScript or a 3D display, then open a system's planets or locate it on the galaxy map.",
-      "Filter asteroids by their recorded properties and continue through the catalogue without skipping objects between pages."
+      "Filter asteroids by their recorded properties and continue through the catalogue without skipping objects between pages.",
+      "The galaxy explorer loads its 3D display only when you choose it, keeping the first page lighter while the measured-system directory remains available.",
+      "More catalogue filters and page links work without JavaScript, preserve your selections and help you recover when a results page is no longer available.",
+      "Mobile navigation now has larger controls and an explicit search button. Keyboard focus is easier to see, and account form errors are linked to the fields that need attention."
     ],
     "Learn from observations": [
       "New short activities explore stellar distances, planet-discovery methods and how to read measurements, with extra detail and links to NASA sources.",
       "Meteor-shower pages show the different observation campaigns, reported parent bodies and measurements in the IAU Meteor Data Center catalogue.",
-      "Meteor activity filters are clearly marked as approximate seasonal guides, rather than forecasts of visibility or hourly meteor rates."
+      "Meteor activity filters are clearly marked as approximate seasonal guides, rather than forecasts of visibility or hourly meteor rates.",
+      "The solar-system diagram rejects impossible dates, offers ordinary date-navigation links and names any selected bodies whose positions are unavailable.",
+      "Close-approach pages distinguish unavailable data from no listed encounters, explain the nearest-200 limit and keep very small distances visible."
     ],
     "Use the data with confidence": [
       "Download the current filtered exoplanet page as CSV or JSON, with up to 24 planets, units, original source fields, uncertainties, limits and references.",

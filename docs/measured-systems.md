@@ -32,7 +32,13 @@ counts and coverage fields before serving either view. An invalid response is
 unavailable rather than silently dropping records or reporting an empty sample.
 REST/MCP payloads and catalogue storage are unchanged by this frontend feature.
 
+The galaxy page starts with its text links and directory link. Choose **Load 3D
+map** to fetch the renderer and map data; a host selection in the URL is applied
+after loading. The host picker stays disabled until then. Failed loads can be
+retried, and navigating away cancels pending work and releases map resources.
+Visitors who move to another control while loading keep their keyboard focus.
+
 Validation lives in `SystemsDirectoryTest.php`, `GalaxyContractTest.php`, the
-existing exoplanet and offline catalogue contract tests, and `tests/js/galaxy.test.js`.
+existing exoplanet and offline catalogue contract tests, and `tests/js/galaxy*.test.js`.
 Browser evidence and current combined results are recorded in
 [the progress log](plans/PROGRESS.md).
