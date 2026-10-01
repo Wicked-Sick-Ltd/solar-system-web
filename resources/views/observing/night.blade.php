@@ -78,6 +78,8 @@
                 @if ($plan['darkness']['status'] === 'unresolved_grazing')<p>{{ __('Darkness is close to a grazing crossing; its boundary is unresolved in this model.') }}</p>@endif
             </section>
             @include('observing.partials-night-session')
+            <div class="print:hidden">@include('observing.equipment-suggestions')</div>
+            @include('observing.partials-night-weather-request')
             @foreach ($plan['targets'] as $target)
                 <article class="surface mt-6 space-y-4 p-5" aria-labelledby="target-{{ $target['id'] }}">
                     <h2 id="target-{{ $target['id'] }}" class="text-2xl">{{ $target['name'] }}</h2>

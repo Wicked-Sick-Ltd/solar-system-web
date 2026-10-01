@@ -75,3 +75,21 @@ Native Chrome print preview showed three pages with a light paper theme and
 location/terrain omitted by default. The dialog was cancelled without sending
 a print job. Accessible preview text was checked; a standalone PDF was not
 produced. Exact source and model metadata remain in the JSON export.
+
+Equipment/weather integration: Chrome on18018 calculated the real DE440s
+three-target plan. A temporary200mm aperture/1,000mm telescope plus20mm/50°
+eyepiece produced50×,4mm exit pupil and1° field. NGC0224's sourced177.8arcmin
+major axis exceeded that field; HR2491 correctly had unknown angular containment.
+Changing the comparison order worked;375×812layout had360px content without
+horizontal page overflow. Viewport restored. [Desktop](night-equipment-desktop.jpg)
+and [mobile](night-equipment-mobile.jpg) show the comparison.
+
+An explicit forecast for synthetic London returned matching future hours, with
+past hours suppressed as outside coverage ([desktop](night-weather-desktop.jpg)).
+Testing Back exposed Chrome's private POST resubmission page. The action now
+opens a new tab with noopener, preserving the original calculated plan. A second
+real calculation for12October and native forecast submission verified a new tab,
+all hours outside forecast coverage, and the original plan still present.
+Automated checks prove no weather request occurs while merely calculating or
+displaying a plan. Saved-equipment reload and saved-site copy still need their
+complete combined browser journeys; isolated storage/lifecycle tests pass.

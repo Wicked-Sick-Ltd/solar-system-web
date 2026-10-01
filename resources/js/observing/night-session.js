@@ -36,6 +36,14 @@ export function sessionCsv(session, includeLocation = false) {
     return rows.map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
 }
 
+export function readNightSession(root) {
+    const text = root.querySelector('[data-night-session-data]').textContent;
+    if (bytes(text) > MAX_BYTES) throw new Error('The session summary is too large.');
+    const session = JSON.parse(text);
+    sessionExport(session);
+    return session;
+}
+
 export function mountNightSession(root) {
     const doc = root.ownerDocument, view = doc.defaultView;
     const get = name => root.querySelector(`[data-night-session-${name}]`);
@@ -43,9 +51,7 @@ export function mountNightSession(root) {
     const on = (element, type, action) => { element.addEventListener(type, action); listeners.push(() => element.removeEventListener(type, action)); };
     let session;
     try {
-        const text = get('data').textContent;
-        if (bytes(text) > MAX_BYTES) throw new Error('The session summary is too large.');
-        session = JSON.parse(text); sessionExport(session);
+        session = readNightSession(root);
     } catch {
         get('error').textContent = 'Session downloads are unavailable. The visible calculation can still be read.';
         return { dispose() {} };

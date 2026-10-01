@@ -81,3 +81,37 @@ it('encodes script terminators safely inside the downloadable session metadata',
     $this->post('/observe/night', catalogueNightInput())->assertOk()
         ->assertDontSee('</script><img', false)->assertSee('\\u003C/script\\u003E', false);
 });
+
+it('offers local equipment and an explicit separate forecast for the exact calculated interval', function () {
+    Http::fake(['*' => Http::response(catalogueNightFixture())]);
+    $response = $this->post('/observe/night', catalogueNightInput())->assertOk()
+        ->assertSee('data-equipment-suggestions', false)
+        ->assertSee('Temporary telescope, not saved')
+        ->assertSee('Request matching-hour weather')
+        ->assertSee('No equipment or journal data is sent.');
+    $document = new DOMDocument;
+    @$document->loadHTML($response->getContent());
+    $xpath = new DOMXPath($document);
+    $forms = $xpath->query('//form[@data-night-weather-request]');
+    expect($forms->length)->toBe(1);
+    $form = $forms->item(0);
+    expect($form->getAttribute('method'))->toBe('POST')
+        ->and($form->getAttribute('action'))->toBe(route('observe.night.weather'))
+        ->and($form->getAttribute('target'))->toBe('_blank')
+        ->and($form->getAttribute('rel'))->toBe('noopener')
+        ->and($xpath->query('ancestor::form', $form)->length)->toBe(0)
+        ->and($xpath->query('//*[@data-equipment-suggestions]/ancestor::form')->length)->toBe(0);
+    $values = [];
+    foreach ($xpath->query('input[@type="hidden"]', $form) as $field) {
+        if ($field->getAttribute('name') !== '_token') {
+            $values[$field->getAttribute('name')] = $field->getAttribute('value');
+        }
+    }
+    $fixture = catalogueNightFixture();
+    expect($values)->toBe([
+        'lat' => '51.5', 'lon' => '-0.12',
+        'window_start_utc' => $fixture['constraints']['window_start_utc'],
+        'window_end_utc' => $fixture['constraints']['window_end_utc'],
+    ]);
+    Http::assertSentCount(1); // Astronomy only; displaying weather controls cannot fetch a forecast.
+});

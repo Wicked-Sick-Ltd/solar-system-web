@@ -74,3 +74,12 @@ provides the optical ratio and recommends starting at lower power. No maximum-po
 rule is converted into an automatic recommendation. Catalogue context comes from
 the existing pinned [OpenNGC source](https://github.com/mattiaverga/OpenNGC), whose
 attribution and licence are retained with every supplied appearance record.
+
+## Integrated night page
+
+The calculated night page mounts these controls outside both POST forms. It reads
+only the target context from the bounded, server-validated session summary; chart
+samples and private coordinates are not passed to equipment comparison. The
+page disposes the equipment, site and export listeners together on navigation and
+remounts on restoration. No equipment is written, exported with the geometric
+session, or sent in astronomy or weather requests.

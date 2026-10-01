@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sessionExport, sessionCsv, mountNightSession } from '../../resources/js/observing/night-session.js';
+import { sessionExport, sessionCsv, mountNightSession, readNightSession } from '../../resources/js/observing/night-session.js';
 function sample() {
     return { export_schema_version: 1, kind: 'public-universe-observing-session', reproducibility: {},
         input: { date: '2026-10-01', timezone: 'Europe/London', lat: 51.5, lon: -0.12, horizon_mask: [{ azimuth_deg: 0, min_altitude_deg: 10 }] },
@@ -35,6 +35,15 @@ test('summary formatting refuses oversized or unsupported data', () => {
     const data = sample(); data.targets[0].name = 'x'.repeat(160000);
     assert.throws(() => sessionExport(data), /limit/);
     assert.throws(() => sessionExport({ ...sample(), export_schema_version: 2 }), /not supported/);
+});
+
+test('equipment integration reads only a bounded supported session and retains its target context', () => {
+    const root = { querySelector() { return { textContent: JSON.stringify(sample()) }; } };
+    assert.deepEqual(readNightSession(root).targets, sample().targets);
+    root.querySelector = () => ({ textContent: ' '.repeat(160001) });
+    assert.throws(() => readNightSession(root), /too large/);
+    root.querySelector = () => ({ textContent: '{"export_schema_version":99}' });
+    assert.throws(() => readNightSession(root), /not supported/);
 });
 
 

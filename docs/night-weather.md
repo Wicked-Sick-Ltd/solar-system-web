@@ -29,7 +29,7 @@ Normal server access logs must not be configured to capture private POST bodies.
 The native result view is `observing.night-weather`. The embeddable result
 partial `observing.partials.night-weather` takes a `forecast` array with the JSON
 shape below. Parent planner integration supplies an explicit action and carries
-its already selected interval. This slice does not edit the planner form or JS.
+its already selected interval. The integrated planner offers a separate native POST form which opens a new tab with `rel=noopener`. This preserves the private no-store calculation and temporary equipment in the original tab; navigating Back from a same-tab POST result can require form resubmission. No JavaScript or forecast request is needed to display the action.
 
 ```text
 schema_version: 1
