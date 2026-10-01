@@ -74,7 +74,7 @@
             </a>
 
             {{-- Theme toggle --}}
-            <button type="button"
+            <button type="button" x-cloak
                     x-data="{
                         theme: document.documentElement.getAttribute('data-theme') || 'dark',
                         toggle() {
@@ -115,7 +115,7 @@
             @endauth
 
             {{-- Mobile menu button --}}
-            <button type="button" x-ref="menuToggle" @click="open = !open"
+            <button type="button" x-cloak x-ref="menuToggle" @click="open = !open"
                     class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border p-2 lg:hidden"
                     style="border-color: var(--border); color: var(--muted);"
                     aria-expanded="false" :aria-expanded="open" aria-controls="mobile-nav" aria-label="{{ __('Menu') }}">
@@ -169,3 +169,34 @@
         </div>
     </nav>
 </header>
+
+{{-- A normal-flow fallback keeps navigation usable when JavaScript is disabled. --}}
+<noscript>
+    <nav aria-label="{{ __('Navigation without JavaScript') }}" class="border-b px-4 py-4 sm:px-6 lg:hidden"
+         style="border-color: var(--border); background-color: var(--bg-elevated);">
+        <form action="{{ route('search') }}" method="GET" role="search" class="mb-3 flex flex-wrap items-center gap-2 md:hidden">
+            <label for="noscript-search" class="w-full text-sm">{{ __('Search the catalogue') }}</label>
+            <input id="noscript-search" type="search" name="q" value="{{ $searchQuery }}" enterkeyhint="search"
+                   class="min-h-11 min-w-0 flex-1 rounded-lg border px-3 py-2 text-base"
+                   style="border-color: var(--border); background-color: var(--bg); color: var(--text);">
+            <button type="submit" class="min-h-11 rounded-lg border px-3 py-2 text-sm"
+                    style="border-color: var(--border); color: var(--text);">{{ __('Search') }}</button>
+        </form>
+        <div class="flex flex-wrap gap-x-4 gap-y-1">
+            @foreach ($nav as $item)
+                <a href="{{ route($item['route']) }}" class="inline-flex min-h-11 items-center text-sm underline"
+                   @if (request()->routeIs($item['active'])) aria-current="page" @endif>{{ $item['label'] }}</a>
+            @endforeach
+            @auth
+                <a href="{{ route('alerts.index') }}" class="inline-flex min-h-11 items-center text-sm underline sm:hidden">{{ __('Your alerts') }}</a>
+                <form method="POST" action="{{ route('logout') }}" class="sm:hidden">
+                    @csrf
+                    <button type="submit" class="min-h-11 text-sm underline">{{ __('Sign out') }}</button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="inline-flex min-h-11 items-center text-sm underline sm:hidden">{{ __('Sign in') }}</a>
+                <a href="{{ route('register') }}" class="inline-flex min-h-11 items-center text-sm underline sm:hidden">{{ __('Create account') }}</a>
+            @endauth
+        </div>
+    </nav>
+</noscript>

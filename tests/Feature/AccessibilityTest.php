@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -66,3 +67,33 @@ it('does not mark untouched account fields invalid', function (string $path) {
     expect($document->evaluate('count(//input[@aria-invalid="true"])'))->toBe(0.0)
         ->and($document->evaluate('count(//input[@aria-describedby])'))->toBe(0.0);
 })->with(['/login', '/register']);
+
+it('keeps native search and primary account journeys available without JavaScript', function () {
+    $document = accessibilityDocument($this->get('/search?q=Saturn')->assertOk()->getContent());
+    $fallback = '//noscript/nav[@aria-label="Navigation without JavaScript"]';
+
+    expect($document->evaluate("count($fallback)"))->toBe(1.0)
+        ->and($document->evaluate("string($fallback/form[@role='search']/@action)"))->toBe(route('search'))
+        ->and($document->evaluate("string($fallback/form/input[@name='q']/@value)"))->toBe('Saturn')
+        ->and(trim($document->evaluate("string($fallback/form/button[@type='submit'])")))->toBe('Search');
+
+    foreach (['explore', 'observe', 'learn', 'api', 'login', 'register'] as $route) {
+        $url = route($route);
+        expect($document->evaluate("count($fallback//a[@href='$url'])"))->toBe(1.0);
+    }
+    // Controls that need Alpine start cloaked; the fallback has no such dependency.
+    expect($document->evaluate('count(//header//button[@aria-label="Menu"][@x-cloak])'))->toBe(1.0)
+        ->and($document->evaluate('count(//header//button[@aria-label="Switch to light theme"][@x-cloak])'))->toBe(1.0)
+        ->and($document->evaluate("count($fallback//*[@x-cloak])"))->toBe(0.0);
+});
+
+it('provides native authenticated alert and sign-out actions in the no-script fallback', function () {
+    $document = accessibilityDocument($this->actingAs(User::factory()->create())->get('/explore')->assertOk()->getContent());
+    $fallback = '//noscript/nav[@aria-label="Navigation without JavaScript"]';
+    $alerts = route('alerts.index');
+
+    expect($document->evaluate("count($fallback//a[@href='$alerts'])"))->toBe(1.0)
+        ->and($document->evaluate("string($fallback//form[@method='POST']/@action)"))->toBe(route('logout'))
+        ->and($document->evaluate("string($fallback//form[@method='POST']/input[@name='_token']/@value)"))->not->toBe('')
+        ->and(trim($document->evaluate("string($fallback//form[@method='POST']/button[@type='submit'])")))->toBe('Sign out');
+});
