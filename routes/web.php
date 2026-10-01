@@ -6,6 +6,8 @@ use App\Http\Controllers\ExoplanetExportController;
 use App\Http\Controllers\GalaxyDataController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
+use App\Http\Controllers\ReleaseController;
+use App\Http\Controllers\ReleaseHealthController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SystemsDirectoryController;
@@ -34,6 +36,9 @@ use App\Livewire\SettingsPage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
+Route::get('/up/release', ReleaseHealthController::class)->name('releases.health');
+Route::get('/whats-new', ReleaseController::class)->name('releases.index');
+Route::get('/whats-new/{version}', ReleaseController::class)->name('releases.show');
 Route::get('/explore', ExplorePage::class)->name('explore');
 Route::get('/observe', ObservePage::class)->name('observe');
 Route::get('/learn', LearnPage::class)->name('learn');

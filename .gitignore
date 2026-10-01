@@ -36,3 +36,6 @@ Thumbs.db
 # Python helper and verification bytecode
 __pycache__/
 *.py[cod]
+
+# Written per deployment before config caching
+/bootstrap/build-commit.txt
