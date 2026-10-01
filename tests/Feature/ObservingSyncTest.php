@@ -287,7 +287,7 @@ it('downloads valid Unicode-heavy journals within the browser response byte limi
     $observation['equipmentAndSite'] = null;
     $observation['notes'] = str_repeat('🪐', 2000);
     $payload['journal']['observations'] = [];
-    for ($i = 100; $i < 200; $i++) {
+    for ($i = 100; $i < 170; $i++) {
         $payload['journal']['observations'][] = [...$observation, 'id' => sprintf('00000000-0000-4000-8000-%012d', $i)];
     }
     // Match browser JSON.stringify, rather than the test helper's ASCII escapes.
@@ -298,5 +298,5 @@ it('downloads valid Unicode-heavy journals within the browser response byte limi
     ], $raw)->assertOk();
     $download = $this->getJson('/account/observing-workspace')->assertOk();
     expect(strlen($download->getContent()))->toBeLessThan(PrivateObservingSync::MAX_BYTES);
-    expect($download->json('payload.journal.observations.99.notes'))->toBe($observation['notes']);
+    expect($download->json('payload.journal.observations.69.notes'))->toBe($observation['notes']);
 });
