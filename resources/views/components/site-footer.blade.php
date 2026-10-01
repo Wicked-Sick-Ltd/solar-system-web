@@ -59,7 +59,7 @@
         <div class="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"
              style="color: var(--muted);">
             <p>
-                {{ __('Data in the public domain / freely usable. This is an astronomy reference — not astrology.') }}
+                {{ __('Free to explore. See About & data sources for attribution and reuse terms. Astronomy, not astrology.') }}
             </p>
             <p>&copy; {{ now()->year }} {{ config('site.name') }}.</p>
         </div>

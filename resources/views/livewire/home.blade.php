@@ -6,10 +6,10 @@
             {{ config('site.tagline') }}
         </p>
         <h1 class="text-4xl font-medium leading-tight sm:text-5xl" style="max-width: 18ch;">
-            {{ __('The solar system, catalogued and freely browseable.') }}
+            {{ __('A universe of discovery, open to everyone.') }}
         </h1>
         <p class="mt-5 text-lg leading-relaxed" style="color: var(--muted); max-width: var(--container-prose);">
-            {{ __('Planets, moons, dwarf planets, asteroids, comets and the icy worlds beyond Neptune — drawn from NASA/JPL and the IAU Minor Planet Center, refreshed nightly. The underlying data is public domain and free for you to use.') }}
+            {{ __('Explore our solar system, discover planets around other stars, and place known planetary systems on an interactive galaxy map. Data from NASA, JPL and other astronomical organisations, brought together for curious minds, classrooms and researchers. Free to browse, with no account required.') }}
         </p>
         <div class="mt-6 flex flex-wrap items-center gap-3">
             <a href="{{ route('objects.index') }}"
@@ -34,7 +34,7 @@
                  style="--tw-divide-opacity: 1; border-color: var(--border);">
                 @php
                     $strip = [
-                        ['n' => $stats->totalObjects, 'label' => __('objects')],
+                        ['n' => $stats->totalObjects, 'label' => __('solar-system objects')],
                         ['n' => $stats->planets(), 'label' => __('planets')],
                         ['n' => $stats->moons(), 'label' => __('moons')],
                         ['n' => $stats->asteroids(), 'label' => __('asteroids')],

@@ -3,15 +3,15 @@
 
     <div class="space-y-6 text-base leading-relaxed" style="color: var(--text);">
         <p>
-            {{ config('site.name') }} {{ __('is a clean, public reference for the solar system: a place to look up the planets, their moons, the dwarf planets, and the great swarm of asteroids, comets and icy worlds beyond Neptune. It is built for the curious — students, hobbyists, educators and sci-fi worldbuilders alike.') }}
+            {{ config('site.name') }} {{ __('is a free astronomy reference for everyone, from children exploring their first planets to scientists working with catalogue data. Discover planets, moons, asteroids and comets in our solar system, exoplanets around other stars, and interactive views of known planetary systems in the galaxy. Browsing and learning need no account.') }}
         </p>
         <p class="rounded-lg border-l-2 px-4 py-2" style="border-color: var(--accent); color: var(--muted);">
-            {{ __('This is an astronomy reference, not an astrology site. There are no horoscopes, houses or star signs here — just the physical bodies of the solar system and the measured facts about them.') }}
+            {{ __('This is an astronomy reference: physical worlds, measured properties and scientific discoveries. The galaxy explorer plots known exoplanet hosts against a schematic galactic disk; it is not a complete map of the stars.') }}
         </p>
 
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Where the data comes from') }}</h2>
         <p>
-            {{ __('Everything is drawn from open, authoritative sources — chiefly NASA / JPL and the IAU Minor Planet Center — and refreshed nightly. NASA data is generally in the public domain; the Minor Planet Center data is freely usable. You are welcome to use it too.') }}
+            {{ __('The catalogue brings together data from NASA and JPL, the NASA Exoplanet Archive, the IAU Minor Planet Center and other astronomical organisations. Source coverage and refresh times vary. Follow the source references and check the original data, attribution requirements and reuse terms when using a measurement in your own work. The code licence does not replace the terms of individual datasets.') }}
         </p>
 
         @if (count($sources))
@@ -41,7 +41,7 @@
 
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Download the whole database') }}</h2>
         <p>
-            {{ __('Everything behind this site — every body in the JPL Small-Body Database with every published field, discoveries, close approaches, satellites and the NASA fact sheets — is rebuilt nightly and published as one compressed SQLite file with a manifest, checksum and licence.') }}
+            {{ __('The published catalogue is available as a compressed SQLite database for offline exploration and research. The latest manifest records the available build and its checksum; check its timestamp, accompanying licence and source metadata before use. A nightly publishing schedule does not mean every upstream measurement was updated that day.') }}
             <a class="underline" style="color: var(--link);" href="{{ config('site.download_url') }}" rel="noopener" target="_blank">{{ __('Get the latest manifest') }}</a>.
         </p>
 
@@ -54,7 +54,7 @@
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Spotted an error?') }}</h2>
         <p>
             {{ __('Astronomical data is always being refined. If something looks wrong, please let us know:') }}
-            <a class="underline" style="color: var(--link);" href="mailto:{{ config('site.contact_email') }}?subject={{ rawurlencode('Solar — data correction') }}">{{ config('site.contact_email') }}</a>.
+            <a class="underline" style="color: var(--link);" href="mailto:{{ config('site.contact_email') }}?subject={{ rawurlencode(config('site.name').' — data correction') }}">{{ config('site.contact_email') }}</a>.
         </p>
     </div>
 </div>

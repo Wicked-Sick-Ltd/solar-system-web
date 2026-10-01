@@ -1,18 +1,25 @@
-# Solar — solar-system-db front end
+# Public Universe — astronomy for everyone
 
 [![CI](https://github.com/Wicked-Sick-Ltd/solar-system-web/actions/workflows/ci.yml/badge.svg)](https://github.com/Wicked-Sick-Ltd/solar-system-web/actions/workflows/ci.yml)
 
-A clean, public, server-rendered astronomy reference for the solar system:
-planets, moons, dwarf planets, asteroids, comets, trans-Neptunian objects and
-planetary rings. It is a **front end only** — all data comes from the read-only
-[`Wicked-Sick-Ltd/solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db) REST
-API. It includes lightweight user accounts and email visibility alerts; all
-astronomical data still comes from the backend API.
+A free, server-rendered astronomy platform for curious minds, classrooms and
+researchers: our solar system, exoplanets, interactive galaxy exploration and
+observing tools. Public browsing and learning require no account.
 
-This is an **astronomy** site, not astrology.
+Astronomical data comes from the read-only
+[`Wicked-Sick-Ltd/solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db)
+REST API, which brings together NASA, JPL and other astronomical sources. This
+front end stores lightweight user accounts and email visibility alerts in its
+own database. Consult individual source references and reuse terms when using
+the data; the repository's MIT licence applies to the code.
 
-The full product brief lives in [`BRIEF.md`](BRIEF.md). Deployment notes are in
-[`DEPLOYMENT.md`](DEPLOYMENT.md).
+The project is preparing to move to **publicuniverse.net**. Existing website,
+API, MCP and download addresses remain in use until a separately authorized
+cutover. See the [migration runbook](docs/PUBLIC-UNIVERSE-MIGRATION.md).
+
+This is an **astronomy** site, not astrology. The original solar-system-only
+product brief in [`BRIEF.md`](BRIEF.md) is historical. Deployment instructions
+are in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ## Stack
 
@@ -49,12 +56,22 @@ The in-app `/api` page includes curl examples plus a Claude MCP config snippet.
 
 ### Pointing at the backend
 
-Everything keys off two env vars — nothing about the backend is hard-coded:
+Website branding, website URLs and backend endpoints are configured separately:
 
 | Var            | Purpose                                              | Example                                  |
 | -------------- | ---------------------------------------------------- | ---------------------------------------- |
+| `SITE_NAME` | Visitor-facing name; independent of operational `APP_NAME` | `Public Universe` |
+| `API_DOCS_URL` | Optional documentation URL override | `https://api.sol.wickedsick.com/docs` |
+| `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://s3.wickedsick.com/solar-system-db/latest.json` |
+| `CONTACT_EMAIL` | Public contact address | `hello@wickedsick.com` |
 | `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
 | `APP_URL`      | This site's public URL (canonical/OG/sitemap/JSON-LD)| `https://sol.wickedsick.com`             |
+
+`APP_NAME` also influences default session-cookie and cache names. Keep its
+existing value during a branding-only release and change `SITE_NAME` instead.
+MCP and OpenAPI URLs are derived from `API_BASE_URL`; the download manifest is
+independent. Set `APP_URL` to the actual serving origin. During a domain move,
+configure the web server/proxy's canonical host and verify generated links too.
 
 **Running the backend locally for development.** The backend repo can be cloned
 and run alongside this one. It ships a committed SQLite database and a FastAPI
