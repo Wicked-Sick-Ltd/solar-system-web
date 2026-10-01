@@ -75,7 +75,9 @@ date, units/schema version and rounded coordinates, so a changed provider or
 UTC day cannot reuse an old horizon. A per-key cache lock (HTTP timeout plus five seconds) deduplicates simultaneous
 cold lookups; competing callers receive unavailable rather than waiting or
 starting another provider request. Failed fetches are cached for 60 seconds,
-then a retry is allowed. The shared cache driver must support atomic locks. No per-hour provider calls are made. Redirects are disabled and a 64 KiB decoded
+then a retry is allowed. Standard Laravel cache drivers provide the atomic,
+renewable locks used here. A producer that loses its lease cannot publish a
+late cache entry; a custom driver without renewal returns uncached weather. No per-hour provider calls are made. Redirects are disabled and a 64 KiB decoded
 response sink bounds compressed and uncompressed bodies before JSON parsing.
 
 The primary [Open-Meteo forecast documentation](https://open-meteo.com/en/docs)

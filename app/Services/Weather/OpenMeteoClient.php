@@ -7,8 +7,10 @@ namespace App\Services\Weather;
 use App\Services\Weather\Data\HourlyForecast;
 use App\Services\Weather\Data\WeatherOutlook;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\Lock;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 use Throwable;
 
 final class OpenMeteoClient
@@ -90,7 +92,16 @@ final class OpenMeteoClient
             }
             $hours = $this->fetchHourlyForecast($lat, $lon);
             $snapshot = $hours === null ? null : new HourlyForecast(CarbonImmutable::now('UTC')->toIso8601ZuluString(), $hours);
-            Cache::put($key, $snapshot === null ? false : ['fetched_at_utc' => $snapshot->fetchedAtUtc, 'hours' => $snapshot->hours], $snapshot === null ? 60 : $this->cacheSeconds);
+            // A producer paused beyond its lease cannot overwrite a newer snapshot.
+            try {
+                $ownsLease = $lock instanceof Lock && $lock->refresh();
+            } catch (RuntimeException) {
+                // Custom drivers without renewable locks can still return uncached weather.
+                $ownsLease = false;
+            }
+            if ($ownsLease) {
+                Cache::put($key, $snapshot === null ? false : ['fetched_at_utc' => $snapshot->fetchedAtUtc, 'hours' => $snapshot->hours], $snapshot === null ? 60 : $this->cacheSeconds);
+            }
 
             return $snapshot;
         } finally {
