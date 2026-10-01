@@ -111,3 +111,56 @@ activated, representative 5,000-system data, hardware/renderer details and a
 repeatable interaction. Physical low-power/mobile testing and field LCP ≤2.5 s,
 INP ≤200 ms, CLS ≤0.1 at p75 remain separate acceptance targets, not results from
 this work. No analytics or live load test has been introduced.
+
+## Recorded baseline — 2026-10-02
+
+The [raw route samples](performance/2026-10-02-routes.json) and
+[production asset inventory](performance/2026-10-02-assets.json) were captured at
+clean source `b8e9a1d59e6f74db0c6a87f30c411cf3f2beb04e`, incorporating feature
+checkpoint `f54398d`. Machine: Apple M3 Max, 64 GiB RAM, macOS arm64, PHP 8.4.23,
+Node 22.23.2. Each route has seven cold/fresh pairs. Sizes, DOM counts and memory
+below are sample maxima; time values are medians, with every raw sample retained.
+
+| Route workload | API cold/fresh | Response bytes | DOM elements | Kernel median ms cold/fresh | Peak PHP MiB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| home | 3/0 | 37,402 | 255 | 6.24/5.21 | 40.9 |
+| saturn | 7/0 | 71,565 | 413 | 15.33/13.56 | 44.4 |
+| search | 3/0 | 55,544 | 313 | 9.20/7.97 | 43.5 |
+| exoplanets_page | 2/0 | 41,886 | 360 | 10.72/9.77 | 44.2 |
+| systems_5000 | 2/0 | 57,908 | 569 | 47.26/19.19 | 64.2 |
+| galaxy_5000 | 2/0 | 31,986 | 258 | 38.80/11.03 | 64.3 |
+| galaxy_data_5000 | 2/0 | 3,477,521 | 0 | 44.69/16.56 | 64.4 |
+| orrery | 12/0 | 35,788 | 250 | 7.45/5.61 | 44.5 |
+| night_form | 0/0 | 32,130 | 245 | 3.97/4.20 | 44.6 |
+| night_eight | 1/1 | 865,879 | 23,892 | 87.00/84.89 | 52.2 |
+
+Cold catalogue routes include one `/catalogue` identity probe. Warm requests
+reuse the observed identity and scoped data; the private night calculation still
+makes one explicit astronomy request and does not automatically fetch weather.
+The synthetic 5,000-host response is 3.48 MB uncompressed: its JSON endpoint is
+measured separately from the small initial galaxy HTML. These are workload
+limits, not a claim about the current size of the live catalogue.
+
+The eight-target night emits 865,879 HTML bytes and 23,892 elements, including
+all 2,312 scientific samples in accessible tables. This is a concrete candidate
+for browser/low-power-device profiling: collapsed tables still occupy the DOM.
+The 87 ms kernel median excludes the recorded backend calculation and must not
+be presented as the time a user waits for a new calculated night.
+
+| Built asset closure | Raw bytes | Gzip level 9 bytes |
+| --- | ---: | ---: |
+| Shared Livewire runtime, including Alpine | 261,782 | 86,131 |
+| Shared CSS | 34,289 | 7,227 |
+| Initial galaxy application JavaScript | 3,666 | 1,647 |
+| Optional activated galaxy renderer | 557,539 | 137,340 |
+| Night planner application JavaScript, including equipment guidance and static imports | 25,146 | 9,672 |
+
+For a first-load galaxy page, add the shared runtime to the application entry;
+the 3.7 kB figure alone is not its complete JavaScript cost. Renderer download
+remains deferred until activation. Night's 32 kB raw / 12 kB gzip ceiling allows
+roughly one quarter of headroom over the reviewed equipment-enabled closure;
+it replaces the pre-guidance 20 kB / 7.5 kB trial ceiling. Other application and
+response ceilings similarly leave bounded markup/dependency room. The full
+night ceiling is 1.1 MB HTML / 130 kB gzip / 30,000 elements. These are explicit
+regression tripwires, not universal performance quality thresholds. Changing
+fixtures, request counts or ceilings requires a new measured explanation.

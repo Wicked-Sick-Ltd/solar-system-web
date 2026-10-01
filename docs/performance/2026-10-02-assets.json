@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "node_version": "v22.23.2",
+  "scope": "Production file bytes and per-file gzip level9, not a measured browser transfer. Static imports included once per entry; dynamic imports excluded until activation. Livewire includes Alpine. Font inventory is not a claim all fonts download.",
+  "manifest_sha256": "3eb8da6b006691904408329da86a807d6b0b01a473ca28aba34729fb1ea0b7f2",
+  "runtime": {
+    "bytes": 261782,
+    "gzip_bytes": 86131,
+    "sha256": "593582cab3657eba333a401d89630284c382bd10f2a7b9aca5fbb3ea47c417c0"
+  },
+  "entries": {
+    "resources/css/app.css": {
+      "dynamic": false,
+      "imports": [
+        "resources/css/app.css"
+      ],
+      "files": [
+        "assets/app-BbbSgZ0X.css"
+      ],
+      "bytes": 34289,
+      "gzip_bytes": 7227,
+      "dynamic_imports": []
+    },
+    "resources/js/galaxy-renderer.js": {
+      "dynamic": true,
+      "imports": [
+        "resources/js/galaxy-renderer.js"
+      ],
+      "files": [
+        "assets/galaxy-renderer-BfktF9oQ.js"
+      ],
+      "bytes": 557539,
+      "gzip_bytes": 137340,
+      "dynamic_imports": []
+    },
+    "resources/js/galaxy.js": {
+      "dynamic": false,
+      "imports": [
+        "resources/js/galaxy.js"
+      ],
+      "files": [
+        "assets/galaxy-CFbmaxtT.js"
+      ],
+      "bytes": 3666,
+      "gzip_bytes": 1647,
+      "dynamic_imports": [
+        "resources/js/galaxy-renderer.js"
+      ]
+    },
+    "resources/js/observing/journal.js": {
+      "dynamic": false,
+      "imports": [
+        "resources/js/observing/journal.js",
+        "_workspace-store-suzZz-kS.js",
+        "_journal-store-DaUlnPpF.js"
+      ],
+      "files": [
+        "assets/journal-CCzgtZzs.js",
+        "assets/workspace-store-suzZz-kS.js",
+        "assets/journal-store-DaUlnPpF.js"
+      ],
+      "bytes": 19619,
+      "gzip_bytes": 7985,
+      "dynamic_imports": []
+    },
+    "resources/js/observing/night.js": {
+      "dynamic": false,
+      "imports": [
+        "resources/js/observing/night.js",
+        "_workspace-store-suzZz-kS.js",
+        "_optics-Dx-FebdH.js"
+      ],
+      "files": [
+        "assets/night-ByF54j7G.js",
+        "assets/workspace-store-suzZz-kS.js",
+        "assets/optics-Dx-FebdH.js"
+      ],
+      "bytes": 25146,
+      "gzip_bytes": 9672,
+      "dynamic_imports": []
+    },
+    "resources/js/observing/sync.js": {
+      "dynamic": false,
+      "imports": [
+        "resources/js/observing/sync.js",
+        "_workspace-store-suzZz-kS.js",
+        "_journal-store-DaUlnPpF.js"
+      ],
+      "files": [
+        "assets/sync-DQa3o805.js",
+        "assets/workspace-store-suzZz-kS.js",
+        "assets/journal-store-DaUlnPpF.js"
+      ],
+      "bytes": 19955,
+      "gzip_bytes": 8092,
+      "dynamic_imports": []
+    },
+    "resources/js/observing/workspace.js": {
+      "dynamic": false,
+      "imports": [
+        "resources/js/observing/workspace.js",
+        "_workspace-store-suzZz-kS.js",
+        "_optics-Dx-FebdH.js"
+      ],
+      "files": [
+        "assets/workspace-DzYHjtSK.js",
+        "assets/workspace-store-suzZz-kS.js",
+        "assets/optics-Dx-FebdH.js"
+      ],
+      "bytes": 25464,
+      "gzip_bytes": 9553,
+      "dynamic_imports": []
+    }
+  },
+  "woff2_inventory": [
+    {
+      "file": "assets/inter-latin-400-normal-C38fXH4l.woff2",
+      "bytes": 23664,
+      "gzip_bytes": 23667,
+      "sha256": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc"
+    },
+    {
+      "file": "assets/inter-latin-500-normal-Cerq10X2.woff2",
+      "bytes": 24272,
+      "gzip_bytes": 24253,
+      "sha256": "f3779f1efccc4bdcdf9c0a02ab95bf6bd092ed09c48c08cedc725889edd1d19f"
+    },
+    {
+      "file": "assets/inter-latin-600-normal-LgqL8muc.woff2",
+      "bytes": 24452,
+      "gzip_bytes": 24443,
+      "sha256": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a"
+    },
+    {
+      "file": "assets/inter-latin-700-normal-Yt3aPRUw.woff2",
+      "bytes": 24356,
+      "gzip_bytes": 24314,
+      "sha256": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491"
+    },
+    {
+      "file": "assets/newsreader-latin-400-normal-BFBkh4jY.woff2",
+      "bytes": 22480,
+      "gzip_bytes": 22477,
+      "sha256": "e66067814f1c672d33a457e4f4d102c818b481420e2234cf685ebdbf2f443904"
+    },
+    {
+      "file": "assets/newsreader-latin-500-normal-B66TYsaK.woff2",
+      "bytes": 23624,
+      "gzip_bytes": 23604,
+      "sha256": "5613e2fc8377392c02e8ac9d55014689fb5320a5f2a7be55e8088a314728ac2c"
+    },
+    {
+      "file": "assets/newsreader-latin-600-normal-30OJ_TG_.woff2",
+      "bytes": 23876,
+      "gzip_bytes": 23865,
+      "sha256": "05c91a26d19a61eafe7ce8e0b77eff3fd279ce994dc89f432f4cd06784935e84"
+    }
+  ]
+}
