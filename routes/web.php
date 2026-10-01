@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\ExoplanetExportController;
 use App\Http\Controllers\GalaxyDataController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
@@ -56,6 +57,7 @@ Route::get('/search', SearchPage::class)->name('search');
 Route::get('/orrery', Orrery::class)->name('orrery');
 
 Route::get('/exoplanets', Exoplanets::class)->name('exoplanets.index');
+Route::get('/exoplanets/export/{format}', ExoplanetExportController::class)->whereIn('format', ['csv', 'json'])->middleware('throttle:30,1')->name('exoplanets.export');
 Route::get('/exoplanets/{id}', ExoplanetDetail::class)->name('exoplanets.show');
 Route::get('/systems/{id}', ExoplanetSystem::class)->name('systems.show');
 Route::get('/galaxy/data', GalaxyDataController::class)->name('galaxy.data');
