@@ -105,7 +105,7 @@ class SolarApiClient
      * @param  array<string,mixed>  $filters  type, parent, min/max_radius_km, neo, pha, named_only
      * @return Paginated<ObjectSummary>
      */
-    public function objects(array $filters = [], int $limit = 24, int $offset = 0): Paginated
+    public function objects(array $filters = [], int $limit = 24, int $offset = 0, ?string $after = null): Paginated
     {
         $limit = max(1, min($limit, 100));
         $offset = max(0, $offset);
@@ -116,10 +116,25 @@ class SolarApiClient
             'offset' => $offset,
         ];
 
-        $data = $this->cachedGet('/objects', $query, $this->ttl['catalog']) ?? [];
-        $rows = array_values((array) ($data['results'] ?? []));
+        if ($after !== null) {
+            $query['after'] = $after;
+            $query['offset'] = 0;
+        }
 
-        return $this->paginate($rows, $limit, $offset, ObjectSummary::fromArray(...));
+        $data = $this->cachedGet('/objects', $query, $this->ttl['catalog']);
+        if (! is_array($data) || ! isset($data['results']) || ! is_array($data['results'])
+            || ($after !== null && ! array_key_exists('next_after', $data))) {
+            throw new SolarApiException('Object catalogue is not available in this browsing mode.');
+        }
+        $rows = array_values($data['results']);
+
+        $page = $this->paginate($rows, $limit, $after !== null ? 0 : $offset, ObjectSummary::fromArray(...));
+        // The API cursor points to its last returned (overfetched) row. Use our
+        // last displayed row instead, or the next page would skip one object.
+        $last = $page->items[count($page->items) - 1] ?? null;
+
+        return new Paginated($page->items, $page->limit, $page->offset, $page->hasMore,
+            $after !== null && $page->hasMore ? $last?->id : null);
     }
 
     /** Full record for one object by id, name or designation. Null when not found. */
@@ -567,6 +582,7 @@ class SolarApiClient
         $allowed = [
             'type', 'parent', 'min_radius_km', 'max_radius_km', 'max_eccentricity',
             'min_semi_major_axis_au', 'max_semi_major_axis_au', 'neo', 'pha', 'named_only',
+            'orbit_class', 'max_moid_au', 'min_diameter_km', 'max_condition_code', 'discovered_after',
         ];
 
         $clean = [];

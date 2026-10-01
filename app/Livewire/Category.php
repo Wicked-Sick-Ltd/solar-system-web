@@ -23,6 +23,40 @@ final class Category extends Component
 {
     private const PER_PAGE = 24;
 
+    // Keep legacy orbit-ordered page links within a bounded offset. The API's
+    // keyset mode uses a different order, so it must be selected explicitly.
+    private const MAX_PAGE = 417;
+
+    #[Url(except: '')]
+    public string $orbit = '';
+
+    #[Url(except: false)]
+    public bool $neo = false;
+
+    #[Url(except: false)]
+    public bool $pha = false;
+
+    #[Url(except: false)]
+    public bool $named = false;
+
+    #[Url(except: '')]
+    public string $diameter = '';
+
+    #[Url(except: '')]
+    public string $moid = '';
+
+    #[Url(except: '')]
+    public string $quality = '';
+
+    #[Url(except: '')]
+    public string $discovered = '';
+
+    #[Url(except: 'orbit')]
+    public string $order = 'orbit';
+
+    #[Url(except: '')]
+    public string $after = '';
+
     public string $kind;
 
     #[Url(as: 'page', except: 1)]
@@ -33,25 +67,40 @@ final class Category extends Component
         $this->kind = $kind;
     }
 
+    public function updated(string $property): void
+    {
+        if (! in_array($property, ['page', 'after'], true)) {
+            $this->reset(['page', 'after']);
+        }
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset(['orbit', 'neo', 'pha', 'named', 'diameter', 'moid', 'quality', 'discovered', 'page', 'after']);
+    }
+
     public function render(SolarApiClient $api): View
     {
         $copy = $this->copy();
 
         app(Seo::class)->title($copy['title'])->description($copy['lead']);
 
-        $page = max(1, $this->page);
+        $inputErrors = $this->inputErrors();
+        $page = max(1, min(self::MAX_PAGE, $this->page));
         $offset = ($page - 1) * self::PER_PAGE;
 
         $apiDown = false;
         $results = new Paginated([], self::PER_PAGE, $offset, false);
 
         try {
-            if ($this->kind === 'dwarf_planet') {
+            if ($inputErrors !== []) {
+                // Invalid links never become a different, unfiltered query.
+            } elseif ($this->kind === 'dwarf_planet') {
                 // Small, curated set — show them all, candidates included.
                 $items = $api->dwarfPlanets(true);
                 $results = new Paginated($items, max(self::PER_PAGE, count($items)), 0, false);
             } else {
-                $results = $api->objects(['type' => $this->kind], self::PER_PAGE, $offset);
+                $results = $api->objects($this->filters(), self::PER_PAGE, $offset, $this->kind === 'asteroid' && $this->order === 'id' ? $this->after : null);
             }
         } catch (SolarApiException) {
             $apiDown = true;
@@ -61,8 +110,82 @@ final class Category extends Component
             'results' => $results,
             'apiDown' => $apiDown,
             'copy' => $copy,
+            'inputErrors' => $inputErrors,
+            'filterOptions' => $this->filterOptions(),
+            'nextUrl' => $this->pageUrl($page + 1, $results->nextAfter),
+            'previousUrl' => $this->pageUrl(max(1, $page - 1)),
+            'firstUrl' => $this->pageUrl(1),
+            'fullCatalogueUrl' => route('asteroids', $this->urlFilters() + ['order' => 'id']),
+            'atPageLimit' => $page >= self::MAX_PAGE,
             'paginated' => $this->kind !== 'dwarf_planet',
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function filters(): array
+    {
+        if ($this->kind !== 'asteroid') {
+            return ['type' => $this->kind];
+        }
+
+        return ['type' => 'asteroid', 'orbit_class' => $this->orbit,
+            'neo' => $this->neo, 'pha' => $this->pha, 'named_only' => $this->named,
+            'min_diameter_km' => $this->diameter, 'max_moid_au' => $this->moid,
+            'max_condition_code' => $this->quality,
+            'discovered_after' => $this->discovered !== '' ? $this->discovered.'-01-01' : null];
+    }
+
+    /** @return list<string> */
+    private function inputErrors(): array
+    {
+        $errors = [];
+        if ($this->page < 1 || $this->page > self::MAX_PAGE) {
+            $errors[] = __('Please use a page from 1 to :max, or browse the full catalogue by ID.', ['max' => self::MAX_PAGE]);
+        }
+        if ($this->kind !== 'asteroid') {
+            return $errors;
+        }
+        foreach ($this->filterOptions() as $field => $options) {
+            if (! array_key_exists($this->{$field}, $options)) {
+                $errors[] = __('Choose a valid value for :filter.', ['filter' => $field]);
+            }
+        }
+        if ($this->discovered !== '' && (! preg_match('/^\d{4}$/D', $this->discovered) || (int) $this->discovered < 1600 || (int) $this->discovered > (int) date('Y'))) {
+            $errors[] = __('Choose a discovery year from 1600 to :year.', ['year' => date('Y')]);
+        }
+        if ($this->after !== '' && ($this->order !== 'id' || ! preg_match('/^[A-Za-z0-9_.-]{1,200}$/D', $this->after))) {
+            $errors[] = __('This catalogue position is invalid. Return to the first results.');
+        }
+
+        return $errors;
+    }
+
+    /** @return array<string, array<string|int, string>> */
+    private function filterOptions(): array
+    {
+        return [
+            'orbit' => ['' => __('Any orbit class'), 'MBA' => __('Main-belt asteroid'), 'IMB' => __('Inner main-belt asteroid'),
+                'OMB' => __('Outer main-belt asteroid'), 'MCA' => __('Mars-crossing asteroid'), 'ATE' => __('Aten'), 'APO' => __('Apollo'),
+                'AMO' => __('Amor'), 'IEO' => __('Atira'), 'TJN' => __('Jupiter Trojan'), 'CEN' => __('Centaur'), 'TNO' => __('Trans-Neptunian object')],
+            'diameter' => ['' => __('Any diameter'), '1' => __('At least 1 km'), '10' => __('At least 10 km'), '100' => __('At least 100 km')],
+            'moid' => ['' => __('Any Earth MOID'), '0.05' => __('At most 0.05 AU'), '0.1' => __('At most 0.1 AU'), '0.5' => __('At most 0.5 AU')],
+            'quality' => ['' => __('Any orbit uncertainty'), '2' => __('Well determined (code 0–2)'), '5' => __('Code 0–5')],
+            'order' => ['orbit' => __('Orbital distance'), 'id' => __('Catalogue ID (full catalogue)')],
+        ];
+    }
+
+    /** @return array<string, string|int> */
+    private function urlFilters(): array
+    {
+        return array_filter(['orbit' => $this->orbit, 'neo' => (int) $this->neo, 'pha' => (int) $this->pha,
+            'named' => (int) $this->named, 'diameter' => $this->diameter, 'moid' => $this->moid,
+            'quality' => $this->quality, 'discovered' => $this->discovered], static fn ($value) => $value !== '' && $value !== 0);
+    }
+
+    private function pageUrl(int $page, ?string $after = null): string
+    {
+        return route('asteroids', $this->urlFilters() + ($this->order === 'id'
+            ? ['order' => 'id', 'after' => $after ?? ''] : ['page' => $page]));
     }
 
     /** @return array{title:string,eyebrow:string,lead:string} */
