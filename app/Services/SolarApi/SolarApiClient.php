@@ -378,13 +378,59 @@ class SolarApiClient
      */
     public function closeApproaches(string $from, string $to, float $maxDistAu = 0.05, int $limit = 200): array
     {
-        return $this->mapResults(
-            $this->cachedGet('/close-approaches', [
-                'from' => $from, 'to' => $to, 'body' => 'Earth',
-                'max_dist_au' => $maxDistAu, 'limit' => max(1, min($limit, 1000)),
-            ], $this->ttl['catalog']),
-            CloseApproach::fromArray(...),
-        );
+        $data = $this->cachedGet('/close-approaches', [
+            'from' => $from, 'to' => $to, 'body' => 'Earth',
+            'max_dist_au' => $maxDistAu, 'limit' => max(1, min($limit, 1000)),
+        ], $this->ttl['catalog']);
+        if (! is_array($data) || ! is_array($data['results'] ?? null) || ! array_is_list($data['results'])) {
+            throw new SolarApiException('Close-approach catalogue is unavailable.');
+        }
+        foreach ($data['results'] as $row) {
+            if (! is_array($row)) {
+                throw new SolarApiException('Invalid close-approach record.');
+            }
+            foreach (['object_id', 'body', 'cd_iso'] as $field) {
+                if (! is_string($row[$field] ?? null) || trim($row[$field]) === '') {
+                    throw new SolarApiException('Invalid close-approach identity or date.');
+                }
+            }
+            if (strcasecmp($row['body'], 'Earth') !== 0) {
+                throw new SolarApiException('Close-approach response is for another body.');
+            }
+            foreach (['name', 'designation', 't_sigma'] as $field) {
+                if (isset($row[$field]) && ! is_string($row[$field])) {
+                    throw new SolarApiException('Invalid close-approach label.');
+                }
+            }
+            if (trim($row['name'] ?? '') === '' && trim($row['designation'] ?? '') === '') {
+                throw new SolarApiException('Missing close-approach object label.');
+            }
+            // The catalogue exposes UTC timestamps at second precision. Reject
+            // impossible dates rather than sorting an invented or missing time.
+            try {
+                $date = CarbonImmutable::createFromFormat('!Y-m-d\TH:i:s\Z', $row['cd_iso'], 'UTC');
+            } catch (Throwable) {
+                $date = null;
+            }
+            if (! $date || $date->format('Y-m-d\TH:i:s\Z') !== $row['cd_iso'] || $date->year < 1) {
+                throw new SolarApiException('Invalid close-approach date.');
+            }
+            foreach (['dist_au', 'dist_min_au', 'dist_max_au', 'v_rel_km_s'] as $field) {
+                $value = $row[$field] ?? null;
+                if ($value !== null && (! is_numeric($value) || ! is_finite((float) $value) || (float) $value < 0)) {
+                    throw new SolarApiException('Invalid close-approach measurement.');
+                }
+            }
+        }
+
+        return array_map(static function (array $row): CloseApproach {
+            // Treat a blank display name as absent so designation fallback works.
+            if (trim($row['name'] ?? '') === '') {
+                $row['name'] = null;
+            }
+
+            return CloseApproach::fromArray($row);
+        }, $data['results']);
     }
 
     /**

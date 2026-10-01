@@ -18,6 +18,8 @@ final class CloseApproaches extends Component
 {
     private const DAYS = 60;
 
+    private const LIMIT = 200;
+
     public function render(SolarApiClient $api): View
     {
         app(Seo::class)
@@ -29,7 +31,7 @@ final class CloseApproaches extends Component
         $approaches = [];
 
         try {
-            $approaches = $api->closeApproaches($today->toDateString(), $today->addDays(self::DAYS)->toDateString());
+            $approaches = $api->closeApproaches($today->toDateString(), $today->addDays(self::DAYS)->toDateString(), limit: self::LIMIT);
             usort($approaches, fn ($a, $b) => strcmp((string) $a->cdIso, (string) $b->cdIso));
         } catch (SolarApiException) {
             $apiDown = true;
@@ -39,6 +41,10 @@ final class CloseApproaches extends Component
             'approaches' => $approaches,
             'apiDown' => $apiDown,
             'days' => self::DAYS,
+            'limitReached' => count($approaches) >= self::LIMIT,
+            'limit' => self::LIMIT,
+            'windowStart' => $today->toDateString(),
+            'windowEnd' => $today->addDays(self::DAYS)->toDateString(),
         ]);
     }
 }

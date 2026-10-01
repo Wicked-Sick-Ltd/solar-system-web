@@ -1,25 +1,31 @@
 @php
-    use App\Support\Format;
+    use App\Support\CloseApproachFormat;
 @endphp
 
 <div>
     <x-page-header :title="__('Close approaches')" :eyebrow="__('Passing Earth')"
-                   :lead="__('Asteroids and comets that will pass within about 20 lunar distances of Earth in the next :days days, soonest first.', ['days' => $days])" />
+                   :lead="__('Catalogue encounters within about 20 lunar distances of Earth in a :days-day window starting today (UTC), soonest first.', ['days' => $days])" />
 
+    <p class="mb-4 text-sm" style="color: var(--muted);">{{ __('Window: :from 00:00 UTC to :to 00:00 UTC.', ['from' => $windowStart, 'to' => $windowEnd]) }}</p>
     @if ($apiDown)
         <x-api-down :section="__('Close approaches')" />
     @elseif ($approaches === [])
-        <x-empty-state :title="__('Nothing passing close in the next :days days', ['days' => $days])" />
+        <x-empty-state :title="__('No close approaches returned')">
+            {{ __('The catalogue returned no records for this window. Coverage may be incomplete, and older catalogue builds may not include close-approach data. This does not establish that no encounters occur.') }}
+        </x-empty-state>
     @else
-        <div class="surface overflow-x-auto">
+        @if ($limitReached)
+            <p class="mb-4 text-sm" role="status">{{ __('The catalogue returned its limit of :limit closest encounters in this window. Other encounters may be omitted; the returned records are shown soonest first.', ['limit' => $limit]) }}</p>
+        @endif
+        <div class="surface overflow-x-auto" tabindex="0" role="region" aria-label="{{ __('Close-approach results; scroll horizontally for all columns') }}">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b text-left" style="border-color: var(--border); color: var(--muted);">
-                        <th class="px-4 py-3 font-medium">{{ __('When (UTC)') }}</th>
-                        <th class="px-4 py-3 font-medium">{{ __('Object') }}</th>
-                        <th class="px-4 py-3 text-right font-medium">{{ __('Lunar distances') }}</th>
-                        <th class="px-4 py-3 text-right font-medium">{{ __('Distance') }}</th>
-                        <th class="px-4 py-3 text-right font-medium">{{ __('Relative speed') }}</th>
+                        <th scope="col" class="px-4 py-3 font-medium">{{ __('When (UTC)') }}</th>
+                        <th scope="col" class="px-4 py-3 font-medium">{{ __('Object') }}</th>
+                        <th scope="col" class="px-4 py-3 text-right font-medium">{{ __('Lunar distances') }}</th>
+                        <th scope="col" class="px-4 py-3 text-right font-medium">{{ __('Distance') }}</th>
+                        <th scope="col" class="px-4 py-3 text-right font-medium">{{ __('Relative speed') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,14 +39,14 @@
                                     {{ $approach->name }}
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-right tabular-nums" style="color: var(--text);">{{ $approach->lunarDistances() !== null ? number_format($approach->lunarDistances(), 1).' LD' : '—' }}</td>
-                            <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::au($approach->distAu, 4) ?? '—' }}</td>
-                            <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::unit($approach->vRelKmS, 'km/s', 1) ?? '—' }}</td>
+                            <td class="px-4 py-3 text-right tabular-nums" style="color: var(--text);">{{ CloseApproachFormat::measurement($approach->lunarDistances(), 'LD', 1) }}</td>
+                            <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ CloseApproachFormat::measurement($approach->distAu, 'AU', 4) }}</td>
+                            <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ CloseApproachFormat::measurement($approach->vRelKmS, 'km/s', 1) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
-        <p class="mt-2 text-xs" style="color: var(--color-faint);">{{ __('1 lunar distance = 384,400 km. Nominal distances; the smallest objects have wider uncertainties. Source: JPL close-approach data, refreshed nightly.') }}</p>
+        <p class="mt-2 text-xs" style="color: var(--color-faint);">{{ __('1 lunar distance = 384,400 km. Nominal distances; uncertainties vary by object and orbit solution. A less-than sign marks a positive value below the table’s display precision; a dash means not reported. Source: JPL close-approach data in the catalogue snapshot.') }}</p>
     @endif
 </div>
