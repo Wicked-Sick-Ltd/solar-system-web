@@ -68,11 +68,38 @@ class SolarApiClient
         $offset = max(0, min(100000, $offset));
         $filters = array_filter(array_intersect_key($filters, array_flip(['q', 'discovery_method', 'max_distance_pc'])), static fn ($value) => $value !== null && $value !== '');
         $data = $this->cachedGet('/exoplanets', $filters + ['limit' => $limit + 1, 'offset' => $offset], $this->ttl['catalog']);
-        if (! is_array($data) || ! ($data['available'] ?? false)) {
+        if (! is_array($data) || ($data['available'] ?? null) !== true) {
             throw new SolarApiException('Exoplanet catalogue is not available yet.');
         }
 
-        return $this->paginate(array_values($data['results'] ?? []), $limit, $offset, Exoplanet::fromArray(...));
+        $rows = $data['results'] ?? null;
+        if (! is_array($rows) || ! array_is_list($rows)) {
+            throw new SolarApiException('Exoplanet catalogue returned an invalid result envelope.');
+        }
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                throw new SolarApiException('Exoplanet catalogue returned an invalid record.');
+            }
+            foreach (['id', 'name', 'host_id'] as $field) {
+                if (! isset($row[$field]) || ! is_string($row[$field]) || trim($row[$field]) === '') {
+                    throw new SolarApiException('Exoplanet catalogue returned an invalid identity.');
+                }
+            }
+            // Optional scientific values may be absent or null in older data.
+            // Validate text before DTO casting so malformed values cannot turn
+            // one catalogue failure into a page-level PHP error.
+            foreach (['host_name', 'discovery_method', 'mass_provenance', 'retrieved_at'] as $field) {
+                if (isset($row[$field]) && ! is_string($row[$field])) {
+                    throw new SolarApiException('Exoplanet catalogue returned invalid text metadata.');
+                }
+            }
+            if (isset($row['source_data']) && ! is_array($row['source_data'])) {
+                throw new SolarApiException('Exoplanet catalogue returned invalid measurements.');
+            }
+        }
+
+        return $this->paginate($rows, $limit, $offset, Exoplanet::fromArray(...));
     }
 
     public function exoplanet(string $id): ?Exoplanet

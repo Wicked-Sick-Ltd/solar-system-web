@@ -104,3 +104,39 @@ it('treats an invalid search envelope as unavailable while preserving exoplanets
     $this->get('/search?q=Proxima')->assertOk()->assertSee('Solar-system search is temporarily unavailable')
         ->assertSee('Proxima Cen b')->assertDontSee('No solar-system objects match');
 });
+
+it('preserves solar results when the exoplanet envelope or a record is malformed', function (array $payload) {
+    Http::fake([
+        '*/search*' => Http::response(['results' => [['id' => 'planet-saturn', 'name' => 'Saturn']]]),
+        '*/exoplanets*' => Http::response($payload),
+    ]);
+
+    $this->get('/search?q=Saturn')->assertOk()->assertSee('Saturn')
+        ->assertSee('Exoplanet search is temporarily unavailable')
+        ->assertSee('Showing results from one catalogue')
+        ->assertDontSee('No exoplanets or host systems match');
+})->with([
+    'missing results' => [['available' => true]],
+    'string results' => [['available' => true, 'results' => 'unavailable']],
+    'non-list results' => [['available' => true, 'results' => ['error' => 'unavailable']]],
+    'non-record item' => [['available' => true, 'results' => [null]]],
+    'missing host identity' => [['available' => true, 'results' => [['id' => 'exo-example', 'name' => 'Example b']]]],
+    'empty identity' => [['available' => true, 'results' => [['id' => '', 'name' => 'Example b', 'host_id' => 'host-example']]]],
+    'non-text identity' => [['available' => true, 'results' => [['id' => ['bad'], 'name' => 'Example b', 'host_id' => 'host-example']]]],
+    'non-text optional field' => [['available' => true, 'results' => [['id' => 'exo-example', 'name' => 'Example b', 'host_id' => 'host-example', 'discovery_method' => ['bad']]]]],
+    'non-array measurements' => [['available' => true, 'results' => [['id' => 'exo-example', 'name' => 'Example b', 'host_id' => 'host-example', 'source_data' => 'bad']]]],
+    'non-boolean availability' => [['available' => 'false', 'results' => []]],
+]);
+
+it('accepts exoplanet records without optional scientific metadata', function () {
+    Http::fake([
+        '*/search*' => Http::response(['results' => []]),
+        '*/exoplanets*' => Http::response(['available' => true, 'results' => [[
+            'id' => 'exo-example', 'name' => 'Example b', 'host_id' => 'host-example',
+            'host_name' => null, 'source_data' => null, 'distance_pc' => null,
+        ]]]),
+    ]);
+
+    $this->get('/search?q=example')->assertOk()->assertSee('Example b')
+        ->assertDontSee('temporarily unavailable')->assertDontSee('Host system:');
+});
