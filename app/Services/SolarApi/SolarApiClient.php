@@ -9,6 +9,8 @@ use App\Services\SolarApi\Data\CloseApproach;
 use App\Services\SolarApi\Data\Exoplanet;
 use App\Services\SolarApi\Data\ExoplanetHost;
 use App\Services\SolarApi\Data\GalaxyMap;
+use App\Services\SolarApi\Data\MeteorCatalogue;
+use App\Services\SolarApi\Data\MeteorShower;
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Data\ObjectSummary;
 use App\Services\SolarApi\Data\Paginated;
@@ -58,6 +60,33 @@ class SolarApiClient
     // ------------------------------------------------------------------
     // Catalogue
     // ------------------------------------------------------------------
+
+    public function meteorShowers(bool $establishedOnly = false, ?string $activeOn = null): MeteorCatalogue
+    {
+        $query = ['established_only' => $establishedOnly ? 'true' : 'false', 'limit' => MeteorCatalogue::LIMIT];
+        if ($activeOn !== null && $activeOn !== '') {
+            $query['active_on'] = $activeOn;
+        }
+        $data = $this->cachedGet('/meteor-showers', $query, $this->ttl['catalog']);
+        if (! is_array($data) || ! isset($data['items']) || ! is_array($data['items'])) {
+            throw new SolarApiException('Meteor shower catalogue is unavailable on this backend.');
+        }
+
+        return MeteorCatalogue::fromRows(array_values($data['items']));
+    }
+
+    public function meteorShower(string $code): ?MeteorShower
+    {
+        $data = $this->cachedGet('/meteor-showers/'.rawurlencode($code), [], $this->ttl['catalog']);
+        if ($data === null) {
+            return null;
+        }
+        if (! isset($data['iau_no'], $data['code'], $data['name'], $data['parameter_sets']) || ! is_array($data['parameter_sets'])) {
+            throw new SolarApiException('Meteor shower detail is unavailable on this backend.');
+        }
+
+        return MeteorShower::fromArray($data);
+    }
 
     /** @param array<string,mixed> $filters
      * @return Paginated<Exoplanet>

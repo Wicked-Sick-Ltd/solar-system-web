@@ -19,6 +19,8 @@ use App\Livewire\ExplorePage;
 use App\Livewire\Galaxy;
 use App\Livewire\Home;
 use App\Livewire\LearnPage;
+use App\Livewire\MeteorShowerDetail;
+use App\Livewire\MeteorShowers;
 use App\Livewire\Objects\Index as ObjectsIndex;
 use App\Livewire\Objects\Show as ObjectsShow;
 use App\Livewire\ObservePage;
@@ -59,6 +61,9 @@ Route::get('/systems/{id}', ExoplanetSystem::class)->name('systems.show');
 Route::get('/galaxy/data', GalaxyDataController::class)->name('galaxy.data');
 Route::get('/galaxy', Galaxy::class)->name('galaxy');
 Route::get('/close-approaches', CloseApproaches::class)->name('close-approaches');
+
+Route::get('/meteor-showers', MeteorShowers::class)->name('meteor-showers.index');
+Route::get('/meteor-showers/{code}', MeteorShowerDetail::class)->name('meteor-showers.show');
 
 Route::get('/random', RandomObjectController::class)->name('random');
 
