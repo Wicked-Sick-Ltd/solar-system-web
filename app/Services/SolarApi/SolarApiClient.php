@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services\SolarApi;
 
 use App\Jobs\RefreshSolarCache;
+use App\Services\SolarApi\Data\CatalogueIdentity;
 use App\Services\SolarApi\Data\CloseApproach;
+use App\Services\SolarApi\Data\DownloadManifest;
 use App\Services\SolarApi\Data\Exoplanet;
 use App\Services\SolarApi\Data\ExoplanetHost;
 use App\Services\SolarApi\Data\GalaxyMap;
@@ -42,8 +44,6 @@ use Throwable;
  */
 class SolarApiClient
 {
-    private string $baseUrl;
-
     private int $timeout;
 
     /** @var array<string,int> */
@@ -52,7 +52,6 @@ class SolarApiClient
     public function __construct()
     {
         $config = config('services.solar');
-        $this->baseUrl = $config['base_url'];
         $this->timeout = (int) $config['timeout'];
         $this->ttl = $config['cache'];
     }
@@ -582,12 +581,15 @@ class SolarApiClient
         $ids = array_values(array_unique($ids));
         $out = [];
         $pending = [];
+        $context = app(CatalogueContext::class);
+        $state = $context->current();
+        $known = $state['identity']->known();
 
         foreach ($ids as $id) {
             $path = '/positions/'.$this->encodePath($id);
             $query = ['date' => $date];
-            $key = $this->cacheKey($path, $query);
-            $entry = Cache::get($key);
+            $key = $context->key($path, $query, $state);
+            $entry = $state['token'] === 'checking' ? null : Cache::get($key);
             $cached = is_array($entry) && array_key_exists('soft', $entry) ? $entry : null;
 
             if ($cached !== null && $cached['soft'] > time()) {
@@ -595,7 +597,7 @@ class SolarApiClient
             } else {
                 // Keep the soft-stale value (if any) as the fallback for a
                 // failed refresh, rather than dropping the body from the plot.
-                $pending[$id] = compact('path', 'query', 'key') + ['stale' => $cached['value'] ?? null];
+                $pending[$id] = compact('path', 'query', 'key') + ['stale' => $known ? ($cached['value'] ?? null) : null];
             }
         }
 
@@ -616,7 +618,9 @@ class SolarApiClient
                     continue;
                 }
 
-                $this->putCached($request['key'], $value, $this->ttl['positions']);
+                if ($state['token'] !== 'checking' && $context->key($request['path'], $request['query']) === $request['key']) {
+                    $this->putCached($request['key'], $value, $known ? $this->ttl['positions'] : min($this->ttl['positions'], CatalogueContext::UNKNOWN_DATA_SECONDS), $known);
+                }
                 $out[$id] = $value;
             }
         }
@@ -664,6 +668,21 @@ class SolarApiClient
     // Reference
     // ------------------------------------------------------------------
 
+    public function catalogueIdentity(): CatalogueIdentity
+    {
+        return app(CatalogueContext::class)->current()['identity'];
+    }
+
+    public function downloadManifest(): ?DownloadManifest
+    {
+        $key = CatalogueContext::storageKey().':download';
+        $entry = Cache::remember($key, CatalogueContext::PROBE_SECONDS, static fn () => [
+            'manifest' => app(CatalogueContext::class)->metadata('/download'),
+        ]);
+
+        return DownloadManifest::fromArray($entry['manifest']);
+    }
+
     public function stats(): ?Stats
     {
         $data = $this->cachedGet('/stats', [], $this->ttl['reference']);
@@ -690,9 +709,9 @@ class SolarApiClient
      */
     public function reachable(): bool
     {
-        return (bool) Cache::remember('solar:health', $this->ttl['health'], function (): bool {
+        return (bool) Cache::remember(CatalogueContext::storageKey().':health', $this->ttl['health'], function (): bool {
             try {
-                return Http::baseUrl($this->baseUrl)
+                return Http::baseUrl(rtrim((string) config('services.solar.base_url'), '/'))
                     ->timeout(min(3, $this->timeout))
                     ->get('/stats')
                     ->successful();
@@ -715,33 +734,45 @@ class SolarApiClient
      */
     private function cachedGet(string $path, array $query, int $ttl): mixed
     {
-        $key = $this->cacheKey($path, $query);
-        $entry = Cache::get($key);
+        $context = app(CatalogueContext::class);
+        $state = $context->current();
+        $key = $context->key($path, $query, $state);
+        $entry = $state['token'] === 'checking' ? null : Cache::get($key);
 
         if (is_array($entry) && array_key_exists('soft', $entry)) {
             if ($entry['soft'] > time()) {
-                return $entry['value'];                       // fresh
+                return $entry['value'];
             }
+            if ($state['identity']->known()) {
+                RefreshSolarCache::dispatch($path, $query, $key, $ttl);
 
-            // Soft-stale: serve immediately, revalidate out of band.
-            RefreshSolarCache::dispatch($path, $query, $key, $ttl);
-
-            return $entry['value'];
+                return $entry['value'];
+            }
         }
 
-        return $this->refreshInto($path, $query, $key, $ttl); // cold miss
+        return $this->refreshInto($path, $query, $key, $ttl, foreground: true);
     }
 
     /**
-     * Fetch fresh and store it. Public so {@see RefreshSolarCache} can call it.
+     * Old queued jobs cannot populate a newly observed generation or a different
+     * configured backend. A probe is shared across all jobs in the short lease.
      *
      * @param  array<string,mixed>  $query
      */
-    public function refreshInto(string $path, array $query, string $key, int $ttl): mixed
+    public function refreshInto(string $path, array $query, string $key, int $ttl, bool $foreground = false): mixed
     {
+        $context = app(CatalogueContext::class);
+        $state = $context->current();
+        if ($context->key($path, $query, $state) !== $key) {
+            // A cold foreground read still needs real data; an obsolete job
+            // can be skipped. Never turn a generation race into a false404.
+            return $foreground ? $this->request($path, $query) : null;
+        }
         $value = $this->request($path, $query);
-
-        $this->putCached($key, $value, $ttl);
+        if ($state['token'] !== 'checking' && $context->key($path, $query) === $key) {
+            $known = $state['identity']->known();
+            $this->putCached($key, $value, $known ? $ttl : min($ttl, CatalogueContext::UNKNOWN_DATA_SECONDS), $known);
+        }
 
         return $value;
     }
@@ -768,7 +799,7 @@ class SolarApiClient
     private function configureRequest(PendingRequest $request): PendingRequest
     {
         return $request
-            ->baseUrl($this->baseUrl)
+            ->baseUrl(rtrim((string) config('services.solar.base_url'), '/'))
             ->timeout($this->timeout)
             ->acceptJson()
             ->retry(1, 150, throw: false);
@@ -798,9 +829,9 @@ class SolarApiClient
         return is_array($json) ? $json : null;
     }
 
-    private function putCached(string $key, mixed $value, int $ttl): void
+    private function putCached(string $key, mixed $value, int $ttl, bool $allowStale = true): void
     {
-        Cache::put($key, ['value' => $value, 'soft' => time() + $ttl], $ttl * 6);
+        Cache::put($key, ['value' => $value, 'soft' => time() + $ttl], $allowStale ? $ttl * 6 : $ttl);
     }
 
     // ------------------------------------------------------------------
@@ -859,14 +890,6 @@ class SolarApiClient
         }
 
         return $clean;
-    }
-
-    /** @param array<string,mixed> $query */
-    private function cacheKey(string $path, array $query): string
-    {
-        ksort($query);
-
-        return 'solar:'.sha1($path.'?'.http_build_query($query));
     }
 
     /** Encode a name/id for a path segment while keeping it readable in logs. */

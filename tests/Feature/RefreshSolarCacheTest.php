@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\RefreshSolarCache;
+use App\Services\SolarApi\CatalogueContext;
 use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Process\Process;
+use Tests\CatalogueObservation;
 
 beforeEach(function () {
     $this->directory = sys_get_temp_dir().'/universe-refresh-'.bin2hex(random_bytes(8));
@@ -39,7 +41,8 @@ beforeEach(function () {
         $table->unsignedInteger('available_at');
         $table->unsignedInteger('created_at');
     });
-    $this->key = 'solar:'.sha1('/stats?');
+    CatalogueObservation::prime();
+    $this->key = app(CatalogueContext::class)->key('/stats', []);
     $this->stale = ['value' => ['total_objects' => 42], 'soft' => time() - 1];
     Cache::put($this->key, $this->stale, 3600);
     Http::preventStrayRequests();

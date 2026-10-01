@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Services\SolarApi\CatalogueContext;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -58,7 +59,7 @@ it('keeps the orrery up when positions fail after the health probe passed', func
     fakeSolarDown();
     // The probe is cached for a health window, so the backend can fall over
     // between it and the position batch. The page degrades; it does not 500.
-    Cache::put('solar:health', true, 60);
+    Cache::put(CatalogueContext::storageKey().':health', true, 60);
 
     $this->get('/orrery?date=2026-06-01')
         ->assertOk()

@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\RefreshSolarCache;
+use App\Services\SolarApi\CatalogueContext;
 use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Http\Client\ConnectionException;
@@ -32,7 +33,7 @@ config([
     'services.solar.base_url' => 'https://catalogue.example.test/api/v1',
     'logging.default' => 'null',
 ]);
-$key = 'solar:'.sha1('/stats?');
+$key = app(CatalogueContext::class)->key('/stats', []);
 Http::preventStrayRequests();
 Http::fake(function () use ($mode, $directory, $key) {
     file_put_contents($directory.'/http-calls', "request\n", FILE_APPEND | LOCK_EX);

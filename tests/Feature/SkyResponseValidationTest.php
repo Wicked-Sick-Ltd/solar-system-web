@@ -8,10 +8,12 @@ use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
+use Tests\CatalogueObservation;
 
 beforeEach(function () {
     config(['cache.default' => 'array']);
     Cache::flush();
+    CatalogueObservation::prime();
 });
 
 it('rejects malformed observer responses instead of inventing a visibility status', function (string $field, mixed $value) {

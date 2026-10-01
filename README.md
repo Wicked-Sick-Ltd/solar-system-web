@@ -97,7 +97,12 @@ backend's live `/openapi.json` is the source of truth.
   endpoint (`objects()`, `object()`, `moons()`, `rings()`, `search()`,
   `position()`, `stats()`, …), each returning typed, immutable DTOs from
   `app/Services/SolarApi/Data/`.
-- **Caching** is aggressive and config-driven (`config/services.php` → `solar.cache`):
+- **Catalogue identity** is observed through a short shared lease. Cache generations
+  change with the reported build; legacy/unavailable identities use short fresh-only
+  caching. About shows API and download identities separately. See
+  [catalogue versions and cache rollout](docs/CATALOGUE-CACHE-IDENTITY.md), including
+  the existing CDN-entry purge/wait requirement and snapshot-certification limits.
+- **Caching for known builds** is config-driven (`config/services.php` → `solar.cache`):
   reference data 24h, catalogue listings 6h, positions 5m, a health probe 30s.
   Reads use **stale-while-revalidate** — a soft-stale entry is served instantly
   and refreshed out of band by the `RefreshSolarCache` queue job (runs inline on
