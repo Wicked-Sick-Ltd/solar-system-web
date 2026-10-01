@@ -1,3 +1,4 @@
+import { mountOptics } from './optics-ui.js';
 import {
     WORKSPACE_KEY, LOCATION_KEY, MAX_BYTES, emptyWorkspace, loadWorkspace, saveWorkspace,
     parseWorkspace, validateWorkspace, putEntry, removeEntry, activateSite, activeLocationMatches,
@@ -96,6 +97,7 @@ export function mountWorkspace(root, options = {}) {
     const confirm = options.confirm ?? (message => view.confirm(message));
     const listeners = [];
     let disposed = false;
+    let optics = null;
     let preview = null;
     let importGeneration = 0;
     const urls = new Set();
@@ -150,6 +152,7 @@ export function mountWorkspace(root, options = {}) {
         return el;
     }
     function render() {
+        optics?.refresh();
         for (const collection of ['equipment', 'sites']) {
             const list = get(`${collection}-list`);
             list.replaceChildren();
@@ -266,10 +269,12 @@ export function mountWorkspace(root, options = {}) {
     });
     root.querySelectorAll('[data-workspace-enabled]').forEach(control => { control.disabled = false; });
     kindFields();
+    optics = mountOptics(get('optics'), () => controller.value.equipment);
     attempt(load);
     return {
         dispose() {
             disposed = true;
+            optics?.dispose();
             importGeneration++;
             listeners.forEach(remove => remove());
             urls.forEach(url => view.URL.revokeObjectURL(url));
