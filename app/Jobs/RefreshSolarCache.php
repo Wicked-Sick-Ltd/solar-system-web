@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -21,12 +22,17 @@ use Throwable;
  * Everything it needs is plain serialisable data — path, query, key, ttl — so
  * no closures are captured.
  */
-final class RefreshSolarCache implements ShouldQueue
+final class RefreshSolarCache implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /** Only one refresh per key should be queued at a time. */
     public int $tries = 1;
+
+    /** Keep one refresh per cache key queued or running for up to 15 minutes. */
+    public int $uniqueFor = 900;
+
+    /** Must remain below the queue connection's retry_after (90s by default). */
+    public int $timeout = 60;
 
     /** @param array<string,mixed> $query */
     public function __construct(
@@ -35,6 +41,11 @@ final class RefreshSolarCache implements ShouldQueue
         public string $cacheKey,
         public int $ttl,
     ) {}
+
+    public function uniqueId(): string
+    {
+        return $this->cacheKey;
+    }
 
     public function handle(SolarApiClient $client): void
     {
