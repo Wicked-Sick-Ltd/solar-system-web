@@ -12,11 +12,18 @@ class Element extends EventTarget {
     disabled = true;
     hidden = false;
     textContent = '';
+    contains(target) { return target === this; }
+    focus() { this.focused = true; }
     setAttribute(name, value) { this.attributes.set(name, value); }
 }
 function harness() {
     const nodes = new Map();
+    const document = new EventTarget();
+    document.body = new Element();
+    document.documentElement = new Element();
+    document.activeElement = document.body;
     const root = {
+        ownerDocument: document,
         dataset: { dataUrl: '/galaxy/data' },
         querySelector(selector) {
             if (!nodes.has(selector)) nodes.set(selector, new Element());
@@ -38,8 +45,8 @@ function harness() {
         },
     });
     const module = {
-        mountGalaxy(element, hosts) {
-            mounts.push({ element, hosts });
+        mountGalaxy(element, hosts, options) {
+            mounts.push({ element, hosts, options });
             return () => { disposals++; };
         },
     };
@@ -47,7 +54,7 @@ function harness() {
         imports[index].resolve(module);
         requests[index].resolve({ ok: true, json: async () => ({ hosts }) });
     }
-    return { page, nodes, imports, requests, mounts, ready, get disposals() { return disposals; } };
+    return { page, document, nodes, imports, requests, mounts, ready, get disposals() { return disposals; } };
 }
 
 test('no renderer or catalogue request until explicit activation; duplicate clicks load once', async () => {
@@ -119,3 +126,46 @@ for (const failure of ['network', 'chunk', 'invalid-json', 'status', 'mount']) {
         h.page.dispose();
     });
 }
+
+
+test('keyboard activation continues focus into the map after disabling the load button', async () => {
+    const h = harness();
+    h.document.activeElement = h.nodes.get('[data-load-map]');
+    const completion = h.page.load();
+    h.document.activeElement = h.document.body;
+    h.ready();
+    await completion;
+    assert.equal(h.mounts[0].options.focusOnReady, true);
+    h.page.dispose();
+});
+
+for (const movement of ['focusin', 'pointerdown', 'keydown']) {
+    test(`a visitor who moves elsewhere via ${movement} while loading keeps their focus`, async () => {
+        const h = harness();
+        h.document.activeElement = h.nodes.get('[data-load-map]');
+        const completion = h.page.load();
+        const elsewhere = new Element();
+        const event = new Event(movement);
+        Object.defineProperty(event, 'target', { value: elsewhere });
+        h.document.dispatchEvent(event);
+        h.document.activeElement = h.document.body;
+        h.ready();
+        await completion;
+        assert.equal(h.mounts[0].options.focusOnReady, false);
+        h.page.dispose();
+    });
+}
+
+test('load failure restores the retry button only if the visitor is still waiting', async () => {
+    for (const moveAway of [false, true]) {
+        const h = harness();
+        h.document.activeElement = h.nodes.get('[data-load-map]');
+        const completion = h.page.load();
+        h.document.activeElement = h.document.body;
+        if (moveAway) h.document.dispatchEvent(new Event('keydown'));
+        h.imports[0].reject(new Error('offline'));
+        await completion;
+        assert.equal(h.nodes.get('[data-load-map]').focused === true, !moveAway);
+        h.page.dispose();
+    }
+});

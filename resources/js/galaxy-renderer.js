@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PARSEC_TO_LY, SUN_GALACTOCENTRIC, position, visibleHosts, distanceUncertainty } from './galaxy-data.js';
 
-export function mountGalaxy(root, hosts) {
+export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
     const viewport = root.querySelector('[data-viewport]');
     const status = root.querySelector('[data-map-status]');
     const picker = root.querySelector('[data-system]');
@@ -93,7 +93,7 @@ export function mountGalaxy(root, hosts) {
             modeControl.disabled = radiusControl.disabled = reset.disabled = true;
             const selected = new URLSearchParams(location.search).get('host');
             if (selected) selectHost(selected);
-            picker.focus({ preventScroll: true });
+            if (focusOnReady) picker.focus({ preventScroll: true });
             return dispose;
         }
         modeControl.disabled = radiusControl.disabled = reset.disabled = false;
@@ -194,7 +194,7 @@ export function mountGalaxy(root, hosts) {
         rebuild();
         const selected = new URLSearchParams(location.search).get('host');
         if (selected) selectHost(selected);
-        renderer.domElement.focus({ preventScroll: true });
+        if (focusOnReady) renderer.domElement.focus({ preventScroll: true });
         return dispose;
     } catch (error) {
         dispose();

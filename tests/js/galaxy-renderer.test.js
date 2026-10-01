@@ -72,7 +72,7 @@ const host = { id: 'far', name: 'Distant system', planet_count: 1, distance_pc: 
 
 test('selection still expands the distance filter, and disposal releases GPU resources and listeners', () => {
     const h = harness();
-    const dispose = h.mount(h.root, [host]);
+    const dispose = h.mount(h.root, [host], { focusOnReady: true });
     const picker = h.nodes.get('[data-system]');
     picker.value = 'far';
     picker.dispatchEvent(new Event('change'));
@@ -105,9 +105,10 @@ test('selection still expands the distance filter, and disposal releases GPU res
 
 test('WebGL unavailable keeps textual selection and removes its listener on disposal', () => {
     const h = harness({ webgl: false });
-    const dispose = h.mount(h.root, [host]);
+    const dispose = h.mount(h.root, [host], { focusOnReady: true });
     const picker = h.nodes.get('[data-system]');
     assert.equal(picker.disabled, false);
+    assert.equal(picker.focused, true);
     picker.value = 'far';
     picker.dispatchEvent(new Event('change'));
     assert.equal(h.nodes.get('[data-selection]').children[0].textContent, host.name);
@@ -124,4 +125,15 @@ test('failure after creating WebGL cleans partial GPU state before retry', () =>
     assert.equal(h.renderer.disposed, true);
     assert.equal(h.renderer.contextLost, true);
     assert.equal(h.renderer.domElement.removed, true);
+});
+
+
+test('successful and unavailable renderers do not take focus without continuation permission', () => {
+    for (const webgl of [true, false]) {
+        const h = harness({ webgl });
+        const dispose = h.mount(h.root, [host], { focusOnReady: false });
+        assert.notEqual(h.renderer?.domElement.focused, true);
+        assert.notEqual(h.nodes.get('[data-system]').focused, true);
+        dispose();
+    }
 });
