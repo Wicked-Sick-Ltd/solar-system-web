@@ -15,6 +15,9 @@ it('renders auth pages', function () {
 });
 
 it('registers a user and signs them in', function () {
+    $this->withSession(['_token' => 'before-registration']);
+    $sessionId = session()->getId();
+
     $this->post('/register', [
         'name' => 'Ada Lovelace',
         'email' => 'ada@example.com',
@@ -23,6 +26,8 @@ it('registers a user and signs them in', function () {
     ])->assertRedirect('/');
 
     $this->assertAuthenticated();
+    expect(session()->getId())->not->toBe($sessionId);
+    expect(session()->token())->not->toBe('before-registration');
     $this->assertDatabaseHas('users', ['email' => 'ada@example.com']);
 });
 

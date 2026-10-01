@@ -38,7 +38,14 @@ final class SetResponseHeaders
         $response = $next($request);
 
         $this->addSecurityHeaders($response);
-        $this->makeCacheable($request, $response);
+        // Shared caches must select the anonymous representation before lookup,
+        // and account pages must not remain in the browser cache after logout.
+        $response->setVary('Cookie', false);
+        if ($request->user() !== null || $request->cookies->count() > 0 || $request->headers->has('Authorization')) {
+            $response->headers->set('Cache-Control', 'private, no-store');
+        } else {
+            $this->makeCacheable($request, $response);
+        }
 
         return $response;
     }
@@ -49,7 +56,7 @@ final class SetResponseHeaders
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'SAMEORIGIN',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
-            'Permissions-Policy' => 'geolocation=(), camera=(), microphone=(), interest-cohort=()',
+            'Permissions-Policy' => 'geolocation=(self), camera=(), microphone=(), interest-cohort=()',
             'Cross-Origin-Opener-Policy' => 'same-origin',
         ];
 
@@ -92,11 +99,11 @@ final class SetResponseHeaders
             $response->headers->removeCookie($cookie->getName(), $cookie->getPath(), $cookie->getDomain());
         }
 
-        // Short browser cache; longer shared (CDN) cache; never-blocking refresh.
+        // Revalidate in browsers; longer shared (CDN) cache with background refresh.
         // The catalogue only changes nightly, so this is comfortably safe.
         $response->headers->set(
             'Cache-Control',
-            'public, max-age=120, s-maxage=600, stale-while-revalidate=86400',
+            'public, max-age=0, s-maxage=600, stale-while-revalidate=86400',
         );
     }
 }

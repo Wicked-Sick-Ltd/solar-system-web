@@ -15,7 +15,7 @@ it('sends baseline security headers on every page', function () {
         ->assertHeader('X-Content-Type-Options', 'nosniff')
         ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
         ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-        ->assertHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), interest-cohort=()');
+        ->assertHeader('Permissions-Policy', 'geolocation=(self), camera=(), microphone=(), interest-cohort=()');
 });
 
 it('makes non-interactive public pages edge-cacheable and cookie-less', function (string $uri) {
@@ -61,4 +61,24 @@ it('makes the sitemap and robots.txt publicly cacheable', function () {
 
     expect($this->get('/robots.txt')->assertOk()->headers->get('Cache-Control'))
         ->toContain('public');
+});
+
+it('keeps cookie-bearing requests private even on public routes', function () {
+    $response = $this->withCookie(config('session.cookie'), 'existing-session')->get('/')->assertOk();
+
+    expect($response->headers->get('Cache-Control'))->toContain('private')->toContain('no-store');
+    expect($response->headers->get('Vary'))->toContain('Cookie');
+});
+
+it('requires the browser to revalidate the guest page after account changes', function () {
+    $response = $this->get('/')->assertOk();
+
+    expect($response->headers->get('Cache-Control'))->toContain('max-age=0');
+    expect($response->headers->get('Vary'))->toContain('Cookie');
+});
+
+it('prevents browser caching of account pages', function () {
+    $response = $this->actingAs(User::factory()->create())->get('/alerts')->assertOk();
+
+    expect($response->headers->get('Cache-Control'))->toContain('private')->toContain('no-store');
 });
