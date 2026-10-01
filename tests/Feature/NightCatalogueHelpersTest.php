@@ -171,3 +171,24 @@ it('rejects malformed appearance without exporting extra nested data', function 
     ['appearance.magnitude_flag', []], ['appearance.magnitude_code', false], ['appearance.major_axis_arcmin', -1],
     ['appearance.minor_axis_arcmin', '1'], ['appearance.private_path', '/secret'],
 ]);
+
+it('retains optional algorithm source identity and accepts old providers without implying a database snapshot', function () {
+    foreach (nightProvenanceFixture()['providers'] as $method) {
+        expect(NightProviderProvenance::validate($method))->toBe($method);
+        unset($method['calculation']);
+        expect(NightProviderProvenance::validate($method))->toBe($method);
+    }
+});
+
+it('rejects malformed or private algorithm identity fields before exports', function (string $path, mixed $value) {
+    $method = nightProvenanceFixture()['providers']['builtin'];
+    data_set($method, $path, $value);
+    expect(fn () => NightProviderProvenance::validate($method))->toThrow(SolarApiException::class);
+})->with([
+    ['calculation', null], ['calculation', []], ['calculation.algorithm', 'unknown'], ['calculation.source_sha256', false],
+    ['calculation.source_sha256', str_repeat('A', 64)], ['calculation.catalogue_scope', 'current database'],
+    ['calculation.files', []], ['calculation.files', ['observing/planner.py', 'observing/planner.py']],
+    ['calculation.files', ['observing/worker.py', 'observing/planner.py']], ['calculation.files', ['/private/planner.py']],
+    ['calculation.files', ['observing/../secret.py']], ['calculation.files', [true]], ['calculation.files', ['observing/token=secret.py']],
+    ['calculation.python_version', null], ['calculation.numpy_version', []], ['calculation.secret', '/private/credential'],
+]);

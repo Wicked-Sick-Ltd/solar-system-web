@@ -27,6 +27,26 @@
         },
         "status": "predicted"
       },
+      "calculation": {
+        "algorithm": "observing-source-files-sha256-v1",
+        "source_sha256": "5b3e57e5af867d109ae850f7b4fda35fd1279c07c170b40009a59d2de02dc9ed",
+        "files": [
+          "observing/__init__.py",
+          "observing/catalogue.py",
+          "observing/ephemeris.py",
+          "observing/horizon.py",
+          "observing/identity.py",
+          "observing/inputs.py",
+          "observing/kernels.py",
+          "observing/planner.py",
+          "observing/worker.py",
+          "starter_astrometry.py",
+          "starter_catalogues.py"
+        ],
+        "python_version": "3.12.14",
+        "numpy_version": "2.5.3",
+        "catalogue_scope": "packaged-target-snapshots; SQLite catalogue not consulted"
+      },
       "sample_minutes": 5.0,
       "root_tolerance_seconds": 1,
       "window_note": "Geometric model windows, not visibility or eye-safety advice. Near-tangent crossings and horizon azimuth ambiguity are marked unresolved; ambiguous bands and sub-second intervals are omitted. Returned windows use the selected UTC interval; chart samples cover the whole local night."
@@ -65,6 +85,26 @@
         "source_url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440s.bsp",
         "start_tdb": "1849-12-26T00:00:00.000",
         "end_tdb": "2150-01-22T00:00:00.000"
+      },
+      "calculation": {
+        "algorithm": "observing-source-files-sha256-v1",
+        "source_sha256": "5b3e57e5af867d109ae850f7b4fda35fd1279c07c170b40009a59d2de02dc9ed",
+        "files": [
+          "observing/__init__.py",
+          "observing/catalogue.py",
+          "observing/ephemeris.py",
+          "observing/horizon.py",
+          "observing/identity.py",
+          "observing/inputs.py",
+          "observing/kernels.py",
+          "observing/planner.py",
+          "observing/worker.py",
+          "starter_astrometry.py",
+          "starter_catalogues.py"
+        ],
+        "python_version": "3.12.14",
+        "numpy_version": "2.5.3",
+        "catalogue_scope": "packaged-target-snapshots; SQLite catalogue not consulted"
       },
       "sample_minutes": 5.0,
       "root_tolerance_seconds": 1,

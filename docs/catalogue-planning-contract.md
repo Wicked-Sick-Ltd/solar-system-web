@@ -98,3 +98,11 @@ is inferred. Actual nulls, negative magnitudes and reported zero values survive.
 Unknown nested fields fail validation and cannot enter shared exports. Consumers
 must distinguish integrated extended-object magnitude from point-source visibility,
 retain band/quality context, and never use double-star separation as a diameter.
+
+`method.calculation` is another optional additive member. When present, the
+frontend preserves its declared source-hash algorithm, source SHA-256, ordered
+relative source-file list, Python/NumPy versions and explicit packaged-source
+scope. It accepts older methods without manufacturing this identity. Unknown
+nested fields, absolute/traversal paths, duplicate or unordered files and malformed
+versions/hashes fail closed. This is source metadata, not execution attestation or
+a global SQLite catalogue identity; package/runtime retention is still required.

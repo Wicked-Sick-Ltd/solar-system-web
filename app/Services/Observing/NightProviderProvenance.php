@@ -13,7 +13,7 @@ final class NightProviderProvenance
         NightMetadata::require(is_array($value) && in_array($value['provider'] ?? null, ['astropy-builtin', 'jpl-de440s'], true));
         $jpl = $value['provider'] === 'jpl-de440s';
         $keys = ['provider', 'ephemeris', 'astropy_version', 'erfa_version', 'frame', 'refraction', 'accuracy_note',
-            'iers', 'sample_minutes', 'root_tolerance_seconds', 'window_note'];
+            'iers', 'sample_minutes', 'root_tolerance_seconds', 'window_note', ...(array_key_exists('calculation', $value) ? ['calculation'] : [])];
         $data = NightMetadata::shape($value, $jpl ? [...$keys, 'jplephem_version', 'kernel'] : $keys);
         NightMetadata::require($data['ephemeris'] === ($jpl ? 'JPL DE440s' : 'ERFA builtin'));
         foreach (['astropy_version', 'erfa_version'] as $field) {
@@ -39,6 +39,24 @@ final class NightProviderProvenance
             NightMetadata::hash($kernel['sha256']);
             NightMetadata::url($kernel['source_url']);
             NightMetadata::require(NightMetadata::tdb($kernel['start_tdb']) < NightMetadata::tdb($kernel['end_tdb']));
+        }
+
+        if (array_key_exists('calculation', $data)) {
+            $calculation = NightMetadata::shape($data['calculation'], ['algorithm', 'source_sha256', 'files', 'python_version', 'numpy_version', 'catalogue_scope']);
+            NightMetadata::require($calculation['algorithm'] === 'observing-source-files-sha256-v1'
+                && $calculation['catalogue_scope'] === 'packaged-target-snapshots; SQLite catalogue not consulted');
+            NightMetadata::hash($calculation['source_sha256']);
+            NightMetadata::version($calculation['python_version']);
+            NightMetadata::version($calculation['numpy_version']);
+            NightMetadata::require(is_array($calculation['files']) && array_is_list($calculation['files'])
+                && count($calculation['files']) >= 1 && count($calculation['files']) <= 32);
+            $previous = null;
+            foreach ($calculation['files'] as $file) {
+                NightMetadata::require(is_string($file) && strlen($file) <= 100
+                    && preg_match('/^(?:observing\/[a-z_]+|starter_astrometry|starter_catalogues)\.py$/D', $file) === 1
+                    && ($previous === null || strcmp($previous, $file) < 0));
+                $previous = $file;
+            }
         }
 
         return $data;
