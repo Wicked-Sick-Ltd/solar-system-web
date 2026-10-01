@@ -54,6 +54,9 @@ final class MeteorShowers extends Component
         } else {
             unset($this->rawInputErrors[$property]);
             $this->resetValidation($property);
+            if ($property === 'establishedOnly') {
+                $this->establishedOnly = in_array($this->establishedOnly, [true, 1, '1'], true);
+            }
         }
     }
 

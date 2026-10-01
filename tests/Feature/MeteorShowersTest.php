@@ -219,3 +219,11 @@ it('displays readable citation text while preserving the raw source reference', 
     $this->get('/meteor-showers/GEM')->assertOk()->assertSee('Jopek & colleagues (2024)')
         ->assertDontSee('javascript:alert(1)', escape: false)->assertDontSee('&lt;A', escape: false);
 });
+
+it('normalizes accepted checkbox update values before querying the strict API client', function (mixed $value, bool $expected) {
+    fakeMeteorCatalogue([meteorParameterPayload()]);
+    Livewire::test(MeteorShowers::class)->set('establishedOnly', $value)
+        ->assertSet('establishedOnly', $expected)->assertSee('Geminids');
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/meteor-showers')
+        && $request['established_only'] === ($expected ? 'true' : 'false'));
+})->with([[1, true], ['1', true], [0, false], ['0', false]]);

@@ -9,9 +9,9 @@
                 <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
                 <path d="m18 18-4.5-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
             </svg>
-            <input id="search-q" name="q" type="search" value="{{ $q }}" wire:model.live.debounce.300ms="q"
-                   maxlength="{{ \App\Livewire\SearchPage::QUERY_LIMIT }}" aria-describedby="search-help{{ $queryTooLong ? ' search-error' : '' }}"
-                   @if ($queryTooLong) aria-invalid="true" @endif
+            <input id="search-q" name="q" type="search" value="{{ $query }}" wire:model.live.debounce.300ms="q"
+                   maxlength="{{ \App\Livewire\SearchPage::QUERY_LIMIT }}" aria-describedby="search-help{{ $queryError !== null ? ' search-error' : '' }}"
+                   @if ($queryError !== null) aria-invalid="true" @endif
                    placeholder="{{ __('Try “Saturn”, “Halley”, “TRAPPIST-1”…') }}" autocomplete="off" autofocus
                    class="min-w-0 w-full bg-transparent px-3 py-3.5 text-lg focus:outline-none" style="color: var(--text);">
             <button type="submit" class="rounded px-2 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" style="color: var(--accent);">{{ __('Search') }}</button>
@@ -20,8 +20,8 @@
         <p wire:loading wire:target="q" role="status" class="mt-2 text-sm" style="color: var(--accent);">{{ __('Searching…') }}</p>
     </form>
 
-    @if ($queryTooLong)
-        <p id="search-error" role="alert" class="surface p-5">{{ __('Please use a search of :limit characters or fewer.', ['limit' => \App\Livewire\SearchPage::QUERY_LIMIT]) }}</p>
+    @if ($queryError !== null)
+        <p id="search-error" role="alert" class="surface p-5">{{ $queryError }}</p>
     @elseif ($query === '')
         <x-empty-state :title="__('Search the catalogue')">
             {{ __('Start typing to find planets, moons, asteroids, comets and worlds beyond our solar system.') }}

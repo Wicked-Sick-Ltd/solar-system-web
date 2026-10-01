@@ -23,16 +23,32 @@ use Livewire\Component;
 final class SearchPage extends Component
 {
     #[Url(as: 'q', except: '')]
-    public string $q = '';
+    public mixed $q = '';
 
     public const int QUERY_LIMIT = 200;
 
     private const int RESULTS_PER_CATALOGUE = 20;
 
+    public function mount(): void
+    {
+        // URL hydration interprets JSON-looking text (such as "true"). A name
+        // search must retain the original literal string and reject arrays.
+        $this->q = request()->query()['q'] ?? '';
+    }
+
+    public function updatedQ(): void
+    {
+        if ($this->q === null) {
+            $this->q = '';
+        }
+    }
+
     public function render(SolarApiClient $api): View
     {
-        $query = trim($this->q);
+        $query = is_string($this->q) ? trim($this->q) : '';
         $queryTooLong = mb_strlen($query) > self::QUERY_LIMIT;
+        $queryError = ! is_string($this->q) ? __('Enter a single search term.') : ($queryTooLong
+            ? __('Please use a search of :limit characters or fewer.', ['limit' => self::QUERY_LIMIT]) : null);
 
         app(Seo::class)
             ->title($query !== '' && ! $queryTooLong ? __('Search: :q', ['q' => $query]) : __('Search'))
@@ -45,7 +61,7 @@ final class SearchPage extends Component
         $exoplanets = new Paginated([], self::RESULTS_PER_CATALOGUE, 0, false);
         $exoplanetsUnavailable = false;
 
-        if ($query !== '' && ! $queryTooLong) {
+        if ($query !== '' && $queryError === null) {
             try {
                 $results = $api->search($query, self::RESULTS_PER_CATALOGUE + 1);
                 $solarHasMore = count($results) > self::RESULTS_PER_CATALOGUE;
@@ -68,6 +84,7 @@ final class SearchPage extends Component
             'exoplanets' => $exoplanets,
             'exoplanetsUnavailable' => $exoplanetsUnavailable,
             'queryTooLong' => $queryTooLong,
+            'queryError' => $queryError,
             'query' => $query,
         ]);
     }

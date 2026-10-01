@@ -140,3 +140,29 @@ it('accepts exoplanet records without optional scientific metadata', function ()
     $this->get('/search?q=example')->assertOk()->assertSee('Example b')
         ->assertDontSee('temporarily unavailable')->assertDontSee('Host system:');
 });
+
+it('preserves literal search URL strings instead of JSON coercing them', function (string $query) {
+    fakeSolar();
+    Livewire::withQueryParams(['q' => $query])->test(SearchPage::class)
+        ->assertSet('q', $query)->assertSee('value="'.$query.'"', false);
+    Http::assertSent(fn ($r) => str_contains($r->url(), '/search') && $r['q'] === $query);
+})->with(['true', 'false', 'null', '123', '0']);
+
+it('rejects malformed raw search URLs without searching another value', function () {
+    $this->get('/search?'.http_build_query(['q' => ['Saturn']]))->assertOk()
+        ->assertSee('Enter a single search term.')->assertSee('aria-invalid="true"', false);
+    Http::assertNothingSent();
+});
+
+it('handles malformed search updates and recovers when corrected', function (mixed $value) {
+    $component = Livewire::test(SearchPage::class)->set('q', $value)
+        ->assertSee('Enter a single search term.')->assertDontSee('No matches for');
+    Http::assertNothingSent();
+    fakeSolar();
+    $component->set('q', 'Ceres')->assertSee('Ceres')->assertDontSee('Enter a single search term.');
+})->with([[['Saturn']], [true], [false], [42], [1.5]]);
+
+it('treats a null search update as clearing the search', function () {
+    Livewire::test(SearchPage::class)->set('q', null)->assertSet('q', '')->assertSee('Start typing');
+    Http::assertNothingSent();
+});
