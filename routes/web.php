@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ExoplanetExportController;
 use App\Http\Controllers\GalaxyDataController;
 use App\Http\Controllers\NightPlannerController;
+use App\Http\Controllers\NightWeatherController;
 use App\Http\Controllers\ObservingSyncController;
 use App\Http\Controllers\ObservingSyncPageController;
 use App\Http\Controllers\OgImageController;
@@ -51,6 +52,7 @@ Route::get('/observatory', ObservingWorkspace::class)->name('observatory');
 Route::get('/observing-journal', ObservingJournal::class)->name('observing.journal');
 Route::get('/observe/night', NightPlannerController::class)->name('observe.night');
 Route::post('/observe/night', NightPlannerController::class)->middleware('throttle:6,1')->name('observe.night.calculate');
+Route::post('/observe/night/weather', NightWeatherController::class)->middleware('throttle:12,1')->name('observe.night.weather');
 Route::get('/learn', LearnPage::class)->name('learn');
 
 Route::get('/objects', ObjectsIndex::class)->name('objects.index');
