@@ -1,0 +1,188 @@
+{
+  "equipmentWorkspace": {
+    "schemaVersion": 2,
+    "equipment": [
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "name": "Backyard telescope",
+        "kind": "telescope",
+        "apertureMm": 200,
+        "focalLengthMm": 1000
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "name": "Wide eyepiece",
+        "kind": "eyepiece",
+        "focalLengthMm": 20,
+        "apparentFovDeg": 60,
+        "fieldStopMm": null
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "name": "Binoculars",
+        "kind": "binocular",
+        "apertureMm": 50,
+        "magnification": 10
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000004",
+        "name": "Barlow",
+        "kind": "barlow",
+        "factor": 2
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "name": "Reducer",
+        "kind": "reducer",
+        "factor": 0.8
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000007",
+        "name": "Example sensor",
+        "kind": "camera",
+        "sensorWidthMm": 36,
+        "sensorHeightMm": 24,
+        "pixelSizeUm": 5
+      }
+    ],
+    "sites": [
+      {
+        "id": "00000000-0000-4000-8000-000000000006",
+        "name": "Example London site",
+        "latitude": 51.51,
+        "longitude": -0.13,
+        "timezone": "Europe/London",
+        "minAltitudeDeg": 20,
+        "horizonMask": [
+          {
+            "azimuthDeg": 0,
+            "minAltitudeDeg": 10
+          },
+          {
+            "azimuthDeg": 90,
+            "minAltitudeDeg": 15
+          },
+          {
+            "azimuthDeg": 180,
+            "minAltitudeDeg": 5
+          },
+          {
+            "azimuthDeg": 270,
+            "minAltitudeDeg": 12
+          }
+        ]
+      }
+    ],
+    "activeSiteId": null
+  },
+  "journal": {
+    "schemaVersion": 1,
+    "lists": [
+      {
+        "id": "00000000-0000-4000-8000-000000000010",
+        "name": "Autumn sky",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000011",
+            "target": {
+              "catalogue": "solar",
+              "id": "planet-saturn",
+              "label": "Saturn"
+            },
+            "status": "planned"
+          }
+        ]
+      }
+    ],
+    "observations": [
+      {
+        "id": "00000000-0000-4000-8000-000000000012",
+        "target": {
+          "catalogue": "starter",
+          "id": "bsc5p:hr2491",
+          "label": "Sirius"
+        },
+        "observedAtUtc": "2026-10-01T22:00:00Z",
+        "timezone": "Europe/London",
+        "outcome": "uncertain",
+        "notes": "Private fixture notes 🪐\nCloud interrupted the observation.",
+        "equipmentAndSite": {
+          "schemaVersion": 2,
+          "equipment": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "name": "Backyard telescope",
+              "kind": "telescope",
+              "apertureMm": 200,
+              "focalLengthMm": 1000
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "name": "Wide eyepiece",
+              "kind": "eyepiece",
+              "focalLengthMm": 20,
+              "apparentFovDeg": 60,
+              "fieldStopMm": null
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "name": "Binoculars",
+              "kind": "binocular",
+              "apertureMm": 50,
+              "magnification": 10
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "name": "Barlow",
+              "kind": "barlow",
+              "factor": 2
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "name": "Reducer",
+              "kind": "reducer",
+              "factor": 0.8
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000007",
+              "name": "Example sensor",
+              "kind": "camera",
+              "sensorWidthMm": 36,
+              "sensorHeightMm": 24,
+              "pixelSizeUm": 5
+            }
+          ],
+          "sites": [
+            {
+              "id": "00000000-0000-4000-8000-000000000006",
+              "name": "Example London site",
+              "latitude": 51.51,
+              "longitude": -0.13,
+              "timezone": "Europe/London",
+              "minAltitudeDeg": 20,
+              "horizonMask": [
+                {
+                  "azimuthDeg": 0,
+                  "minAltitudeDeg": 10
+                },
+                {
+                  "azimuthDeg": 90,
+                  "minAltitudeDeg": 15
+                },
+                {
+                  "azimuthDeg": 180,
+                  "minAltitudeDeg": 5
+                },
+                {
+                  "azimuthDeg": 270,
+                  "minAltitudeDeg": 12
+                }
+              ]
+            }
+          ],
+          "activeSiteId": null
+        }
+      }
+    ]
+  }
+}
