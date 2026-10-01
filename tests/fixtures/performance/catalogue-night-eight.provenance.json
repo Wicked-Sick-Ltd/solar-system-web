@@ -1,0 +1,106 @@
+{
+  "description": "Recorded offline astronomy response used only as a rendering workload; no backend computation occurs during this benchmark.",
+  "backend_revision": "c4f618ab6f0503d871e417680a9a008cd1a29dec",
+  "source_json_sha256": "f86206fb787284b8fbe9f962d6bfabfd6ed13141e50b36714dd3bbcf9485924c",
+  "compressed_sha256": "d9148cb194f44b0a91cddd25f1d3810072d8c451367b53f437c9ef6cd4d31f73",
+  "source_json_bytes": 974868,
+  "target_ids": [
+    "moon",
+    "jupiter",
+    "saturn",
+    "bsc5p:hr2491",
+    "bsc5p:hr7001",
+    "openngc:NGC0224",
+    "openngc:NGC1976",
+    "openngc:NGC6720"
+  ],
+  "samples_per_target": [
+    289,
+    289,
+    289,
+    289,
+    289,
+    289,
+    289,
+    289
+  ],
+  "observer": {
+    "lat": 51.5,
+    "lon": -0.12,
+    "timezone": "Europe/London",
+    "elevation_m": 0
+  },
+  "night": {
+    "date": "2026-10-01",
+    "start_utc": "2026-10-01T11:00:00Z",
+    "end_utc": "2026-10-02T11:00:00Z",
+    "duration_hours": 24.0
+  },
+  "constraints": {
+    "min_altitude_deg": 20.0,
+    "window_start_utc": "2026-10-01T11:00:00Z",
+    "window_end_utc": "2026-10-02T11:00:00Z",
+    "horizon_mask": [
+      {
+        "azimuth_deg": 0.0,
+        "min_altitude_deg": 10.0
+      },
+      {
+        "azimuth_deg": 90.0,
+        "min_altitude_deg": 20.0
+      },
+      {
+        "azimuth_deg": 180.0,
+        "min_altitude_deg": 5.0
+      },
+      {
+        "azimuth_deg": 270.0,
+        "min_altitude_deg": 15.0
+      }
+    ],
+    "horizon_rule": "Maximum of baseline and circular linear user-entered horizon; unknown mask is not a surveyed clear horizon. Zenith ambiguity is unresolved and omitted.",
+    "sun_altitude_deg": -12.0,
+    "min_sun_separation_deg": 30,
+    "min_moon_separation_deg": 30.0,
+    "moon_separation_rule": "For targets other than Moon, apply only while Moon's geometric centre is above 0 degrees, independent of the target horizon mask."
+  },
+  "method": {
+    "provider": "jpl-de440s",
+    "ephemeris": "JPL DE440s",
+    "astropy_version": "8.0.1",
+    "erfa_version": "2.0.1.5",
+    "frame": "apparent topocentric AltAz; azimuth north through east",
+    "refraction": "none; Moon/Mercury/Venus centres, Mars through Neptune system barycentres",
+    "accuracy_note": "Checksum-pinned JPL DE440s with Astropy apparent coordinate transforms in an isolated worker. Mars through Neptune use system barycentres, not independent planet centres. Numerical crossing tolerance is not physical accuracy. No surveyed terrain or atmospheric model, and no visibility guarantee. A supplied horizon mask is user-entered.",
+    "iers": {
+      "start_utc": "1973-01-02T00:00:00Z",
+      "end_utc": "2027-09-18T00:00:00Z",
+      "data_version": "0.2026.9.21.0.56.25",
+      "snapshot": {
+        "sha256": "3108b111e5a805d3140fd8707620ab6aeacdd4753a138743ad0b2366fcf7760f",
+        "algorithm": "effective-iers-columns-le-f64-v1",
+        "columns": [
+          "MJD",
+          "UT1_UTC",
+          "PM_x",
+          "PM_y",
+          "UT1Flag",
+          "PolPMFlag"
+        ]
+      },
+      "status": "predicted"
+    },
+    "jplephem_version": "2.24",
+    "kernel": {
+      "name": "de440s.bsp",
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "size_bytes": 32726016,
+      "source_url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440s.bsp",
+      "start_tdb": "1849-12-26T00:00:00.000",
+      "end_tdb": "2150-01-22T00:00:00.000"
+    },
+    "sample_minutes": 5.0,
+    "root_tolerance_seconds": 1,
+    "window_note": "Geometric model windows, not visibility or eye-safety advice. Near-tangent crossings and horizon azimuth ambiguity are marked unresolved; ambiguous bands and sub-second intervals are omitted. Returned windows use the selected UTC interval; chart samples cover the whole local night."
+  }
+}
