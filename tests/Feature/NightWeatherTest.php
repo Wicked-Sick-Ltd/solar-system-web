@@ -203,3 +203,23 @@ it('does not make another provider call while this rounded-location refresh is l
     $this->postJson('/observe/night/weather', nightWeatherInput())->assertOk();
     Http::assertSentCount(1);
 });
+
+it('does not let an expired refresh producer overwrite a newer weather snapshot', function () {
+    $calls = 0;
+    Http::fake(function () use (&$calls) {
+        $calls++;
+        $payload = nightWeatherPayload();
+        if ($calls === 1) {
+            $this->travel(12)->seconds();
+            $new = app(OpenMeteoClient::class)->hourlyForecast(51.5, -0.12);
+            expect($new->hours['2026-10-01T21:00:00Z']['cloud_cover'])->toBe(50.0);
+        } else {
+            $payload['hourly']['cloud_cover'][0] = 50;
+        }
+
+        return Http::response($payload);
+    });
+    app(OpenMeteoClient::class)->hourlyForecast(51.5, -0.12);
+    expect(app(OpenMeteoClient::class)->hourlyForecast(51.5, -0.12)->hours['2026-10-01T21:00:00Z']['cloud_cover'])->toBe(50.0);
+    Http::assertSentCount(2);
+});
