@@ -2,6 +2,7 @@
     @if($apiDown)<x-api-down :section="__('This exoplanet')" />
     @elseif($planet)
         <x-page-header :title="$planet->name" :eyebrow="__('Exoplanet')" :lead="\App\Support\Format::lightYears($planet->distancePc)" />
+        <x-save-observing-target catalogue="exoplanet" :target-id="$planet->id" :target-label="$planet->name" />
         <div class="mb-8 flex flex-wrap gap-5">
             <a class="underline" href="{{ route('systems.show', $planet->hostId) }}">{{ __('Explore :name', ['name' => $planet->hostName]) }} →</a>
             <a class="underline" href="{{ route('galaxy', ['host' => $planet->hostId]) }}">{{ __('Locate system') }} →</a>

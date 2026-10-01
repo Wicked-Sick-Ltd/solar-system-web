@@ -5,6 +5,7 @@
         <h2 id="observe-workspace" class="text-2xl">{{ __('Your equipment and observing sites') }}</h2>
         <p class="mt-3 leading-relaxed">{{ __('Keep your telescopes, binoculars, eyepieces and favourite sites in this browser. No account is needed.') }}</p>
         <a class="mt-4 inline-block underline" href="{{ route('observatory') }}">{{ __('Open your observatory') }} →</a>
+        <p><a class="mt-3 inline-block underline" href="{{ route('observing.journal') }}">{{ __('Your observing lists and journal') }} →</a></p>
     </section>
     <ol class="space-y-5">
         <li class="surface p-6">

@@ -74,6 +74,7 @@
             <h2 id="workspace-heading" class="font-serif text-xl font-medium">{{ __('Equipment and named sites') }}</h2>
             <p class="mt-3 text-sm">{{ __('Your observatory stores equipment and named observing sites in this browser. Manage, export, import or delete that workspace on its own page. It is not included in settings links or cleared by the display settings button below.') }}</p>
             <a class="mt-3 inline-block underline" href="{{ route('observatory') }}">{{ __('Manage your observatory') }} →</a>
+            <p class="mt-3 text-sm">{{ __('Observing lists and journal entries have separate local storage and export/removal controls.') }} <a class="underline" href="{{ route('observing.journal') }}">{{ __('Manage your observing journal') }}</a></p>
         </section>
 
         {{-- Preferences --}}

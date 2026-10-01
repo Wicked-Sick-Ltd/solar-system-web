@@ -52,6 +52,7 @@
             @foreach ($plan['targets'] as $target)
                 <article class="surface mt-6 space-y-4 p-5" aria-labelledby="target-{{ $target['id'] }}">
                     <h2 id="target-{{ $target['id'] }}" class="text-2xl">{{ $target['name'] }}</h2>
+                    <x-save-observing-target catalogue="solar" :target-id="$target['id'] === 'moon' ? 'moon-luna' : 'planet-'.$target['id']" :target-label="$target['name']" />
                     @if ($target['status'] === 'unresolved_grazing')<p>{{ __('A constraint nearly touches its threshold. These provisional windows need independent checking.') }}</p>@endif
                     <p>{{ __('Windows satisfying altitude, darkness, Sun separation and your Moon constraint:') }}</p>
                     <ul class="list-disc pl-5">@forelse ($target['windows'] as $window)<li><time datetime="{{ $window['start_utc'] }}">{{ $local($window['start_utc']) }}</time> – <time datetime="{{ $window['end_utc'] }}">{{ $local($window['end_utc']) }}</time></li>@empty<li>{{ $target['status'] === 'unresolved_grazing' ? __('No confirmed window; a constraint boundary remains unresolved.') : __('No matching window in this local night. This does not mean the target never rises.') }}</li>@endforelse</ul>
