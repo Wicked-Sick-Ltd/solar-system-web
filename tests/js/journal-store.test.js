@@ -80,6 +80,7 @@ for (const [name, change] of [
     ['false time', doc => doc.observations[0].observedAtUtc = '2026-02-30T22:30:00Z'],
     ['unlabelled local time', doc => doc.observations[0].observedAtUtc = '2026-10-25T01:30:00'],
     ['invalid zone', doc => doc.observations[0].timezone = 'Wrong/Zone'],
+    ['fixed-offset zone without IANA identity', doc => doc.observations[0].timezone = '+01:00'],
     ['unbounded notes', doc => doc.observations[0].notes = 'x'.repeat(4001)],
     ['duplicate records', doc => doc.observations[0].id = doc.lists[0].id],
     ['duplicate target per list', doc => doc.lists[0].items.push({ ...doc.lists[0].items[0], id: id(99) })],
