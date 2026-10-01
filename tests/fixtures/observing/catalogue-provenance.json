@@ -93,6 +93,18 @@
         "unsupported_identifiers": [],
         "retrieved_at": "2026-10-01"
       },
+      "appearance": {
+        "families": [
+          "bright_star",
+          "double_star"
+        ],
+        "magnitude": -1.46,
+        "magnitude_band": "V (BSC5P; retain code/uncertainty flags)",
+        "magnitude_flag": null,
+        "magnitude_code": null,
+        "major_axis_arcmin": null,
+        "minor_axis_arcmin": null
+      },
       "input_coordinates": {
         "ra_deg": 101.2871,
         "dec_deg": -16.7161,
@@ -108,7 +120,7 @@
       "pm_dec_arcsec_per_year": -1.205,
       "distance_au": null,
       "refraction": "none; zero atmospheric pressure; angular catalogue direction",
-      "accuracy_note": "Angular-only estimate: no measured distance, annual parallax, radial velocity, perspective acceleration or binary orbit. Linear angular proper motion from Julian reference epoch 2000.0; missing radial velocity is treated as zero by the propagation model. Empirical FK5/Hipparcos frame-spin correction is not applied. 1900\u20132100 is a calculation bound, not an accuracy guarantee; bundled Earth-orientation coverage further restricts dates. Source rounding and catalogue systematics remain; no precision, component position, extended-object visibility or telescope-pointing guarantee."
+      "accuracy_note": "Angular-only estimate: no measured distance, annual parallax, radial velocity, perspective acceleration or binary orbit. Linear angular proper motion from Julian reference epoch 2000.0; missing radial velocity is treated as zero by the propagation model. Empirical FK5/Hipparcos frame-spin correction is not applied. 1900–2100 is a calculation bound, not an accuracy guarantee; bundled Earth-orientation coverage further restricts dates. Source rounding and catalogue systematics remain; no precision, component position, extended-object visibility or telescope-pointing guarantee."
     },
     "openngc:NGC0224": {
       "source": "openngc",
@@ -134,6 +146,17 @@
         ],
         "retrieved_at": "2026-10-01"
       },
+      "appearance": {
+        "families": [
+          "deep_sky"
+        ],
+        "magnitude": 3.44,
+        "magnitude_band": "V",
+        "magnitude_flag": null,
+        "magnitude_code": null,
+        "major_axis_arcmin": 177.83,
+        "minor_axis_arcmin": 69.66
+      },
       "input_coordinates": {
         "ra_deg": 10.684791666666666,
         "dec_deg": 41.26905555555555,
@@ -149,7 +172,7 @@
       "pm_dec_arcsec_per_year": null,
       "distance_au": null,
       "refraction": "none; zero atmospheric pressure; angular catalogue direction",
-      "accuracy_note": "Angular-only estimate: no measured distance, annual parallax, radial velocity, perspective acceleration or binary orbit. Static ICRS catalogue direction; no proper motion applied. 1900\u20132100 is a calculation bound, not an accuracy guarantee; bundled Earth-orientation coverage further restricts dates. Source rounding and catalogue systematics remain; no precision, component position, extended-object visibility or telescope-pointing guarantee."
+      "accuracy_note": "Angular-only estimate: no measured distance, annual parallax, radial velocity, perspective acceleration or binary orbit. Static ICRS catalogue direction; no proper motion applied. 1900–2100 is a calculation bound, not an accuracy guarantee; bundled Earth-orientation coverage further restricts dates. Source rounding and catalogue systematics remain; no precision, component position, extended-object visibility or telescope-pointing guarantee."
     }
   }
 }

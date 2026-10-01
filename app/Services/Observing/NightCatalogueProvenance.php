@@ -14,7 +14,7 @@ final class NightCatalogueProvenance
         $data = NightMetadata::shape($value, ['source', 'snapshot_sha256', 'upstream_sha256', 'source_url', 'retrieved_at',
             'license', 'attribution', 'license_url', 'astrometry_evidence', 'input_coordinates', 'motion_model',
             'proper_motion_applied', 'frame_transform', 'pm_ra_cosdec_arcsec_per_year', 'pm_dec_arcsec_per_year',
-            'distance_au', 'refraction', 'accuracy_note']);
+            'distance_au', 'refraction', 'accuracy_note', ...(is_array($value) && array_key_exists('appearance', $value) ? ['appearance'] : [])]);
         $bright = str_starts_with($targetId, 'bsc5p:');
         NightMetadata::require($data['source'] === ($bright ? 'bsc5p' : 'openngc'));
         NightMetadata::hash($data['snapshot_sha256']);
@@ -60,6 +60,29 @@ final class NightCatalogueProvenance
                 NightMetadata::number($data[$field]);
             } else {
                 NightMetadata::require($data[$field] === null);
+            }
+        }
+
+        if (array_key_exists('appearance', $data)) {
+            $appearance = NightMetadata::shape($data['appearance'], ['families', 'magnitude', 'magnitude_band', 'magnitude_flag', 'magnitude_code', 'major_axis_arcmin', 'minor_axis_arcmin']);
+            NightMetadata::require(is_array($appearance['families']) && array_is_list($appearance['families'])
+                && count($appearance['families']) >= 1 && count($appearance['families']) <= 3);
+            $seenFamilies = [];
+            foreach ($appearance['families'] as $family) {
+                NightMetadata::require(is_string($family) && in_array($family, ['bright_star', 'double_star', 'deep_sky'], true) && ! isset($seenFamilies[$family]));
+                $seenFamilies[$family] = true;
+            }
+            NightMetadata::text($appearance['magnitude_band'], 100);
+            foreach (['magnitude_flag', 'magnitude_code'] as $field) {
+                if ($appearance[$field] !== null) {
+                    NightMetadata::text($appearance[$field], 100);
+                }
+            }
+            foreach (['magnitude', 'major_axis_arcmin', 'minor_axis_arcmin'] as $field) {
+                if ($appearance[$field] !== null) {
+                    NightMetadata::number($appearance[$field]);
+                    NightMetadata::require($field === 'magnitude' || $appearance[$field] >= 0);
+                }
             }
         }
 

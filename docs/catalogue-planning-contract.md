@@ -88,3 +88,13 @@ not be accepted by the new provenance helper or silently assigned an identity.
 For integration, refresh the **whole** night fixture from an actual current
 builtin calculation with its original request. Do not attach JPL metadata to
 builtin positions or claim a source hash inferred from a version/date string.
+
+`catalogue.appearance` is an optional additive member for rolling upgrades. Its
+absence means context unavailable, not an empty or zero-size target. When present,
+it has exactly `families`, `magnitude`, `magnitude_band`, `magnitude_flag`,
+`magnitude_code`, `major_axis_arcmin` and `minor_axis_arcmin`. The backend copies
+these values from the same pinned source row; no brightness, extent or uncertainty
+is inferred. Actual nulls, negative magnitudes and reported zero values survive.
+Unknown nested fields fail validation and cannot enter shared exports. Consumers
+must distinguish integrated extended-object magnitude from point-source visibility,
+retain band/quality context, and never use double-star separation as a diameter.

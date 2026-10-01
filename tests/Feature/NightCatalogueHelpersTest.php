@@ -148,3 +148,26 @@ it('offers planning only for supported verified catalogue directions with requir
     unset($row['astrometry'], $source['astrometry_evidence']);
     expect(NightTargets::canPlan(StarterTarget::fromArray($row, StarterSource::fromArray($source, $row['source']))))->toBeFalse();
 });
+
+it('accepts older catalogue metadata without inventing appearance and preserves sourced zero or missing context', function () {
+    $data = nightProvenanceFixture()['catalogues']['bsc5p:hr2491'];
+    unset($data['appearance']);
+    expect(NightCatalogueProvenance::validate($data, 'bsc5p:hr2491'))->toBe($data);
+    $data = nightProvenanceFixture()['catalogues']['bsc5p:hr2491'];
+    $data['appearance']['magnitude'] = 0;
+    $data['appearance']['major_axis_arcmin'] = 0;
+    $data['appearance']['minor_axis_arcmin'] = null;
+    expect(NightCatalogueProvenance::validate($data, 'bsc5p:hr2491'))->toBe($data);
+});
+
+it('rejects malformed appearance without exporting extra nested data', function (string $field, mixed $value) {
+    $data = nightProvenanceFixture()['catalogues']['bsc5p:hr2491'];
+    data_set($data, $field, $value);
+    expect(fn () => NightCatalogueProvenance::validate($data, 'bsc5p:hr2491'))->toThrow(SolarApiException::class);
+})->with([
+    ['appearance', null], ['appearance', []], ['appearance.families', []], ['appearance.families', ['bright_star', 'bright_star']],
+    ['appearance.families', ['unknown']], ['appearance.families', [true]], ['appearance.magnitude', true],
+    ['appearance.magnitude', '0'], ['appearance.magnitude', NAN], ['appearance.magnitude_band', ''],
+    ['appearance.magnitude_flag', []], ['appearance.magnitude_code', false], ['appearance.major_axis_arcmin', -1],
+    ['appearance.minor_axis_arcmin', '1'], ['appearance.private_path', '/secret'],
+]);
