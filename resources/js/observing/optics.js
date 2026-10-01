@@ -1,0 +1,61 @@
+// Geometric estimates only. Sources and model limits: docs/observing-optics.md.
+const positive = value => typeof value === 'number' && Number.isFinite(value) && value > 0;
+const result = () => ({ effectiveFocalLengthMm: null, magnification: null, exitPupilMm: null, trueFovDeg: null, fovMethod: null });
+function usable(value) { return positive(value) ? value : null; }
+
+export function telescopeOptics(telescope, eyepiece = null, accessory = null) {
+    const out = result();
+    if (telescope?.kind !== 'telescope' || !positive(telescope.focalLengthMm)) return out;
+    let factor = 1;
+    if (accessory !== null) {
+        if (!['barlow', 'reducer'].includes(accessory?.kind) || !positive(accessory.factor)
+            || (accessory.kind === 'barlow' && accessory.factor < 1)
+            || (accessory.kind === 'reducer' && accessory.factor > 1)) return out;
+        factor = accessory.factor;
+    }
+    out.effectiveFocalLengthMm = usable(telescope.focalLengthMm * factor);
+    if (out.effectiveFocalLengthMm === null || eyepiece?.kind !== 'eyepiece') return out;
+    if (positive(eyepiece.focalLengthMm)) {
+        out.magnification = usable(out.effectiveFocalLengthMm / eyepiece.focalLengthMm);
+        if (positive(telescope.apertureMm) && out.magnification !== null) out.exitPupilMm = usable(telescope.apertureMm / out.magnification);
+    }
+    if (positive(eyepiece.fieldStopMm)) {
+        // Published effective field stop is preferred; this is still a
+        // paraxial estimate, not ray tracing or a compatibility guarantee.
+        const field = eyepiece.fieldStopMm / out.effectiveFocalLengthMm * 180 / Math.PI;
+        if (positive(field) && field <= 180) { out.trueFovDeg = field; out.fovMethod = 'field-stop'; }
+    } else if (eyepiece.fieldStopMm === null || eyepiece.fieldStopMm === undefined) {
+        // Invalid non-null field stops must not silently use a different model.
+        if (positive(eyepiece.apparentFovDeg) && eyepiece.apparentFovDeg <= 180 && out.magnification !== null) {
+            const field = eyepiece.apparentFovDeg / out.magnification;
+            if (positive(field) && field <= 180) { out.trueFovDeg = field; out.fovMethod = 'apparent-field'; }
+        }
+    }
+    return out;
+}
+export function binocularOptics(binocular, statedTrueFovDeg = null) {
+    const out = result();
+    if (binocular?.kind !== 'binocular' || !positive(binocular.magnification)) return out;
+    out.magnification = binocular.magnification;
+    if (positive(binocular.apertureMm)) out.exitPupilMm = usable(binocular.apertureMm / binocular.magnification);
+    if (positive(statedTrueFovDeg) && statedTrueFovDeg <= 180) { out.trueFovDeg = statedTrueFovDeg; out.fovMethod = 'stated'; }
+    return out;
+}
+export function angularComparison(trueFovDeg, diameterArcmin) {
+    if (!positive(trueFovDeg) || trueFovDeg > 180 || !positive(diameterArcmin) || diameterArcmin > 10800) return null;
+    const diameterDeg = diameterArcmin / 60;
+    const ratio = diameterDeg / trueFovDeg;
+    if (!positive(ratio)) return null;
+    // Scale both circles together so their ratio stays honest, whether the
+    // target is smaller or larger than the field. Never enlarge a tiny target.
+    return {
+        diameterDeg, fieldFraction: ratio, fits: ratio <= 1,
+        fieldRadius: 80 / Math.max(1, ratio), targetRadius: 80 * Math.min(1, ratio),
+    };
+}
+export function opticalNumber(value) {
+    if (value === null || !Number.isFinite(value)) return 'Unknown';
+    if (value === 0) return '0';
+    // Significant figures prevent small positive angles being displayed as 0.
+    return value < 0.001 || value >= 100000 ? value.toExponential(3) : Number(value.toPrecision(4)).toString();
+}

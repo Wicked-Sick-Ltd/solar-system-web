@@ -40,3 +40,14 @@ it('serves the workspace route to guests without exposing it to search indexes',
         ->assertSee('noindex', false);
     Http::assertNothingSent();
 });
+
+it('provides guest optical calculations with explicit scientific limits and textual diagram equivalents', function () {
+    $this->withoutVite();
+    Livewire::test(ObservingWorkspace::class)
+        ->assertSee('Compare your optical setup')
+        ->assertSee('Angular diameter to compare (arcminutes, optional)')
+        ->assertSee('Field-stop estimates use the paraxial approximation.')
+        ->assertSee('No planet sizes or catalogue measurements are filled in automatically.')
+        ->assertSee('data-optics-comparison', false)
+        ->assertSee('optics-diagram-description', false);
+});

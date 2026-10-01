@@ -88,6 +88,8 @@
         </form>
     </section>
 
+    @include('observing.optics')
+
     <section class="surface p-5 sm:p-6" aria-labelledby="workspace-backup-heading">
         <h2 id="workspace-backup-heading" class="font-serif text-2xl">{{ __('Back up or move your workspace') }}</h2>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Export a JSON file, then import it on another browser or after the domain move. Files are read on this device, never uploaded. Imports replace equipment and named sites only after your confirmation. Each workspace supports up to 100 equipment entries and 100 sites, within 128 KiB.') }}</p>
