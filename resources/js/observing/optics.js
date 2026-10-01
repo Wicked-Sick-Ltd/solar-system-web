@@ -59,3 +59,40 @@ export function opticalNumber(value) {
     // Significant figures prevent small positive angles being displayed as 0.
     return value < 0.001 || value >= 100000 ? value.toExponential(3) : Number(value.toPrecision(4)).toString();
 }
+
+export function cameraOptics(telescope, camera, accessory = null) {
+    const focal = telescopeOptics(telescope, null, accessory).effectiveFocalLengthMm;
+    const out = { effectiveFocalLengthMm: focal, widthDeg: null, heightDeg: null, pixelScaleArcsec: null };
+    if (focal === null || camera?.kind !== 'camera') return out;
+    const angle = dimension => {
+        const degrees = 2 * Math.atan(dimension / (2 * focal)) * 180 / Math.PI;
+        return positive(degrees) && degrees < 180 ? degrees : null;
+    };
+    if (positive(camera.sensorWidthMm)) out.widthDeg = usable(angle(camera.sensorWidthMm));
+    if (positive(camera.sensorHeightMm)) out.heightDeg = usable(angle(camera.sensorHeightMm));
+    // Angular width of one pixel centred on the optical axis, not a global
+    // scale or a resolving-power claim. micrometres -> millimetres -> arcseconds.
+    if (positive(camera.pixelSizeUm) && positive(camera.sensorWidthMm) && positive(camera.sensorHeightMm)
+        && camera.pixelSizeUm / 1000 <= Math.min(camera.sensorWidthMm, camera.sensorHeightMm)) {
+        const pixelAngle = angle(camera.pixelSizeUm / 1000);
+        if (pixelAngle !== null) out.pixelScaleArcsec = usable(pixelAngle * 3600);
+    }
+    return out;
+}
+export function cameraComparison(widthDeg, heightDeg, diameterArcmin) {
+    if (!positive(widthDeg) || widthDeg >= 180 || !positive(heightDeg) || heightDeg >= 180
+        || !positive(diameterArcmin) || diameterArcmin >= 10800) return null;
+    const diameterDeg = diameterArcmin / 60;
+    // A central rectilinear projection, preserving sensor aspect ratio even
+    // at wide fields. A centred angular circle projects to a circle.
+    const halfWidth = Math.tan(widthDeg * Math.PI / 360);
+    const halfHeight = Math.tan(heightDeg * Math.PI / 360);
+    const target = Math.tan(diameterDeg * Math.PI / 360);
+    const scale = Math.max(halfWidth, halfHeight, target);
+    if (!positive(scale)) return null;
+    return {
+        width: 160 * halfWidth / scale, height: 160 * halfHeight / scale,
+        targetRadius: 80 * target / scale, fits: diameterDeg <= Math.min(widthDeg, heightDeg),
+        widthFraction: diameterDeg / widthDeg, heightFraction: diameterDeg / heightDeg,
+    };
+}

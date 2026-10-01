@@ -1,10 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { WORKSPACE_KEY, LOCATION_KEY, MAX_BYTES, emptyWorkspace, validateWorkspace, parseWorkspace, loadWorkspace, saveWorkspace, putEntry, removeEntry, activateSite, activeLocationMatches } from '../../resources/js/observing/workspace-store.js';
+import { WORKSPACE_KEY, LOCATION_KEY, MAX_BYTES, LEGACY_MAX_BYTES, emptyWorkspace, validateWorkspace, parseWorkspace, loadWorkspace, saveWorkspace, putEntry, removeEntry, activateSite, activeLocationMatches } from '../../resources/js/observing/workspace-store.js';
 import { workspaceController, equipmentSummary } from '../../resources/js/observing/workspace-ui.js';
 
-const fixture = () => JSON.parse(readFileSync(new URL('../fixtures/observing/workspace-v1.json', import.meta.url), 'utf8'));
+const legacyFixture = () => JSON.parse(readFileSync(new URL('../fixtures/observing/workspace-v1.json', import.meta.url), 'utf8'));
+const fixture = () => validateWorkspace(legacyFixture());
+test('documented v2 camera and horizon example is a portable import and export', () => {
+    const raw = readFileSync(new URL('../fixtures/observing/workspace-v2.json', import.meta.url), 'utf8');
+    const workspace = parseWorkspace(raw);
+    assert.equal(workspace.schemaVersion, 2);
+    assert.equal(workspace.equipment.find(item => item.kind === 'camera').sensorWidthMm, 36);
+    assert.equal(workspace.sites[0].horizonMask.length, 4);
+    assert.deepEqual(parseWorkspace(JSON.stringify(workspace)), workspace);
+});
 function memory() {
     const data = new Map();
     return { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value), removeItem: key => data.delete(key) };
@@ -27,7 +36,7 @@ test('site coordinates validate before rounding and preserve zero and southern/w
     assert.throws(() => validateWorkspace(value), /Latitude/);
 });
 for (const [label, change] of [
-    ['unknown version', value => value.schemaVersion = 2],
+    ['unknown version', value => value.schemaVersion = 99],
     ['missing version', value => delete value.schemaVersion],
     ['unknown root field', value => value.accountId = 42],
     ['unknown equipment field', value => value.equipment[0].owner = 'private'],
@@ -189,4 +198,62 @@ test('site timezones use portable canonical casing', () => {
     assert.equal(validateWorkspace(data).sites[0].timezone, 'Europe/London');
     data.sites[0].timezone = 'utc';
     assert.equal(validateWorkspace(data).sites[0].timezone, 'UTC');
+});
+
+test('legacy v1 loads into v2 without writing, preserves IDs, and exports explicit v2 data', () => {
+    const storage = memory();
+    const original = JSON.stringify(legacyFixture());
+    storage.setItem(WORKSPACE_KEY, original);
+    const controller = workspaceController(storage);
+    controller.load();
+    assert.equal(controller.value.schemaVersion, 2);
+    assert.equal(controller.value.sites[0].horizonMask, null);
+    assert.equal(controller.value.sites[0].id, legacyFixture().sites[0].id);
+    assert.equal(JSON.parse(controller.export()).schemaVersion, 2);
+    assert.equal(storage.getItem(WORKSPACE_KEY), original);
+    controller.save('equipment', { ...controller.value.equipment[0], name: 'Edited telescope' });
+    assert.equal(JSON.parse(storage.getItem(WORKSPACE_KEY)).schemaVersion, 2);
+});
+test('near-old-limit v1 data remains importable after the additional v2 site fields', () => {
+    const data = { schemaVersion: 1, equipment: [], sites: [], activeSiteId: null };
+    for (let i = 1; i <= 100; i++) {
+        data.equipment.push({ ...legacyFixture().equipment[0], id: `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`, name: '\ud800'.repeat(100) });
+        data.sites.push({ ...legacyFixture().sites[0], id: `10000000-0000-4000-8000-${String(i).padStart(12, '0')}`, name: '\ud800'.repeat(100) });
+    }
+    let index = 0;
+    while (new TextEncoder().encode(JSON.stringify(data)).length > LEGACY_MAX_BYTES) {
+        const entry = [...data.equipment, ...data.sites][index++ % 200];
+        entry.name = entry.name.slice(1);
+    }
+    const upgraded = parseWorkspace(JSON.stringify(data));
+    const bytes = new TextEncoder().encode(JSON.stringify(upgraded)).length;
+    assert.ok(bytes > LEGACY_MAX_BYTES && bytes <= MAX_BYTES);
+    assert.deepEqual(parseWorkspace(JSON.stringify(upgraded)), upgraded);
+    assert.throws(() => parseWorkspace(JSON.stringify(data) + ' '.repeat(10)), /128 KiB/);
+});
+test('v2 camera and user-entered horizon data round-trip with strict dimensions and provenance', () => {
+    const data = fixture();
+    data.equipment.push({ id: '00000000-0000-4000-8000-000000000099', name: 'User sensor', kind: 'camera', sensorWidthMm: 36, sensorHeightMm: 24, pixelSizeUm: null });
+    data.sites[0].horizonMask = [{ azimuthDeg: 180, minAltitudeDeg: 20 }, { azimuthDeg: 360, minAltitudeDeg: -5 }];
+    const clean = validateWorkspace(data);
+    assert.equal(clean.equipment.at(-1).pixelSizeUm, null);
+    assert.deepEqual(clean.sites[0].horizonMask, [{ azimuthDeg: 0, minAltitudeDeg: -5 }, { azimuthDeg: 180, minAltitudeDeg: 20 }]);
+    assert.deepEqual(parseWorkspace(JSON.stringify(clean)), clean);
+    for (const [field, value] of [['sensorWidthMm', 0], ['sensorHeightMm', -1], ['pixelSizeUm', '5'], ['sensorWidthMm', Infinity], ['pixelSizeUm', false]]) {
+        const malformed = structuredClone(clean); malformed.equipment.at(-1)[field] = value;
+        assert.throws(() => validateWorkspace(malformed));
+    }
+    const oversizePixel = structuredClone(clean);
+    Object.assign(oversizePixel.equipment.at(-1), { sensorWidthMm: 0.01, pixelSizeUm: 100 });
+    assert.throws(() => validateWorkspace(oversizePixel), /Pixel size/);
+    const misleading = structuredClone(clean); misleading.sites[0].horizonMask[0].source = 'surveyed by NASA';
+    assert.throws(() => validateWorkspace(misleading));
+    const old = legacyFixture(); old.equipment.push(clean.equipment.at(-1));
+    assert.throws(() => validateWorkspace(old), /equipment type/);
+});
+test('raw snapshot conflicts remain detectable after a legacy document is normalized in memory', () => {
+    const storage = memory(); storage.setItem(WORKSPACE_KEY, JSON.stringify(legacyFixture()));
+    const controller = workspaceController(storage); controller.load();
+    storage.setItem(WORKSPACE_KEY, JSON.stringify(fixture()));
+    assert.throws(() => controller.save('equipment', controller.value.equipment[0]), /another tab/);
 });

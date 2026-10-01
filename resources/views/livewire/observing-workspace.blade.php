@@ -10,7 +10,7 @@
     <section class="surface mb-8 p-5 sm:p-6" aria-labelledby="equipment-heading">
         <h2 id="equipment-heading" class="font-serif text-2xl">{{ __('Your equipment') }}</h2>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Use the specifications printed on your equipment. Unknown optional measurements can stay blank. Saving equipment does not predict what you will be able to see.') }}</p>
-        <p class="mt-4 text-sm" data-workspace-equipment-empty>{{ __('No equipment saved yet. Add a telescope, binoculars, eyepiece or optical accessory below.') }}</p>
+        <p class="mt-4 text-sm" data-workspace-equipment-empty>{{ __('No equipment saved yet. Add a telescope, binoculars, eyepiece, optical accessory or camera sensor below.') }}</p>
         <ul class="mt-4 space-y-3" data-workspace-equipment-list aria-label="{{ __('Saved equipment') }}"></ul>
         <form data-workspace-equipment-form aria-describedby="workspace-error" class="mt-6">
             <fieldset disabled data-workspace-enabled>
@@ -27,6 +27,7 @@
                             <option value="eyepiece">{{ __('Eyepiece') }}</option>
                             <option value="barlow">{{ __('Barlow lens') }}</option>
                             <option value="reducer">{{ __('Focal reducer') }}</option>
+                            <option value="camera">{{ __('Camera sensor') }}</option>
                         </select>
                     </label>
                     @foreach ([
@@ -36,6 +37,9 @@
                         ['apparentFovDeg', 'Apparent field (degrees, optional)', 'eyepiece', 0.1, 180, false],
                         ['fieldStopMm', 'Field stop (mm, optional)', 'eyepiece', 0.1, 500, false],
                         ['factor', 'Optical factor (×)', 'barlow reducer', 0.01, 20, true],
+                        ['sensorWidthMm', 'Sensor width (mm)', 'camera', 0.01, 1000, true],
+                        ['sensorHeightMm', 'Sensor height (mm)', 'camera', 0.01, 1000, true],
+                        ['pixelSizeUm', 'Pixel size (µm, optional)', 'camera', 0.01, 1000, false],
                     ] as [$key, $label, $kinds, $min, $max, $required])
                         <label class="block text-sm" data-kinds="{{ $kinds }}">{{ __($label) }}
                             <input type="number" name="{{ $key }}" step="any" min="{{ $min }}" max="{{ $max }}" @required($required)
@@ -55,7 +59,7 @@
     <section class="surface mb-8 p-5 sm:p-6" aria-labelledby="sites-heading">
         <h2 id="sites-heading" class="font-serif text-2xl">{{ __('Your observing sites') }}</h2>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Coordinates are rounded to two decimal places, about a kilometre. Choose Use on a saved site to make it the location used by sky calculations. Those calculations send approximate coordinates to our astronomy API and weather service as explained on the privacy page.') }}</p>
-        <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Timezone and minimum altitude are saved preferences for future planning tools. Current sky calculations do not apply them. A minimum altitude is not a measured horizon or a guarantee of a clear view.') }}</p>
+        <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Timezone, minimum altitude and horizon masks are saved preferences for future planning tools. Current sky calculations do not apply them. A saved horizon is user-entered data, not surveyed terrain or a guarantee of a clear view.') }}</p>
         <p class="mt-4 text-sm" data-workspace-sites-empty>{{ __('No observing sites saved yet.') }}</p>
         <ul class="mt-4 space-y-3" data-workspace-sites-list aria-label="{{ __('Saved observing sites') }}"></ul>
         <form data-workspace-site-form aria-describedby="workspace-error" class="mt-6">
@@ -79,6 +83,10 @@
                         <input type="number" name="minAltitudeDeg" required step="any" min="0" max="90" value="20" class="mt-1 block min-h-11 w-full rounded-lg border px-3 py-2" style="background: var(--bg); border-color: var(--border); color: var(--text);">
                     </label>
                 </div>
+                <label class="mt-4 block text-sm">{{ __('Horizon mask (optional): azimuth, minimum altitude, one pair per line') }}
+                    <textarea name="horizonMask" rows="5" maxlength="8000" autocomplete="off" aria-describedby="workspace-horizon-help workspace-error" placeholder="0, 10&#10;90, 15&#10;180, 5&#10;270, 12" class="mt-1 block w-full rounded-lg border px-3 py-2 font-mono" style="background: var(--bg); border-color: var(--border); color: var(--text);"></textarea>
+                </label>
+                <p class="mt-2 text-xs" id="workspace-horizon-help" style="color: var(--muted);">{{ __('Leave blank for an unknown horizon. Enter 2–72 directions: north is 0°, east 90°, south 180°, west 270°. 360° is the same as 0°. Altitudes may range from −90° to 90°; a depressed horizon can be negative. Coarse masks interpolate linearly between your points, including across north, and can miss obstructions. The independent minimum-altitude preference remains a lower bound. These points are not yet used by sky calculations.') }}</p>
                 <p class="mt-3 text-xs" id="workspace-timezone-help" style="color: var(--muted);">{{ __('Use a timezone such as Europe/London, America/New_York, Australia/Sydney or UTC. Site names and coordinates are private records: include them in a backup only if you are comfortable storing that file.') }}</p>
                 <div class="mt-4 flex flex-wrap gap-3">
                     <button type="submit" class="min-h-11 rounded-lg px-4 py-2 text-sm font-medium" style="background: var(--accent); color: #07090f;">{{ __('Save site') }}</button>
@@ -92,7 +100,7 @@
 
     <section class="surface p-5 sm:p-6" aria-labelledby="workspace-backup-heading">
         <h2 id="workspace-backup-heading" class="font-serif text-2xl">{{ __('Back up or move your workspace') }}</h2>
-        <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Export a JSON file, then import it on another browser or after the domain move. Files are read on this device, never uploaded. Imports replace equipment and named sites only after your confirmation. Each workspace supports up to 100 equipment entries and 100 sites, within 128 KiB.') }}</p>
+        <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Export a version-2 JSON file (older version-1 backups remain readable), then import it on another browser or after the domain move. Files are read on this device, never uploaded. Imports replace equipment and named sites only after your confirmation. Each workspace supports up to 100 equipment entries and 100 sites, within 256 KiB.') }}</p>
         <div class="mt-4 flex flex-wrap gap-3">
             <button type="button" disabled data-workspace-enabled data-workspace-action="export" class="min-h-11 rounded-lg border px-4 py-2 text-sm" style="border-color: var(--border);">{{ __('Export workspace') }}</button>
             <button type="button" disabled data-workspace-enabled data-workspace-action="reload" class="min-h-11 rounded-lg border px-4 py-2 text-sm" style="border-color: var(--border);">{{ __('Reload saved workspace') }}</button>

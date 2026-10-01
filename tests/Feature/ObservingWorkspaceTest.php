@@ -51,3 +51,15 @@ it('provides guest optical calculations with explicit scientific limits and text
         ->assertSee('data-optics-comparison', false)
         ->assertSee('optics-diagram-description', false);
 });
+
+it('describes camera geometry and user-entered horizon limits without implying planner integration', function () {
+    $this->withoutVite();
+    Livewire::test(ObservingWorkspace::class)
+        ->assertSee('Camera sensor')
+        ->assertSee('Sensor width (mm)')
+        ->assertSee('Horizon mask (optional)')
+        ->assertSee('These points are not yet used by sky calculations.')
+        ->assertSee('older version-1 backups remain readable')
+        ->assertSee('Unknown pixel size stays unknown.')
+        ->assertSee('no camera is controlled.');
+});

@@ -1,3 +1,4 @@
+import { parseHorizonText, horizonText } from './horizon.js';
 import { mountOptics } from './optics-ui.js';
 import {
     WORKSPACE_KEY, LOCATION_KEY, MAX_BYTES, emptyWorkspace, loadWorkspace, saveWorkspace,
@@ -76,6 +77,11 @@ function equipmentFromForm(form, uuid) {
         out.fieldStopMm = numeric(form, 'fieldStopMm', true);
     }
     if (['barlow', 'reducer'].includes(kind)) out.factor = numeric(form, 'factor');
+    if (kind === 'camera') {
+        out.sensorWidthMm = numeric(form, 'sensorWidthMm');
+        out.sensorHeightMm = numeric(form, 'sensorHeightMm');
+        out.pixelSizeUm = numeric(form, 'pixelSizeUm', true);
+    }
     return out;
 }
 export function equipmentSummary(entry) {
@@ -83,6 +89,7 @@ export function equipmentSummary(entry) {
         case 'telescope': return `Telescope · ${entry.apertureMm} mm aperture · ${entry.focalLengthMm} mm focal length`;
         case 'binocular': return `Binoculars · ${entry.magnification}× · ${entry.apertureMm} mm aperture`;
         case 'eyepiece': return `Eyepiece · ${entry.focalLengthMm} mm · apparent field ${entry.apparentFovDeg === null ? 'unknown' : `${entry.apparentFovDeg}°`} · field stop ${entry.fieldStopMm === null ? 'unknown' : `${entry.fieldStopMm} mm`}`;
+        case 'camera': return `Camera · ${entry.sensorWidthMm} × ${entry.sensorHeightMm} mm sensor · pixel size ${entry.pixelSizeUm === null ? 'unknown' : `${entry.pixelSizeUm} µm`}`;
         default: return `${entry.kind === 'barlow' ? 'Barlow' : 'Reducer'} · ${entry.factor}× factor`;
     }
 }
@@ -134,7 +141,7 @@ export function mountWorkspace(root, options = {}) {
         resetForm(form);
         for (const [key, value] of Object.entries(entry)) {
             const input = form.elements.namedItem(key === 'id' ? 'entryId' : key);
-            if (input) input.value = value ?? '';
+            if (input) input.value = key === 'horizonMask' ? horizonText(value) : value ?? '';
         }
         if (form === equipmentForm) kindFields();
         form.querySelector('[type="submit"]').textContent = 'Save changes';
@@ -168,7 +175,7 @@ export function mountWorkspace(root, options = {}) {
                 details.className = 'mt-1 text-sm';
                 details.style.color = 'var(--muted)';
                 details.textContent = collection === 'equipment' ? equipmentSummary(entry)
-                    : `${entry.latitude.toFixed(2)}, ${entry.longitude.toFixed(2)} · ${entry.timezone} · minimum altitude ${entry.minAltitudeDeg}°`;
+                    : `${entry.latitude.toFixed(2)}, ${entry.longitude.toFixed(2)} · ${entry.timezone} · minimum altitude ${entry.minAltitudeDeg}° · ${entry.horizonMask === null ? 'horizon unknown' : `${entry.horizonMask.length} user-entered horizon points`}`;
                 const actions = doc.createElement('div');
                 actions.className = 'mt-3 flex flex-wrap gap-2';
                 actions.append(button(`Edit ${entry.name}`, 'edit', collection, entry.id), button(`Delete ${entry.name}`, 'delete', collection, entry.id));
@@ -208,6 +215,7 @@ export function mountWorkspace(root, options = {}) {
                 id: siteForm.elements.namedItem('entryId').value || uuid(), name: siteForm.elements.namedItem('name').value,
                 latitude: numeric(siteForm, 'latitude'), longitude: numeric(siteForm, 'longitude'),
                 timezone: siteForm.elements.namedItem('timezone').value.trim(), minAltitudeDeg: numeric(siteForm, 'minAltitudeDeg'),
+                horizonMask: parseHorizonText(siteForm.elements.namedItem('horizonMask').value),
             });
             else return;
             render();
@@ -233,7 +241,7 @@ export function mountWorkspace(root, options = {}) {
                 message('This site is now the active approximate location for sky calculations. Timezone and minimum altitude are saved preferences; current sky calculations do not apply them.');
             }
             if (action === 'reload') load();
-            if (action === 'export') { download(controller.export(), 'public-universe-workspace.json'); message('Backup prepared. It includes private site names and coordinates.'); }
+            if (action === 'export') { download(controller.export(), 'public-universe-workspace-v2.json'); message('Backup prepared. It includes private site names and coordinates.'); }
             if (action === 'raw-backup') {
                 const raw = controller.rawBackup();
                 if (raw === null) throw new Error('There is no saved workspace to back up.');
@@ -252,12 +260,12 @@ export function mountWorkspace(root, options = {}) {
         const file = event.target.files?.[0];
         if (!file) return;
         try {
-            if (file.size > MAX_BYTES) throw new Error('Choose a JSON file no larger than 128 KiB.');
+            if (file.size > MAX_BYTES) throw new Error('Choose a JSON file no larger than 256 KiB.');
             const text = await file.text();
             if (disposed || generation !== importGeneration) return;
             preview = controller.import(text);
             get('preview-summary').textContent = `${preview.equipment.length} equipment entries and ${preview.sites.length} sites. This replaces your existing workspace. Your active observing location will not change.`;
-            get('preview-details').textContent = [...preview.equipment.map(item => `${item.name}: ${equipmentSummary(item)}`), ...preview.sites.map(item => `${item.name}: ${item.latitude.toFixed(2)}, ${item.longitude.toFixed(2)}, ${item.timezone}, minimum altitude ${item.minAltitudeDeg}°`)].join('\n') || 'Empty workspace.';
+            get('preview-details').textContent = [...preview.equipment.map(item => `${item.name}: ${equipmentSummary(item)}`), ...preview.sites.map(item => `${item.name}: ${item.latitude.toFixed(2)}, ${item.longitude.toFixed(2)}, ${item.timezone}, minimum altitude ${item.minAltitudeDeg}°, ${item.horizonMask === null ? 'horizon unknown' : `user-entered horizon:\n${horizonText(item.horizonMask)}`}`)].join('\n') || 'Empty workspace.';
             get('preview').hidden = false;
             message('Import ready for review. Nothing has been changed.');
         } catch (error) { if (!disposed && generation === importGeneration) message(error.message, true); }
