@@ -39,6 +39,35 @@ final readonly class StarterSource
             }
         }
 
+        if (array_key_exists('astrometry_evidence', $data)) {
+            self::validateEvidence($data['astrometry_evidence'], $source);
+        }
+
         return new self($data);
+    }
+
+    private static function validateEvidence(mixed $evidence, string $source): void
+    {
+        if (! is_array($evidence)) {
+            throw new SolarApiException('Malformed coordinate-frame evidence.');
+        }
+        foreach (['authority', 'dataset', 'file', 'retrieved_at'] as $field) {
+            if (! is_string($evidence[$field] ?? null) || trim($evidence[$field]) === '') {
+                throw new SolarApiException('Missing coordinate-frame evidence.');
+            }
+        }
+        $url = $evidence['query_url'] ?? null;
+        if (! is_string($url) || ! filter_var($url, FILTER_VALIDATE_URL)
+            || parse_url($url, PHP_URL_SCHEME) !== 'https' || parse_url($url, PHP_URL_USER) !== null
+            || parse_url($url, PHP_URL_PASS) !== null
+            || ! is_string($evidence['response_sha256'] ?? null) || ! preg_match('/^[a-f0-9]{64}$/D', $evidence['response_sha256'])
+            || ! is_int($evidence['matched_records'] ?? null) || $evidence['matched_records'] !== ($source === 'bsc5p' ? 50 : 107)
+            || ! is_array($evidence['unsupported_identifiers'] ?? null) || ! array_is_list($evidence['unsupported_identifiers'])) {
+            throw new SolarApiException('Invalid coordinate-frame evidence identity.');
+        }
+        if ($evidence['dataset'] !== ($source === 'bsc5p' ? 'V/50/catalog' : 'openngc.data')
+            || $evidence['unsupported_identifiers'] !== ($source === 'bsc5p' ? [] : ['Mel022'])) {
+            throw new SolarApiException('Unsupported coordinate-frame evidence coverage.');
+        }
     }
 }

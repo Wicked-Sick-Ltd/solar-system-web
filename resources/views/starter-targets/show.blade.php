@@ -15,8 +15,10 @@
             <div><dt>{{ __('Source object type') }}</dt><dd>{{ $target->data['object_type'] }}</dd></div>
             <div><dt>{{ __('Catalogue right ascension') }}</dt><dd>{{ $target->measurement('ra_deg', 'degrees') }}</dd></div>
             <div><dt>{{ __('Catalogue declination') }}</dt><dd>{{ $target->measurement('dec_deg', 'degrees') }}</dd></div>
+            @if ($target->astrometry === null || $target->astrometry->data['status'] !== 'verified')
             <div><dt>{{ __('Coordinate equinox') }}</dt><dd>{{ $target->data['coordinate_equinox'] ?? __('Not independently specified') }}</dd></div>
             <div><dt>{{ __('Coordinate epoch') }}</dt><dd>{{ $target->data['coordinate_epoch'] ?? __('Not separately specified; no motion correction applied') }}</dd></div>
+            @endif
             <div><dt>{{ __('Recorded magnitude') }}</dt><dd>{{ $target->measurement('magnitude') }} · {{ $target->data['magnitude_band'] }}<br>{{ __('Uncertainty flag') }}: {{ $target->data['magnitude_flag'] ?? __('None reported') }}; {{ __('source code') }}: {{ $target->data['magnitude_code'] ?? __('None reported') }}</dd></div>
             <div><dt>{{ __('Catalogue major / minor axes') }}</dt><dd>{{ $target->measurement('major_axis_arcmin', 'arcmin') }} / {{ $target->measurement('minor_axis_arcmin', 'arcmin') }}</dd></div>
             @if (in_array('double_star', $target->families, true))
@@ -26,6 +28,7 @@
                 <div><dt>{{ __('Companion position angle') }}</dt><dd>{{ $target->measurement('position_angle_deg', 'degrees') }}</dd></div>
             @endif
         </dl>
+        @include('starter-targets.astrometry')
         @include('starter-targets.source', ['source' => $target->provenance])
         <details class="surface mt-6 p-5"><summary class="cursor-pointer py-2 font-semibold">{{ __('Original source fields and flags') }}</summary>
             <p class="my-3 text-sm">{{ __('Original strings preserve missing values, photometric flags and per-field source codes. Blank means no value was supplied. No proper motion or companion position is calculated here.') }}</p>
