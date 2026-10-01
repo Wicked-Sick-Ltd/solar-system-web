@@ -51,12 +51,18 @@ must purge old edge entries or wait out their prior 600-second fresh plus
 86,400-second stale allowance: changing origin headers cannot retire copies
 already held by a CDN. No CDN purge or live configuration change was performed.
 Requests made concurrently with a backend replacement can span two versions.
-D1 does not attach an identity to each scientific response, so observing the
-identity before or after another request **does not certify that response** as
-belonging to a particular immutable snapshot. The frontend therefore does not
-attach the observed ID as a certified version to live filtered exports or night
-plans. Atomic pinned exports require a future backend response-level identity
-or snapshot-selection contract. Parent night-planner calculations are unchanged.
+Observing identity before or after another request **does not certify that
+response** as belonging to a particular snapshot. The frontend never attaches
+this separately observed ID to scientific exports or night plans.
+
+The additive exoplanet-page contract can instead carry `catalogue_snapshot` in
+the same response as its rows. [Page exports](exoplanet-exports.md) retain that
+validated association through caching, including stale copies. A page's own
+reported identity can differ from this separately observed global identity;
+neither is substituted for the other. Older unassociated responses and explicit
+unknown associated identities remain distinct. This does not pin subsequent
+pages or other endpoints. Night calculations use their own packaged-source and
+model provenance, not this database identity.
 
 Known IDs do not promise scientific correctness, unchanged upstream services,
 or permanent retention of historical files. A catalogue rebuild timestamp is

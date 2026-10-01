@@ -43,8 +43,15 @@ final class ExoplanetPageExport
 
         return ['metadata' => [
             'schema' => 'public-universe.exoplanets.page.v1', 'scope' => 'current_filtered_page',
-            'generated_at' => now()->utc()->toIso8601String(), 'snapshot_id' => null,
-            'snapshot_note' => 'This scientific response is not atomically associated with an immutable catalogue snapshot. A separately observed catalogue identity cannot certify this page; the catalogue can change between requests.',
+            'generated_at' => now()->utc()->toIso8601String(), 'snapshot_id' => $page->catalogueSnapshot?->catalogueId(),
+            'catalogue_snapshot' => $page->catalogueSnapshot?->data,
+            'snapshot_association' => $page->catalogueSnapshot === null ? 'unassociated' : 'same-read-transaction',
+            'snapshot_note' => $page->catalogueSnapshot === null
+                ? 'This scientific response is not atomically associated with an immutable catalogue snapshot. A separately observed catalogue identity cannot certify this page; the catalogue can change between requests.'
+                : ($page->catalogueSnapshot->catalogueId() === null
+                    ? 'The backend read this page and its identity metadata in one transaction, but the catalogue identity is unknown; the reported reason is retained. No immutable snapshot is certified.'
+                    : 'The backend read this page and its reported catalogue identity in one transaction. This identity applies to this page only, which may be cached; it does not pin other pages or certify one consistent upstream astronomical model.'),
+            'generation_note' => 'generated_at is export serialization time, not the time the backend rows were read. Each record retains its source retrieved_at separately.',
             'source' => 'NASA Exoplanet Archive', 'source_table' => 'PSCompPars',
             'source_url' => 'https://exoplanetarchive.ipac.caltech.edu/docs/PSCompPars.html',
             'filters' => (object) $filters->apiFilters(),

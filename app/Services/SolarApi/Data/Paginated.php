@@ -22,6 +22,7 @@ final readonly class Paginated
         public int $offset,
         public bool $hasMore,
         public ?string $nextAfter = null,
+        public ?CatalogueSnapshot $catalogueSnapshot = null,
     ) {}
 
     public function isEmpty(): bool

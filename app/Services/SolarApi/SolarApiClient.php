@@ -6,6 +6,7 @@ namespace App\Services\SolarApi;
 
 use App\Jobs\RefreshSolarCache;
 use App\Services\SolarApi\Data\CatalogueIdentity;
+use App\Services\SolarApi\Data\CatalogueSnapshot;
 use App\Services\SolarApi\Data\CloseApproach;
 use App\Services\SolarApi\Data\DownloadManifest;
 use App\Services\SolarApi\Data\Exoplanet;
@@ -184,7 +185,11 @@ class SolarApiClient
             }
         }
 
-        return $this->paginate($rows, $limit, $offset, Exoplanet::fromArray(...));
+        $snapshot = array_key_exists('catalogue_snapshot', $data)
+            ? CatalogueSnapshot::fromArray($data['catalogue_snapshot']) : null;
+        $page = $this->paginate($rows, $limit, $offset, Exoplanet::fromArray(...));
+
+        return new Paginated($page->items, $page->limit, $page->offset, $page->hasMore, catalogueSnapshot: $snapshot);
     }
 
     public function exoplanet(string $id): ?Exoplanet
