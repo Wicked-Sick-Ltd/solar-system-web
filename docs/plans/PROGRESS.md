@@ -11,28 +11,65 @@ programme goal is active; the earlier two-hour goal is complete and is not the
 scope limit for this new request. See the [accepted programme and acceptance
 checklist](2026-10-01-observing-programme.md).
 
-Existing work is now published for review: [web #65](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/65)
+Existing work is published for review: [web #65](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/65)
 and [database #31](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/31).
-Web remains draft for the outstanding browser acceptance. Initial application,
-assets, Lighthouse, PDF and local release-rehearsal CI passed; CodeQL's explicit
-TLS-floor finding was addressed in `b39f6a8` and new checks are running. These are
-PRs, not merged releases. Persistent permissions were updated for this programme
-and development-branch/PR publication; production boundaries remain unchanged.
+Foundation application/assets/Lighthouse/PDF/rehearsal checks pass; CodeQL TLS
+finding was fixed. These are PRs, not merged releases. Production boundaries
+remain unchanged. The programme plan is [web #66](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/66).
 
-First wave in progress:
+Reviewed implementation checkpoints:
 
-- E1–E3: guest equipment/site workspace in `codex/observing-workspace`.
-- A1–A6: offset/Moon correctness and bounded validated night-engine work in
-  backend `codex/observing-engine`; parent integration/review precedes new PRs.
-- P2–P3: measured request-count baseline and refresh-job deduplication in
-  `codex/performance-refresh`.
+- P3 and request-count portion of P2: [web #67](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/67),
+  unique queued/running stale refresh, real multiprocess queue regression;
+  independent21tests/81assertions. CI green.
+- E1–E3/E5: [web #68](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/68),
+  guest equipment/site workspace, strict import/export and explicit activation.
+  Independent review fixed export roundtrips and timezone canonicalization.
+  Browser telescope/eyepiece/site creation, rounding, activation and reload pass.
+  Export browser-event capture timed out; import/export browser acceptance remains.
+- N3 first visual-optics slice: [web #70](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/70),
+  magnification/exit pupil, field-stop/AFOV estimates, angular-size comparison.
+  Independent26JS tests pass; full feature759PHP/109JS tests and static/build checks
+  pass. Actual browser50×/4mm/1° example and phone-width layout checked.
+- A1: [database #32](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/32),
+  UTC normalization/calendar bounds and honest legacy Moon rejection; independent15tests.
+- A2–A5, reference-fixture part of A6: [database #33](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/33),
+  offline Astropy true lunar/planet positions, local-noon DST nights, refined
+  windows, Moon constraints, method/IERS metadata;251tests/offlineverify/wheel/lint
+  pass. Independent review fixed MCP coercion, grazing crossings and bounded
+  background execution. JPL-kernel provider remains active work.
+- N1/N2 first journey: [web #69](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/69),
+  strict one-batch consumer, private POST form, windows/Moon/chart/table/model
+  disclosures. Full810PHP tests/3037assertions; independently55planner tests/207
+  assertions. Browser Moon/Jupiter/Saturn calculation passes. Selected hours,
+  equipment/site integration, weather and session export remain.
+- C1/C2 and backend portion of C3: [database #34](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/34),
+  pinned50bright-star records,23overlapping documented multiple-star records,
+ 108deep-sky records. Full194tests/source reproduction/offlinebuild/wheel pass;
+  parent independently18tests pass before one additional partial-schema test.
+  Historical double separations have unknown dates/PA; no current companion
+  position is inferred. Data licensing stays distinct from MIT software.
 
-Remaining accepted work includes optical previews, complete planner journeys,
-camera profiles/horizon masks, sourced star/double/deep-sky catalogues, observing
-lists/journals, optional private sync, scientific snapshot identity/exports and
-the remaining performance/browser acceptance. Do not mark the programme complete
-after delivering only the first wave. Continue the build/review/PR loop across
-sessions; preserve the original backend checkout and all topic worktrees.
+Integration branch `codex/observing-integration` contains reviewed web slices for
+combined checks; focused PRs remain separate and unmerged. Scoped integration
+66tests/285assertions and Node22build pass. CI now accepts nested codex PR bases.
+Screenshots are recorded under `docs/qa/2026-10-01/observing/`; browser emulation
+is not physical-touch acceptance. Latest foundation catalogue/settings/galaxy
+browser acceptance still needs completing.
+
+Active owners: equipment lane E4 camera/sensor profiles and horizon masks;
+backend lane checksum-pinned local JPL provider; catalogue lane frontend
+`/observing-targets` browsing with source/epoch/licence disclosures; parent
+integration, browser evidence and next private lists/journals/sync work.
+
+Remaining accepted scope includes complete equipment-aware planner journeys,
+selected hours/weather/exports, sourced catalogue planning integration, observing
+lists/journals, optional private synchronization, scientific snapshot identity and
+reproducible exports, and the remaining performance/browser acceptance. The
+current1.5MBnight-response check is buffered-envelope validation, not a streaming
+memory limit; P5 still needs that follow-up. Do not mark the programme complete
+after this first wave. Continue build/review/PR loops across sessions; preserve
+the original backend checkout and all topic worktrees.
 
 ## Evening development: usability, observation accuracy and release rehearsal
 

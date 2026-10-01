@@ -1,0 +1,25 @@
+# Observing browser checks — 1 October 2026
+
+Captured with the real Chrome browser against local isolated servers, synthetic
+central-London coordinates and QA-named equipment. No customer account or actual
+personal observing site was used. Integration checkpoint8f380d3 contains workspace
+b7e1f79, opticsc533ad7 and night planner1cfcf2d. Backend engine served read-only
+fixtures on18004; no catalogue ingestion or production requests.
+
+Confirmed in browser: telescope and eyepiece creation; site coordinate rounding,
+explicit activation and reload persistence; optical example1000mm/20mm gives50×,
+200mm aperture gives4mm exit pupil,50°AFOV gives approximate1°true field; entered
+30arcminutes is50% of the field diameter. Desktop and390×844viewport override
+screenshots show the result and usable narrow controls. DOM client/page widths
+both375px (scrollbar excluded), with no horizontal overflow. Viewport restored.
+
+Real night-form POST for2026-10-01 Europe/London51.50/−0.12 returned Moon,
+Jupiter and Saturn windows with model/IERS prediction disclosures. The original
+chart screenshot prompted clearer altitude axis labels before commit; a final
+night screenshot is still pending.
+
+Remaining: import/export through native file chooser/download capture, editing
+and deletion keyboard flows, final night charts/tables at narrow widths and
+broader foundation journeys. A download event wait timed out and detached its
+tab debugger; a fresh tab recovered. Unit tests do not substitute for these
+remaining browser checks. Physical touch/device performance was not tested.
