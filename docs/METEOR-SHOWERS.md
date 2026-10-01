@@ -40,8 +40,10 @@ limitation without claiming the catalogue is complete or loaded.
 The detail view renders every `parameter_sets` entry, independent of filters
 on the list. Each set retains its measurements, status, activity, observing
 technique, member count, submission date, source reference and proposed parent.
-Missing values remain explicit; source strings are escaped, not interpreted
-as HTML. Units are shown alongside measurements. Numeric display uses up to
+Missing values remain explicit. Citation markup is decoded and stripped for
+readable plain-text display, then HTML-escaped; no upstream links or scripts
+are activated. DTOs retain the raw reference for provenance. Other source
+strings are escaped, not interpreted as HTML. Units are shown alongside measurements. Numeric display uses up to
 six decimal places; use the REST response or published database for source
 precision and scientific reuse.
 

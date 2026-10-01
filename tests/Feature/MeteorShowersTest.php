@@ -116,7 +116,8 @@ it('shows every detail parameter set and its own parent without trusting the agg
         ->assertSee('2 parameter sets returned')->assertSee('Parameter set 0')->assertSee('Parameter set 1')
         ->assertSee('/objects/ast-phaethon', escape: false)->assertSee('/objects/comet-second', escape: false)
         ->assertDontSee('/objects/ast-aggregate-parent', escape: false)
-        ->assertSee('<script>alert("source")</script>')->assertDontSee('<script>alert("source")</script>', escape: false)
+        ->assertSee('alert("source")')->assertDontSee('<script>alert("source")</script>', escape: false)
+        ->assertDontSee('&lt;script&gt;', escape: false)
         ->assertSee('Not reported')->assertSee('km/s')->assertSee('°/day')->assertSee('Observation campaign A');
 });
 
@@ -210,3 +211,11 @@ it('rejects invalid meteor Livewire update types before coercion', function (str
     $component->set($field, $value)->assertHasErrors($field);
     Http::assertNothingSent();
 })->with([['activeOn', ['2026-12-14']], ['activeOn', null], ['establishedOnly', 'potato']]);
+
+it('displays readable citation text while preserving the raw source reference', function () {
+    $reference = '<A href="javascript:alert(1)">Jopek &amp; colleagues</A> &lt;em&gt;(2024)&lt;/em&gt;';
+    fakeMeteorCatalogue(detail: meteorDetailPayload([array_replace(meteorParameterPayload(), ['reference' => $reference])]));
+    expect(app(SolarApiClient::class)->meteorShower('GEM')->parameterSets[0]->reference)->toBe($reference);
+    $this->get('/meteor-showers/GEM')->assertOk()->assertSee('Jopek & colleagues (2024)')
+        ->assertDontSee('javascript:alert(1)', escape: false)->assertDontSee('&lt;A', escape: false);
+});

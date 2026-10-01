@@ -54,7 +54,7 @@
                             </x-prop-row>
                         </dl>
                         <div class="mt-5 space-y-2 break-words text-sm" style="color: var(--muted);">
-                            <p><span class="font-semibold">{{ __('Reference:') }}</span> {{ $set->reference ?? __('Not reported') }}</p>
+                            <p><span class="font-semibold">{{ __('Reference:') }}</span> {{ \App\Support\SourceReference::plainText($set->reference) ?? __('Not reported') }}</p>
                             <p><span class="font-semibold">{{ __('Source:') }}</span> {{ $set->source ?? __('IAU Meteor Data Center') }}</p>
                         </div>
                     </section>
