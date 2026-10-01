@@ -9,14 +9,17 @@
 @endphp
 
 <header x-data="{ open: false }"
+        @keydown.escape="if (open) { open = false; $refs.menuToggle.focus(); $event.stopPropagation(); }"
+        @focusout="if (!$el.contains($event.relatedTarget)) open = false"
+        @resize.window="if (window.innerWidth >= 1024) open = false"
         class="sticky top-0 z-40 border-b backdrop-blur"
         style="border-color: var(--border); background-color: color-mix(in srgb, var(--bg) 88%, transparent);">
-    <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-6xl items-center gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
         {{-- Wordmark --}}
-        <a href="{{ route('home') }}" class="group flex shrink-0 items-center gap-2.5">
-            <span aria-hidden="true" class="inline-block h-3.5 w-3.5 rounded-full"
+        <a href="{{ route('home') }}" class="group flex min-w-0 items-center gap-2.5">
+            <span aria-hidden="true" class="inline-block h-3.5 w-3.5 shrink-0 rounded-full"
                   style="background: radial-gradient(circle at 30% 30%, var(--color-amber-soft), var(--accent) 60%, #8a6a2a); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 60%, transparent);"></span>
-            <span class="wordmark whitespace-nowrap text-xl font-medium" style="color: var(--text);">{{ config('site.name') }}</span>
+            <span class="wordmark truncate text-xl font-medium" style="color: var(--text);">{{ config('site.name') }}</span>
         </a>
 
         {{-- Desktop nav --}}
@@ -38,7 +41,7 @@
             @endforeach
         </nav>
 
-        <div class="ml-auto flex items-center gap-2">
+        <div class="ml-auto flex shrink-0 items-center gap-2">
             {{-- Search (compact) --}}
             <form action="{{ route('search') }}" method="GET" role="search"
                   class="hidden items-center md:flex">
@@ -50,15 +53,15 @@
                         <path d="m18 18-4.5-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                     </svg>
                     <input id="header-search" type="search" name="q" value="{{ $searchQuery }}"
-                           placeholder="{{ __('Search…') }}" autocomplete="off"
-                           class="w-36 bg-transparent px-2 py-1.5 text-sm focus:outline-none lg:w-32"
+                           placeholder="{{ __('Search…') }}" autocomplete="off" enterkeyhint="search"
+                           class="min-h-11 w-36 bg-transparent px-2 py-1.5 text-sm focus:outline-none lg:w-32"
                            style="color: var(--text);">
                 </div>
             </form>
 
             {{-- Random object --}}
             <a href="{{ route('random') }}" title="{{ __('Jump to a random object') }}"
-               class="hidden items-center justify-center rounded-lg border p-2 sm:inline-flex"
+               class="hidden min-h-11 min-w-11 items-center justify-center rounded-lg border p-2 sm:inline-flex"
                style="border-color: var(--border); color: var(--muted);"
                aria-label="{{ __('Random object') }}">
                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -80,8 +83,9 @@
                     }"
                     x-on:theme-changed.window="theme = $event.detail.theme"
                     @click="toggle()"
-                    class="inline-flex items-center justify-center rounded-lg border p-2"
+                    class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border p-2"
                     style="border-color: var(--border); color: var(--muted);"
+                    aria-label="{{ __('Switch to light theme') }}"
                     :aria-label="theme === 'dark' ? '{{ __('Switch to light theme') }}' : '{{ __('Switch to dark theme') }}'">
                 <svg x-show="theme === 'dark'" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path d="M15.5 11.5A6 6 0 0 1 8.5 4.5a.5.5 0 0 0-.7-.6 7 7 0 1 0 8.3 8.3.5.5 0 0 0-.6-.7Z"/>
@@ -111,10 +115,10 @@
             @endauth
 
             {{-- Mobile menu button --}}
-            <button type="button" @click="open = !open"
-                    class="inline-flex items-center justify-center rounded-lg border p-2 lg:hidden"
+            <button type="button" x-ref="menuToggle" @click="open = !open"
+                    class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border p-2 lg:hidden"
                     style="border-color: var(--border); color: var(--muted);"
-                    :aria-expanded="open" aria-controls="mobile-nav" aria-label="{{ __('Menu') }}">
+                    aria-expanded="false" :aria-expanded="open" aria-controls="mobile-nav" aria-label="{{ __('Menu') }}">
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
                     <path x-show="!open" d="M3 6h14M3 10h14M3 14h14" stroke-linecap="round"/>
                     <path x-show="open" x-cloak d="M5 5l10 10M15 5 5 15" stroke-linecap="round"/>
@@ -124,21 +128,23 @@
     </div>
 
     {{-- Mobile nav drawer --}}
-    <nav id="mobile-nav" x-show="open" x-cloak x-collapse class="border-t lg:hidden"
+    <nav id="mobile-nav" x-show="open" x-cloak class="mobile-nav border-t lg:hidden"
          style="border-color: var(--border); background-color: var(--bg-elevated);"
          aria-label="{{ __('Primary') }}">
         <div class="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6">
-            <form action="{{ route('search') }}" method="GET" role="search" class="mb-3 md:hidden">
+            <form action="{{ route('search') }}" method="GET" role="search" class="mb-3 flex gap-2 md:hidden">
                 <label for="mobile-search" class="sr-only">{{ __('Search the catalogue') }}</label>
                 <input id="mobile-search" type="search" name="q" value="{{ $searchQuery }}"
-                       placeholder="{{ __('Search the catalogue…') }}" autocomplete="off"
-                       class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none"
+                       placeholder="{{ __('Search the catalogue…') }}" autocomplete="off" enterkeyhint="search"
+                       class="min-h-11 min-w-0 flex-1 rounded-lg border px-3 py-2 text-base focus:outline-none"
                        style="border-color: var(--border); background-color: var(--bg); color: var(--text);">
+                <button type="submit" class="min-h-11 shrink-0 rounded-lg border px-3 py-2 text-sm font-medium"
+                        style="border-color: var(--border); color: var(--text);">{{ __('Search') }}</button>
             </form>
             <div class="grid gap-1">
                 @foreach ($nav as $item)
                     <a href="{{ route($item['route']) }}"
-                       class="rounded-md px-3 py-2 text-sm font-medium"
+                       class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium"
                        @style([
                            'color: var(--accent)' => request()->routeIs($item['active']),
                            'color: var(--text)' => ! request()->routeIs($item['active']),
@@ -147,17 +153,17 @@
                         {{ $item['label'] }}
                     </a>
                 @endforeach
-                <a href="{{ route('random') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Random object') }}</a>
-                <a href="{{ route('about') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('About') }}</a>
+                <a href="{{ route('random') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Random object') }}</a>
+                <a href="{{ route('about') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('About') }}</a>
                 @auth
-                    <a href="{{ route('alerts.index') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Your alerts') }}</a>
+                    <a href="{{ route('alerts.index') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Your alerts') }}</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full rounded-md px-3 py-2 text-left text-sm font-medium" style="color: var(--text);">{{ __('Sign out') }}</button>
+                        <button type="submit" class="min-h-11 w-full rounded-md px-3 py-2 text-left text-sm font-medium" style="color: var(--text);">{{ __('Sign out') }}</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Sign in') }}</a>
-                    <a href="{{ route('register') }}" class="rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Create account') }}</a>
+                    <a href="{{ route('login') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Sign in') }}</a>
+                    <a href="{{ route('register') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Create account') }}</a>
                 @endauth
             </div>
         </div>

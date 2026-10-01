@@ -56,6 +56,7 @@
         --muted: var(--color-muted);
         --link: var(--color-blue);
         --accent: var(--color-amber);
+        --error: #ffb4b4;
         color-scheme: dark;
     }
 
@@ -68,6 +69,7 @@
         --muted: #5b6478;
         --link: #1f6fd6;
         --accent: #9a6b14;
+        --error: #b42318;
         color-scheme: light;
     }
 
@@ -87,13 +89,6 @@
         min-height: 100vh;
         background-color: var(--bg);
         color: var(--text);
-    }
-
-    /* Pretty, visible focus — never hidden. (BRIEF §6 accessibility.) */
-    :focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-        border-radius: 3px;
     }
 
     ::selection {
@@ -150,4 +145,24 @@
         font-family: var(--font-serif);
         letter-spacing: -0.02em;
     }
+}
+
+/* Outside the layers so focus:outline-none utilities cannot hide keyboard focus. */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+/* Keep fragment destinations and keyboard focus below the sticky header. */
+main[id], main [id], :focus-visible {
+    scroll-margin-top: 6rem;
+}
+
+/* The disclosure stays usable on short landscape screens and at browser zoom. */
+.mobile-nav {
+    max-height: calc(100vh - 5rem);
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
