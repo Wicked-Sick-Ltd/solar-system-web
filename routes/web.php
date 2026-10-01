@@ -15,10 +15,13 @@ use App\Livewire\CloseApproaches;
 use App\Livewire\ExoplanetDetail;
 use App\Livewire\Exoplanets;
 use App\Livewire\ExoplanetSystem;
+use App\Livewire\ExplorePage;
 use App\Livewire\Galaxy;
 use App\Livewire\Home;
+use App\Livewire\LearnPage;
 use App\Livewire\Objects\Index as ObjectsIndex;
 use App\Livewire\Objects\Show as ObjectsShow;
+use App\Livewire\ObservePage;
 use App\Livewire\Orrery;
 use App\Livewire\Planets\Index as PlanetsIndex;
 use App\Livewire\PrivacyPage;
@@ -27,6 +30,9 @@ use App\Livewire\SettingsPage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
+Route::get('/explore', ExplorePage::class)->name('explore');
+Route::get('/observe', ObservePage::class)->name('observe');
+Route::get('/learn', LearnPage::class)->name('learn');
 
 Route::get('/objects', ObjectsIndex::class)->name('objects.index');
 Route::get('/objects/{slug}', ObjectsShow::class)->name('objects.show');

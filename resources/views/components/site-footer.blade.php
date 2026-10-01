@@ -14,6 +14,8 @@
         <nav aria-label="{{ __('Browse') }}">
             <h2 class="text-xs font-semibold uppercase tracking-wider" style="color: var(--muted);">{{ __('Browse') }}</h2>
             <ul class="mt-3 space-y-2 text-sm">
+                <li><a class="link-quiet" href="{{ route('explore') }}">{{ __('Explore') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('exoplanets.index') }}">{{ __('Exoplanets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('planets.index') }}">{{ __('Planets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('dwarf-planets') }}">{{ __('Dwarf planets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('asteroids') }}">{{ __('Asteroids') }}</a></li>
@@ -27,6 +29,8 @@
         <nav aria-label="{{ __('This site') }}">
             <h2 class="text-xs font-semibold uppercase tracking-wider" style="color: var(--muted);">{{ __('This site') }}</h2>
             <ul class="mt-3 space-y-2 text-sm">
+                <li><a class="link-quiet" href="{{ route('observe') }}">{{ __('Observe') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('learn') }}">{{ __('Learn') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('galaxy') }}">{{ __('Galaxy explorer') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('orrery') }}">{{ __('Orrery') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('about') }}">{{ __('About & data sources') }}</a></li>

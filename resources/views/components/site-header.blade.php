@@ -1,12 +1,9 @@
 @php
     $nav = [
-        ['label' => __('Planets'), 'route' => 'planets.index', 'active' => 'planets*'],
-        ['label' => __('Dwarf planets'), 'route' => 'dwarf-planets', 'active' => 'dwarf-planets'],
-        ['label' => __('Asteroids'), 'route' => 'asteroids', 'active' => 'asteroids'],
-        ['label' => __('Comets'), 'route' => 'comets', 'active' => 'comets'],
-        ['label' => __('TNOs'), 'route' => 'tnos', 'active' => 'tnos'],
-        ['label' => __('Exoplanets'), 'route' => 'exoplanets.index', 'active' => 'exoplanets*'],
-        ['label' => __('All objects'), 'route' => 'objects.index', 'active' => 'objects*'],
+        ['label' => __('Explore'), 'route' => 'explore', 'active' => 'explore'],
+        ['label' => __('Observe'), 'route' => 'observe', 'active' => 'observe'],
+        ['label' => __('Learn'), 'route' => 'learn', 'active' => 'learn'],
+        ['label' => __('Data'), 'route' => 'api', 'active' => 'api'],
     ];
 @endphp
 
@@ -15,10 +12,10 @@
         style="border-color: var(--border); background-color: color-mix(in srgb, var(--bg) 88%, transparent);">
     <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         {{-- Wordmark --}}
-        <a href="{{ route('home') }}" class="group flex items-center gap-2.5">
+        <a href="{{ route('home') }}" class="group flex shrink-0 items-center gap-2.5">
             <span aria-hidden="true" class="inline-block h-3.5 w-3.5 rounded-full"
                   style="background: radial-gradient(circle at 30% 30%, var(--color-amber-soft), var(--accent) 60%, #8a6a2a); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 60%, transparent);"></span>
-            <span class="wordmark text-xl font-medium" style="color: var(--text);">{{ config('site.name') }}</span>
+            <span class="wordmark whitespace-nowrap text-xl font-medium" style="color: var(--text);">{{ config('site.name') }}</span>
         </a>
 
         {{-- Desktop nav --}}

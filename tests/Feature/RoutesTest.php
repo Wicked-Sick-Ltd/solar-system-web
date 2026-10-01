@@ -12,6 +12,9 @@ it('renders every public P0 route', function (string $uri) {
         ->assertSee(config('site.name'), escape: false);
 })->with([
     'home' => '/',
+    'explore' => '/explore',
+    'observe' => '/observe',
+    'learn' => '/learn',
     'objects index' => '/objects',
     'objects filtered' => '/objects?type=asteroid&named=1&page=1',
     'object detail' => '/objects/planet-saturn',
