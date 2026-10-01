@@ -18,8 +18,16 @@ Jupiter and Saturn windows with model/IERS prediction disclosures. The original
 chart screenshot prompted clearer altitude axis labels before commit; a final
 night screenshot is still pending.
 
-Remaining: import/export through native file chooser/download capture, editing
-and deletion keyboard flows, final night charts/tables at narrow widths and
-broader foundation journeys. A download event wait timed out and detached its
-tab debugger; a fresh tab recovered. Unit tests do not substitute for these
-remaining browser checks. Physical touch/device performance was not tested.
+Journal checks: created a synthetic list and Saturn observation with selected
+telescope snapshot; reload retained both. Downloaded JSON through Chrome's
+native Save dialog and inspected the resulting file: one list and one
+observation, the selected equipment, and no site coordinates. Desktop and
+390×844 mobile screenshots show the saved observation; client/page widths both
+375px. The viewport override was restored. Notes identify the record as synthetic.
+
+Remaining: native file import (the extension requires file-URL access), workspace
+export, editing and deletion keyboard flows, final night charts/tables at narrow
+widths and broader foundation journeys. The earlier download event timeout was
+caused by an outstanding native Save dialog; completing it verified journal
+download. Unit tests do not substitute for these remaining browser checks.
+Physical touch/device performance was not tested.
