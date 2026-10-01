@@ -1,36 +1,44 @@
 {
-  "title": "Public Universe: a wider view of space",
-  "summary": "Our free astronomy platform has a new name and more ways to explore real observations, from our solar system to planets around other stars. This first community release brings easier discovery, accessible system browsing, learning activities and scientific downloads together under Public Universe.",
+  "title": "Public Universe: explore space and prepare an observing night",
+  "summary": "Unreleased review draft for the first Public Universe community release. The proposed batch combines easier astronomy discovery with private observing workspaces, explained night-planning windows and clearer scientific provenance. Features described here remain in development pull requests; this is not a launch announcement.",
   "sections": {
-    "Explore at your own pace": [
-      "Explore, Observe, Learn and Data give you clear starting points, whether you are curious about space, preparing an observing session, teaching or doing research.",
-      "Search solar-system objects and exoplanets together. Results keep useful information available when one catalogue is temporarily unavailable.",
-      "Browse measured planetary systems by name or distance without needing JavaScript or a 3D display, then open a system's planets or locate it on the galaxy map.",
-      "Filter asteroids by their recorded properties and continue through the catalogue without skipping objects between pages.",
-      "The galaxy explorer loads its 3D display only when you choose it, keeping the first page lighter while the measured-system directory remains available.",
-      "More catalogue filters and page links work without JavaScript, preserve your selections and help you recover when a results page is no longer available.",
-      "Mobile navigation now has larger controls and an explicit search button. Keyboard focus is easier to see, and account form errors are linked to the fields that need attention.",
-      "Settings choices support keyboard selection, and shared settings reject malformed locations while still asking before applying changes."
+    "Explore and learn": [
+      "Explore, Observe, Learn and Data offer starting points for children, teachers, observers and researchers. Public catalogue browsing and learning remain free without an account.",
+      "Search solar-system objects and exoplanets together, with results from an available catalogue retained if the other is unavailable. Live searches keep the browser title aligned with the current query.",
+      "Browse measured planetary systems with ordinary name and distance filters, then open their planets or locate them on the galaxy map. The optional 3D display loads only when requested; its loading guidance changes when it is ready.",
+      "Learning activities explain stellar distances, discovery methods and measurements. Meteor-shower pages retain distinct observation campaigns and approximate seasonal guidance, not visibility forecasts.",
+      "Native filters, pagination, clearer keyboard focus and mobile navigation improve access. Orrery dates and partial positions, close-approach limits and small uncertainties have clearer validation and explanations."
     ],
-    "Learn from observations": [
-      "New short activities explore stellar distances, planet-discovery methods and how to read measurements, with extra detail and links to NASA sources.",
-      "Meteor-shower pages show the different observation campaigns, reported parent bodies and measurements in the IAU Meteor Data Center catalogue.",
-      "Meteor activity filters are clearly marked as approximate seasonal guides, rather than forecasts of visibility or hourly meteor rates.",
-      "The solar-system diagram rejects impossible dates, offers ordinary date-navigation links and names any selected bodies whose positions are unavailable.",
-      "Close-approach pages distinguish unavailable data from no listed encounters, explain the nearest-200 limit and keep very small distances visible.",
-      "Observer weather now refers to a specific forecast hour and keeps clear skies separate from an object's visibility. Dew-risk calculations use consistent wind units, and twilight labels follow the sky calculation."
+    "Keep your own observing workspace": [
+      "Save named telescopes, binoculars, eyepieces, Barlows, reducers, cameras and observing sites in your browser. Known measurements retain explicit units; unknown values remain unknown.",
+      "Sites can include a user-entered horizon profile. Import files are previewed before replacement, older workspace files remain supported, and imported sites are not silently activated.",
+      "Create observing lists and record actual observation times, outcomes and notes. Equipment and site snapshots preserve historical context after later profile changes. A planned target or list status is not proof of an observation.",
+      "Download JSON, CSV or print views with explicit location choices. Keep exports private: notes, dates and derived context can still reveal personal information even when coordinates are omitted.",
+      "An optional account copy requires explicit preview and consent to upload, restore or remove it. Signing in does not transfer your local records. Conflicts require a fresh choice rather than silent overwrite.",
+      "Account copies are encrypted by the server, not end-to-end encrypted. Removing an account copy leaves guest-browser data separate; local storage replacement still requires care when editing in several tabs."
     ],
-    "Use the data with confidence": [
-      "Download the current filtered exoplanet page as CSV or JSON, with up to 24 planets, units, original source fields, uncertainties, limits and references.",
-      "Downloads distinguish missing values from zero and explain that the current API does not provide an immutable snapshot identifier.",
-      "Small and one-sided distance uncertainties remain visible in the system directory and galaxy map. Coverage notes explain missing positions and incomplete samples.",
-      "Malformed upstream data is reported as unavailable rather than silently treated as an empty or complete catalogue."
+    "Prepare a night, with its limits explained": [
+      "Choose a date, time zone, rounded location and available hours, or explicitly copy a saved site. The night calculation applies your minimum altitude, supplied horizon, darkness and Moon-separation choices.",
+      "Accessible charts and tables explain geometric windows for the Moon, planets and supported starter-catalogue targets. Empty, unresolved and unavailable results have distinct meanings.",
+      "Optional weather is requested separately for matching forecast hours. Missing or out-of-range forecasts stay unknown; clear weather does not establish that a target is observable.",
+      "Compare saved or temporary eyepieces by magnification, exit pupil and estimated field width, with field-stop values preferred when available. Camera previews use sensor geometry. These are geometric comparisons, not sky images or detection promises.",
+      "Forthcoming equipment comparisons add sourced magnitude bands, quality flags and angular-size context to a plan. Unknown dimensions and historical double-star separations do not become invented target diameters.",
+      "Forthcoming session downloads retain normalized inputs, windows, UTC times, time zone and method details. Coordinates and terrain are omitted by default and included only by explicit choice; CSV is a window index, while companion JSON carries fuller assumptions.",
+      "Seeing, sky brightness, optical quality, equipment compatibility and unmeasured obstacles can still prevent a useful view. This platform does not control telescopes or provide solar-observing instructions."
     ],
-    "A dependable free platform": [
-      "Public browsing, learning and data access remain free and available without an account.",
-      "Account sessions, personal-page caching and visibility-alert processing have received reliability improvements.",
-      "This release history gives every announced version a permanent page, with notes published after the running release has been verified.",
-      "The move to publicuniverse.net is being prepared separately. Existing public addresses remain in use until that migration is ready."
+    "Read the source behind a result": [
+      "A bounded starter catalogue brings sourced bright stars, overlapping historical multiple-star records and deep-sky objects into browsing and planning. It is not a complete sky survey; unsupported coordinates remain unavailable for calculation.",
+      "Coordinate frames, reference epochs, proper-motion assumptions and source-specific attribution remain visible. Unknown observation epochs or physical stellar distances are not filled with estimates.",
+      "Night calculations report their actual model, Earth-orientation data and, when configured, the checksum-pinned JPL kernel. Numerical boundary tolerance is not a statement of astronomical accuracy.",
+      "Catalogue metadata distinguishes a logical data identity from a build identity and downloadable-file checksums. Older, changed or unavailable catalogues can have unknown identity.",
+      "The frontend observes catalogue identity to separate cache generations and compares API metadata with downloadable database metadata. An identity observed in a separate request does not certify that every result belongs to an immutable snapshot.",
+      "Filtered exoplanet-page downloads retain original measurements, units, limits, uncertainties and references. Exact repetition still needs retained source snapshots, original inputs and compatible calculation software; a moving live API is not an archive."
+    ],
+    "Before this becomes a release": [
+      "All changes in this draft are unreleased. Catalogue/session integration and equipment comparisons still need their combined acceptance checks before the final release scope is selected.",
+      "Local regression tests and selected browser checks do not establish field performance or physical-touch acceptance. Broader device, memory and map-render measurements remain programme work.",
+      "The existing public addresses remain in use. The move to publicuniverse.net, live backend prerequisites, deployment and community announcement are separate decisions.",
+      "The permanent release page will be published only after the selected running version is verified. This draft does not change the application version or publish any notes."
     ]
   }
 }
