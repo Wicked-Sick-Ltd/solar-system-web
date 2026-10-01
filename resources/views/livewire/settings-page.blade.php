@@ -70,6 +70,12 @@
             <p class="mt-3 text-xs" style="color: var(--color-faint);">{{ __('Stored as') }} <code class="font-mono">observer_location</code>.</p>
         </section>
 
+        <section class="surface p-6" aria-labelledby="workspace-heading">
+            <h2 id="workspace-heading" class="font-serif text-xl font-medium">{{ __('Equipment and named sites') }}</h2>
+            <p class="mt-3 text-sm">{{ __('Your observatory stores equipment and named observing sites in this browser. Manage, export, import or delete that workspace on its own page. It is not included in settings links or cleared by the display settings button below.') }}</p>
+            <a class="mt-3 inline-block underline" href="{{ route('observatory') }}">{{ __('Manage your observatory') }} →</a>
+        </section>
+
         {{-- Preferences --}}
         <section class="surface p-6" aria-labelledby="prefs-heading">
             <h2 id="prefs-heading" class="font-serif text-xl font-medium">{{ __('Display') }}</h2>
@@ -97,9 +103,9 @@
 
         {{-- Clear all --}}
         <section class="surface p-6" aria-labelledby="clear-heading">
-            <h2 id="clear-heading" class="font-serif text-xl font-medium">{{ __('Clear everything') }}</h2>
+            <h2 id="clear-heading" class="font-serif text-xl font-medium">{{ __('Clear display settings') }}</h2>
             <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Removes the theme, location and preferences above from this browser. The cookie-consent choice is separate and is covered on the privacy page.') }}</p>
-            <button type="button" class="mt-3 rounded-lg border px-4 py-2 text-sm" style="border-color: #ffb4b4; color: #ffb4b4;" @click="clearAll()">{{ __('Clear everything this site remembers') }}</button>
+            <button type="button" class="mt-3 rounded-lg border px-4 py-2 text-sm" style="border-color: #ffb4b4; color: #ffb4b4;" @click="clearAll()">{{ __('Clear theme, location and display preferences') }}</button>
         </section>
 
         <p class="text-sm" style="color: var(--muted);">
