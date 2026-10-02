@@ -1,11 +1,11 @@
 <div data-observing-workspace class="mx-auto max-w-4xl">
     <x-page-header :title="__('Your observatory')" :eyebrow="__('Prepare for a night outside')"
-        :lead="__('Keep your equipment and observing sites together. Everything here stays in this browser; an account is not needed.')" />
+        :lead="__('Keep your equipment and observing sites together in this browser by default; an account is not needed.')" />
 
     <noscript><p class="surface mb-6 p-4">{{ __('This workspace needs JavaScript to save data in your browser. You can still explore the catalogue and read the observing guides.') }}</p></noscript>
     <p class="mb-2 text-sm" role="status" aria-live="polite" data-workspace-status></p>
     <p class="mb-6 text-sm" role="alert" id="workspace-error" style="color: var(--error);" data-workspace-error></p>
-    <p class="mb-8 text-sm" style="color: var(--muted);">{{ __('Browser storage can be cleared by your browser or anyone using this device. Export a backup to keep your records. No equipment or named sites are uploaded, including when you are signed in.') }}</p>
+    <p class="mb-8 text-sm" style="color: var(--muted);">{{ __('Browser storage can be cleared by your browser or anyone using this device. Export a backup to keep your records. Saving here or signing in does not upload equipment or named sites. A separate private account backup requires your explicit preview and upload choice.') }}</p>
 
     <section class="surface mb-8 p-5 sm:p-6" aria-labelledby="equipment-heading">
         <h2 id="equipment-heading" class="font-serif text-2xl">{{ __('Your equipment') }}</h2>
