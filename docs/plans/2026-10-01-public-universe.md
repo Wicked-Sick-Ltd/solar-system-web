@@ -150,4 +150,3 @@ never rebuild over the retained local catalogue or commit generated databases.
 - Database docs: `docs/SESSION_HANDOFF.md`, `docs/EXOPLANETS.md`, and archived
   full-catalogue/meteor plans in the sibling repository.
 - [Google domain-move guidance](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes)
-
