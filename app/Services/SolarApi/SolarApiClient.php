@@ -241,7 +241,14 @@ class SolarApiClient
     }
 
     /**
-     * Filterable, cursor-paginated list of objects.
+     * Filterable list of objects.
+     *
+     * `GET /objects` supports two paging modes. The default is offset paging
+     * in the backend's orbital order. Passing `$after` (an empty string for the
+     * first page) selects keyset paging: the backend applies `id > after`,
+     * orders by `id`, ignores `offset` and answers with a `next_after` field
+     * (null on the last page). The ID order is what makes a walk over the full
+     * catalogue stable, so the two modes are never mixed.
      *
      * @param  array<string,mixed>  $filters  type, parent, min/max_radius_km, neo, pha, named_only
      * @return Paginated<ObjectSummary>
@@ -268,6 +275,9 @@ class SolarApiClient
             throw new SolarApiException('Object catalogue is not available in this browsing mode.');
         }
         $rows = array_values($data['results']);
+        if ($after !== null) {
+            $this->assertCursorHonoured($rows, $after);
+        }
 
         $page = $this->paginate($rows, $limit, $after !== null ? 0 : $offset, ObjectSummary::fromArray(...));
         // The API cursor points to its last returned (overfetched) row. Use our
@@ -806,6 +816,28 @@ class SolarApiClient
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
+
+    /**
+     * A keyset page must contain only ids strictly after the cursor, in
+     * ascending byte order (the backend's `o.id > :after ORDER BY o.id`; the
+     * id column uses SQLite's BINARY collation, which strcmp matches). An
+     * API that ignores `after` answers with its offset-ordered first page
+     * instead, which would make "next" repeat the same rows forever; fail
+     * closed so the page shows unavailability rather than a silent loop.
+     *
+     * @param  list<mixed>  $rows
+     */
+    private function assertCursorHonoured(array $rows, string $after): void
+    {
+        $previous = $after;
+        foreach ($rows as $row) {
+            $id = is_array($row) ? ($row['id'] ?? null) : null;
+            if (! is_string($id) || strcmp($id, $previous) <= 0) {
+                throw new SolarApiException('Object catalogue did not honour the catalogue cursor.');
+            }
+            $previous = $id;
+        }
+    }
 
     /**
      * @param  list<array<string,mixed>>  $rows

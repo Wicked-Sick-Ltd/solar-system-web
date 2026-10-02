@@ -105,6 +105,33 @@ it('continues asteroid cursor pages at the displayed boundary of real backend re
     expect(array_intersect(array_column($first->items, 'id'), array_column($second->items, 'id')))->toBe([]);
 });
 
+it('pages the asteroid catalogue past page 1 by following the rendered cursor link', function () {
+    // Page 1 of the full catalogue by ID: GET /objects?after= (keyset mode).
+    $firstPage = $this->contract['objects']['results'];
+    $secondPage = $this->contract['next_objects']['results'];
+    $cursor = $firstPage[23]['id'];
+    $nextUrl = route('asteroids', ['order' => 'id', 'after' => $cursor]);
+
+    $this->get('/asteroids?order=id')->assertOk()
+        ->assertSee('Showing 24 objects in catalogue ID order')
+        ->assertSee($firstPage[0]['name'])->assertSee($firstPage[23]['name'])
+        ->assertDontSee($firstPage[24]['name'])
+        ->assertSee('href="'.e($nextUrl).'" rel="next"', escape: false);
+    Http::assertSent(fn ($request) => str_ends_with(parse_url($request->url(), PHP_URL_PATH), '/objects')
+        && $request['after'] === '' && $request['offset'] === 0);
+
+    // Page 2: the link carries the last displayed id, the backend answers
+    // with the records strictly after it, and the page keeps advancing.
+    $this->get($nextUrl)->assertOk()
+        ->assertSee('Showing 24 objects in catalogue ID order')
+        ->assertSee($firstPage[24]['name'])->assertSee($secondPage[23]['name'])
+        ->assertDontSee($firstPage[0]['name'])->assertDontSee($secondPage[24]['name'])
+        ->assertSee('href="'.e(route('asteroids', ['order' => 'id', 'after' => $secondPage[23]['id']])).'" rel="next"', escape: false);
+    Http::assertSent(fn ($request) => str_ends_with(parse_url($request->url(), PHP_URL_PATH), '/objects')
+        && $request['after'] === $cursor && $request['offset'] === 0);
+    expect($secondPage[0]['id'])->toBe($firstPage[24]['id']);
+});
+
 it('preserves real observer calculations including polar visibility states', function (string $label) {
     $expected = $this->contract['sky'][$label];
     $observer = $expected['observer'];
