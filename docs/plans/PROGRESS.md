@@ -222,3 +222,19 @@ acceptance remains incomplete and that restriction was not bypassed. The parent
 also recovered the opt-in session artifact (12,831 bytes, location included and
 all four terrain points), alongside the 12,253-byte default with coordinates
 omitted. Detailed screenshots/revision evidence belong in the parent QA update.
+
+
+## Combined audit and map checkpoint — 2 October
+
+Web `a3cb133` combines the acceptance audit (#88), independently reviewed map
+coalescing (#89) and retained parent browser evidence. Integration draft #90
+uses immutable `codex/observing-acceptance-base` (`8a06a4a`) for review. The exact
+combined revision passed 1,215 PHP tests / 5,333 assertions with inherited debug
+enabled, all 238 JS tests, Pint, PHPStan, production build and diff checks.
+Actual catalogue search/detail/site-copy/JPL planning passed. Browser map samples
+do not establish a causal speed improvement; the diagnostic limitations and
+source/build hashes are retained in the [browser report](../qa/2026-10-02/combined-browser-evidence.md).
+
+Backend bounded candidate discovery is now draft #43 (`a4ef9bb`), with 498 tests
+including actual JPL and independent 30-case review. Its frontend consumer and
+remaining feasible browser acceptance are in progress; the programme is active.
