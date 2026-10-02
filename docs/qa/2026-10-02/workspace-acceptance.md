@@ -28,7 +28,9 @@ observer location, device permissions or browser preference changes were used.
 
 ## Native planner with page scripts blocked
 
-The parent QA server `18022` served the current integration with response CSP
+The parent QA server `18022` served a moving integration checkout
+(`52aae2f` through `f81d8cc`; no per-request revision pin was retained), against
+the stable local backend `17583c9`, with response CSP
 `sandbox allow-forms allow-same-origin allow-popups`, omitting `allow-scripts`.
 This is evidence for blocked page scripts, **not** a test of the HTML parser's
 `noscript` path or a globally disabled JavaScript browser setting.
@@ -43,12 +45,44 @@ were replaced by the browser-print explanation. No weather request was made.
 
 ![Native script-blocked calculation result](workspace-acceptance/script-blocked-native-result.jpg)
 
+## Narrow and short landscape acceptance
+
+After the ineffective viewport override below, the parent created a disposable
+same-origin local HTML iframe harness on `18024`, serving its moving integration
+checkout (`f81d8cc` through `c060a34`). Application behavior stayed at `f81d8cc`,
+with the journal's browser-local-by-default copy refined in `ee8a2ea`;
+the intervening changes were documentation. This tests real document layout and media queries without altering
+browser preferences; it does not emulate physical touch or a mobile device.
+
+- `/__qa/narrow` gave the iframe a 320 × 812 CSS-pixel content box. Its document
+  client width was 305 pixels because of the 15-pixel vertical scrollbar.
+  Both the journal and camera page reported `scrollWidth === clientWidth === 305`.
+- Created a synthetic Saturn observation, opened correction with Enter, changed
+  notes and outcome, saved, and used Undo to recover the original seen outcome
+  and notes. Renamed a list; subsequent navigation retained the renamed list and
+  restored observation. Editor labels, UTC input and controls wrapped readably.
+- Created telescope and camera profiles through the narrow equipment form,
+  leaving pixel size unknown. The 36 × 24 mm / 1000 mm calculation returned the
+  same 2.062° × 1.375° field, explicitly unknown pixel angle, and the correct
+  30-arcminute comparison. Text and rectangular diagram stayed within the page.
+- `/__qa/landscape` used an 812 × 375 box (797-pixel document client width with
+  scrollbar), again without horizontal document overflow. The menu opened with
+  Enter, scrolled to lower account links as keyboard focus moved, and Escape
+  collapsed it and returned focus to the Menu button.
+
+![Correction editor in the narrow frame](workspace-acceptance/journal-320-correction.jpg)
+
+![Camera comparison in the narrow frame](workspace-acceptance/camera-320-result.jpg)
+
+![Keyboard focus on the lower landscape menu links](workspace-acceptance/menu-landscape.jpg)
+
 ## Limits
 
 The browser viewport capability accepted a temporary 320 × 812 request, but both
 the existing tab and a new tab still reported a 1713 CSS-pixel document viewport
-and screenshots remained desktop width. The override was reset. These captures
-therefore do **not** establish 320-pixel journal or camera acceptance. Physical
+and screenshots remained desktop width. The override was reset. The first three
+captures therefore establish desktop/script-blocked behavior; the separate
+iframe checks above establish narrow-layout behavior. Physical
 touch, screen-reader interaction and device/GPU performance are not established
 by these checks. Native import remains separately pending the browser's file
 permission boundary; no permission was changed or bypassed here.
