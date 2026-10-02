@@ -64,6 +64,22 @@ it('explains when pasted text is not a location', function () {
         ->assertSee('couldn\'t read that');
 });
 
+it('only suggests an available location format after invalid input', function (?string $key) {
+    config(['services.what3words.key' => $key]);
+    $component = Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->call('setFromText', '99, 300')
+        ->assertHasErrors(['text'])
+        ->assertSet('lat', null)
+        ->assertSee('Google Maps link');
+
+    if ($key === null) {
+        $component->assertDontSee('///three.word.address');
+    } else {
+        $component->assertSee('///three.word.address');
+    }
+    Http::assertNothingSent();
+})->with([null, 'TESTKEY1']);
+
 it('resolves a what3words address when a key is configured', function () {
     config(['services.what3words.key' => 'TESTKEY1']);
     Http::fake([

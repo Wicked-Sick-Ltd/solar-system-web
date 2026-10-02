@@ -112,7 +112,9 @@ final class SkyObserver extends Component
 
         $coords = LocationParser::parse($this->text);
         if ($coords === null) {
-            $this->addError('text', __('Sorry, we couldn\'t read that. Try "51.51, -0.13", a Google Maps link, or ///three.word.address.'));
+            $this->addError('text', $w3w->enabled()
+                ? __('Sorry, we couldn\'t read that. Try "51.51, -0.13", a Google Maps link, or ///three.word.address.')
+                : __('Sorry, we couldn\'t read that. Try "51.51, -0.13" or a Google Maps link.'));
 
             return null;
         }
