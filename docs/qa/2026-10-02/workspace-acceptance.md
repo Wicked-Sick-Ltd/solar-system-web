@@ -76,6 +76,40 @@ browser preferences; it does not emulate physical touch or a mobile device.
 
 ![Keyboard focus on the lower landscape menu links](workspace-acceptance/menu-landscape.jpg)
 
+## Shortlist, settings and observer keyboard follow-up
+
+The parent repeated native Chrome checks against integration `a2242b9` (same
+application behavior as `f81d8cc` plus journal copy), backend `a4ef9bb`, on the
+320 × 812 same-origin frame at `18024`. The shortlist form and returned result
+both measured `scrollWidth === clientWidth === 305`.
+
+- Arrow Right moved equipment choice and focus from Naked eye to Binoculars.
+- A native POST for synthetic London (51.5, −0.12), Europe/London, 2026-10-02,
+  binoculars and one candidate returned NGC0205/M110. Its refined window was
+  19:47:54–05:52:14 +01:00. No true field was supplied, and unknown containment
+  remained explicit. Explanation, brightness and sampling limits wrapped.
+- The numerical disclosure opened and its region received keyboard focus.
+  Arrow Right moved `scrollLeft` to 7.5 pixels within a 231-pixel region containing
+  a 624-pixel table; the document retained its 305-pixel width.
+- Settings radio keys moved Match my device → 12-hour → 24-hour, retaining visible
+  focus and updating the locally generated settings link.
+- On the desktop Mars page at `18023`, submitting synthetic invalid `99, 300`
+  with Enter retained focus in Paste a location. The input had `aria-invalid=true`
+  and `aria-describedby=observer-text-error`. This exposed a misleading
+  what3words suggestion while that integration was disabled. The follow-up
+  correction conditions the suggestion on availability; native resubmission
+  confirmed the corrected text and retained focus. Its 26 PHP tests / 118
+  assertions passed, including both enabled/disabled hints and no outbound call
+  for invalid coordinates.
+
+![Keyboard equipment selection](workspace-acceptance/shortlist-320-keyboard.jpg)
+
+![Explained narrow shortlist](workspace-acceptance/shortlist-320-result.jpg)
+
+![Keyboard settings selection](workspace-acceptance/settings-320-keyboard.jpg)
+
+![Linked observer error and retained focus](workspace-acceptance/observer-error-focus.jpg)
+
 ## Limits
 
 The browser viewport capability accepted a temporary 320 × 812 request, but both
