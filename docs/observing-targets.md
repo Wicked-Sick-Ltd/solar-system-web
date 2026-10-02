@@ -2,8 +2,9 @@
 
 `/observing-targets` and `/observing-targets/{source:id}` browse the bounded backend
 starter sample. They use ordinary GET forms and links, require no account or
-JavaScript, and are linked from `/observe`. They do not submit coordinates or
-select observing targets in the night planner.
+JavaScript, and are linked from `/observe`. Their native Plan this target links preselect only an exact public target ID in
+the night form; coordinates and date remain empty, and calculation requires a
+separate submission. The links do not send a location.
 
 The dedicated `StarterCatalogueClient` validates envelopes, requested page identity,
 record identity, family membership, finite coordinate/measurement values, raw source
