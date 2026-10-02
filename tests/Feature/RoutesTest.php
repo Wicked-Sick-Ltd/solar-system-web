@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(fn () => fakeSolar());
 
@@ -128,3 +130,16 @@ it('does not 404 a detail page when the backend is down', function () {
 it('ignores array search parameters in the shared header', function () {
     $this->get('/learn?q%5B%5D=Proxima')->assertOk();
 });
+
+it('renders the observing starter catalogue and exact source detail routes', function (string $uri) {
+    $fixture = json_decode(file_get_contents(base_path('tests/fixtures/starter-catalogue.json')), true, flags: JSON_THROW_ON_ERROR);
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    $target = $fixture['results'][0];
+    Http::fake([
+        '*starter-targets/*' => Http::response($target + ['provenance' => $fixture['sources'][$target['source']]]),
+        '*starter-targets*' => Http::response($fixture),
+        '*' => Http::response([], 503),
+    ]);
+    $this->get($uri)->assertOk()->assertSee(config('site.name'))->assertSee('Source and reuse');
+})->with(['/observing-targets', '/observing-targets/bsc5p:hr1708']);
