@@ -213,3 +213,12 @@ a target shortlist. Native file import remains blocked by extension permission;
 physical touch/lower-power performance, field p75 and several final keyboard and
 assistive-technology journeys remain unverified. These limitations do not reopen
 already delivered journal correction, weather or page-associated identity work.
+
+Follow-up reported during audit review: the parent combined branch now passes
+1,215 PHP tests/5,333 assertions, 234 JS tests, Pint, PHPStan and build after the
+pre-bootstrap debug fix. Current About metadata works against backend #42. Chrome
+blocked the native exoplanet download with `ERR_BLOCKED_BY_CLIENT`; browser export
+acceptance remains incomplete and that restriction was not bypassed. The parent
+also recovered the opt-in session artifact (12,831 bytes, location included and
+all four terrain points), alongside the 12,253-byte default with coordinates
+omitted. Detailed screenshots/revision evidence belong in the parent QA update.
