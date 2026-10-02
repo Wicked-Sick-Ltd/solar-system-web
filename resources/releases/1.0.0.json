@@ -5,12 +5,12 @@
     "Explore and learn": [
       "Explore, Observe, Learn and Data offer starting points for children, teachers, observers and researchers. Public catalogue browsing and learning remain free without an account.",
       "Search solar-system objects and exoplanets together, with results from an available catalogue retained if the other is unavailable. Live searches keep the browser title aligned with the current query.",
-      "Browse measured planetary systems with ordinary name and distance filters, then open their planets or locate them on the galaxy map. The optional 3D display loads only when requested; its loading guidance changes when it is ready.",
+      "Browse measured planetary systems with ordinary name and distance filters, then open their planets or locate them on the galaxy map. The optional 3D display loads only when requested; its loading guidance changes when it is ready. Map redraw requests are combined when view changes arrive together; rendering does not run continuously while idle.",
       "Learning activities explain stellar distances, discovery methods and measurements. Meteor-shower pages retain distinct observation campaigns and approximate seasonal guidance, not visibility forecasts.",
       "Native filters, pagination, clearer keyboard focus and mobile navigation improve access. Orrery dates and partial positions, close-approach limits and small uncertainties have clearer validation and explanations."
     ],
     "Keep your own observing workspace": [
-      "Save named telescopes, binoculars, eyepieces, Barlows, reducers, cameras and observing sites in your browser. Known measurements retain explicit units; unknown values remain unknown.",
+      "Save named telescopes, binoculars, eyepieces, Barlows, reducers, cameras and observing sites in your browser by default. Known measurements retain explicit units; unknown values remain unknown.",
       "Sites can include a user-entered horizon profile. Import files are previewed before replacement, older workspace files remain supported, and imported sites are not silently activated.",
       "Create observing lists and record actual observation times, outcomes and notes. Equipment and site snapshots preserve historical context after later profile changes. A planned target or list status is not proof of an observation. Correct a saved observation or rename a list without changing the target identity or historical setup.",
       "Download JSON, CSV or print views with explicit location choices. Keep exports private: notes, dates and derived context can still reveal personal information even when coordinates are omitted.",
@@ -19,6 +19,8 @@
     ],
     "Prepare a night, with its limits explained": [
       "Choose a date, time zone, rounded location and available hours, or explicitly copy a saved site. The night calculation applies your minimum altitude, supplied horizon, darkness and Moon-separation choices.",
+      "Request a small target shortlist for your chosen site, date and hours without knowing catalogue identifiers. Naked-eye, binocular and telescope choices explain how targets are ordered; optional field width and a source V-band magnitude cut remain your choices.",
+      "Shortlists cover the reviewed starter sample, Moon and planets, with calculated windows for suggested targets. Sampling can miss brief opportunities, so an empty shortlist does not mean there is nothing to observe. Equipment preferences and source brightness or size are not visibility guarantees.",
       "Accessible charts and tables explain geometric windows for the Moon, planets and supported starter-catalogue targets. Empty, unresolved and unavailable results have distinct meanings.",
       "Optional weather is requested separately for matching forecast hours. Missing or out-of-range forecasts stay unknown; clear weather does not establish that a target is observable.",
       "Compare saved or temporary eyepieces by magnification, exit pupil and estimated field width, with field-stop values preferred when available. Camera previews use sensor geometry. These are geometric comparisons, not sky images or detection promises.",
@@ -35,7 +37,7 @@
       "Filtered exoplanet-page downloads retain original measurements, units, limits, uncertainties and references. When the backend supplies identity read in the same transaction as those page rows, exports retain that association; older responses remain unassociated. This does not pin subsequent pages. Exact repetition still needs retained source snapshots, original inputs and compatible calculation software; a moving live API is not an archive."
     ],
     "Before this becomes a release": [
-      "All changes in this draft are unreleased. Reviewed topic changes and selected combined browser checks are recorded separately from final integration acceptance. The broader programme still needs explained target-shortlist selection and outstanding browser/device checks.",
+      "All changes in this draft are unreleased. The shortlist has reviewed frontend and backend checkpoints. Combined local checks pass, while CI and remaining browser/device acceptance are still in progress. Reviewed topics and selected local checks do not mark the broader programme complete.",
       "Local regression tests and selected browser checks do not establish field performance or physical-touch acceptance. Broader device, memory and map-render measurements remain programme work.",
       "The existing public addresses remain in use. The move to publicuniverse.net, live backend prerequisites, deployment and community announcement are separate decisions.",
       "The permanent release page will be published only after the selected running version is verified. This draft does not change the application version or publish any notes."
