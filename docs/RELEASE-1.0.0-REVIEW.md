@@ -80,6 +80,34 @@ remain separately qualified acceptance items. The
 [progress record](plans/PROGRESS.md) retain those boundaries; shortlist browser
 evidence and CI results are still being added at this checkpoint.
 
+## Final local integration checkpoint
+
+Combined runtime `c36de8a` adds [web #96](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/96)
+(`e36224d`) with [backend #44](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/44)
+(`2dfc478`): optional refined altitude/darkness diagnostics over exactly the
+selected interval, including unknown numerical boundaries. Older API responses
+remain compatible. JSON preserves supplied diagnostics; CSV remains an overview.
+The combined runtime also contains [#94](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/94)'s
+disposable measurement harness and an independently reviewed correction to
+invalid-location guidance when what3words is disabled.
+
+This exact combined runtime passes 1,327 PHP tests / 5,924 assertions with
+inherited debug enabled, 247 JavaScript tests, Pint, PHPStan, production build
+and diff checks. Backend #44 passes 505 tests including actual JPL and all CI.
+The selected integration PR head must still be checked for its own CI result.
+
+Retained [narrow/keyboard evidence](qa/2026-10-02/workspace-acceptance.md),
+[account-switch/conflict recovery](qa/2026-10-02/sync/README.md),
+[actual render measurements](qa/2026-10-02/galaxy-render-measurements.md) and
+[refined constraint browser checks](qa/2026-10-02/constraint-browser.md)
+replace the corresponding pending statements at the earlier checkpoint above.
+The last report explicitly distinguishes passing live JPL explanations from
+unverified final print/download attempts. Native file-import and exoplanet
+attachment restrictions, physical touch, assistive technology, lower-power
+hardware, heap/GPU-byte accounting and field performance remain qualified gaps.
+No missing accepted product feature was found after the A4 follow-up, but these
+acceptance gaps prevent declaring the complete programme finished.
+
 ## Review the exact community copy
 
 From this checkout, with locked PHP dependencies installed:

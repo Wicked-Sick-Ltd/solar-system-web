@@ -254,3 +254,36 @@ now integrated. Narrow-screen, sync account-transition and remaining feasible
 browser checks continue. Existing file-import/download browser restrictions,
 physical-device and field-performance limitations remain explicit. No deployment,
 version activation, domain change or community publication occurred.
+
+
+## Final implementation and local acceptance checkpoint — 2 October
+
+Combined runtime `c36de8a` integrates backend #44 (`2dfc478`) with web #96
+(`e36224d`) for refined altitude/darkness coverage, plus #94's disposable render
+measurement harness and the independent observer error-hint correction. The final
+scope review found no additional unbuilt accepted product feature. The programme
+remains active because required acceptance has material limits; this is not a
+claim of complete delivery, release, field accuracy or deployment.
+
+The exact combined runtime passed **1,327 PHP tests / 5,924 assertions**, with
+inherited debug enabled, **247 JavaScript tests**, Pint, PHPStan, production
+build and diff checks. Backend #44 passed **505 tests** including actual JPL;
+#44, web #94 and web #96 CI are green. Integration CI is checked separately at
+its pushed head, never inferred by adding topic counts.
+
+Native Chrome now verifies narrow shortlist calculation/table keyboard access,
+settings radio keys, observer error focus, camera and journal corrections,
+landscape menu navigation and account-switch/deletion/stale-restore conflicts.
+Three actual map runs retain CPU submission, GPU elapsed-query and resource
+counter measurements; they do not establish bytes, physical reclamation or a
+causal speed gain. Live JPL examples verify no-window explanations and an
+interval where both constraints hold. See [current acceptance audit](2026-10-02-programme-gap-review.md)
+for the linked screenshots, raw data and limitations.
+
+The final print-preview and JSON download event attempts timed out; they do not
+certify new artifacts. Prior browser evidence and current export regression
+checks remain scoped separately. File-import/attachment restrictions, physical
+touch, assistive technology, lower-power hardware, field p75, full minor-planet
+finalization and production provisioning are still unverified or separately
+authorized. The unpublished 1.0.0 notes and review packet reflect this state;
+`version.txt` remains `0.0.0`. No production, domain or publication action occurred.
