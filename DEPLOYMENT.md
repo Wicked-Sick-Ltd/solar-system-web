@@ -166,7 +166,7 @@ are. Do **not** add a redirect rule for it.
 **If `sol.wickedsick.com` is ever retired** (it should not be): it must
 **301 permanently, path for path, to the same path on `publicuniverse.net`** —
 every path, including `/orrery` (printed on the handouts), `/api`,
-`/educators` and the PDF paths under `/educators/*.pdf`, with the query string
+`/educators` and the PDF paths under `/handouts/*.pdf`, with the query string
 preserved — and that redirect must stay in place forever, because the printed
 URLs cannot be recalled. Do it as a Cloudflare Redirect Rule on the
 `wickedsick.com` zone (hostname equals `sol.wickedsick.com` → dynamic
@@ -238,7 +238,7 @@ for h in publicuniverse.net sol.wickedsick.com; do
   curl -sI "https://$h/educators" | head -1                                   # 200
   curl -s  "https://$h/educators" | grep -o '<link rel="canonical" href="[^"]*'   # …publicuniverse.net/educators
   curl -s  "https://$h/robots.txt" | grep Sitemap                              # https://publicuniverse.net/sitemap.xml
-  curl -sI "https://$h/educators/solar-handout-primary-y1-6.pdf" | grep -i '^content-type'   # application/pdf
+  curl -sI "https://$h/handouts/solar-handout-primary-y1-6.pdf" | grep -i '^content-type'   # application/pdf
 done
 curl -sI https://www.publicuniverse.net/ | grep -i '^location'              # https://publicuniverse.net/
 ```

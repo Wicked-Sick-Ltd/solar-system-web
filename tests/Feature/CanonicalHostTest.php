@@ -31,7 +31,7 @@ it('keeps internal navigation on the host that served the request', function () 
     $this->get('https://sol.wickedsick.com/educators')
         ->assertOk()
         ->assertSee('href="https://sol.wickedsick.com/about"', escape: false)
-        ->assertSee('href="/educators/solar-handout-primary-y1-6.pdf"', escape: false);
+        ->assertSee('href="/handouts/solar-handout-primary-y1-6.pdf"', escape: false);
 });
 
 it('puts the canonical host in a detail page canonical, share card and JSON-LD', function () {

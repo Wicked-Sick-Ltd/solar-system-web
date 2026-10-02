@@ -70,7 +70,7 @@ final readonly class Handout
         return array_map(self::fromConfig(...), $rows);
     }
 
-    /** Root-relative URL of the PDF, e.g. /educators/foo.pdf. */
+    /** Root-relative URL of the PDF, e.g. /handouts/foo.pdf. */
     public function url(): string
     {
         return '/'.$this->pdf;

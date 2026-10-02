@@ -12,7 +12,7 @@ use Livewire\Component;
 
 /**
  * Downloadable classroom handouts for teachers. Purely static: the handouts
- * are declared in config/educators.php and served from public/educators/.
+ * are declared in config/educators.php and served from public/handouts/.
  */
 #[Layout('components.layouts.app')]
 final class EducatorsPage extends Component
