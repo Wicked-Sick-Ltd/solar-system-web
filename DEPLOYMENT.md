@@ -19,7 +19,7 @@ Copy `.env.example` to `.env` and set at least:
 | Var            | Required | Notes                                                                 |
 | -------------- | -------- | --------------------------------------------------------------------- |
 | `APP_KEY`      | yes      | `php artisan key:generate`                                            |
-| `APP_URL`      | yes      | Public URL — drives canonical URLs, OG tags, sitemap, JSON-LD         |
+| `APP_URL`      | yes      | **Canonical** public URL (`https://publicuniverse.net`) — drives canonical tags, OG URLs, sitemap, robots.txt and JSON-LD on every hostname the site answers to; see *Hostnames* |
 | `APP_ENV`      | yes      | `production`                                                          |
 | `APP_DEBUG`    | yes      | `false` in production                                                 |
 | `API_BASE_URL` | yes      | Backend REST root, e.g. `https://api.sol.wickedsick.com/api/v1`       |
@@ -47,9 +47,10 @@ If you change env or routes, re-run `php artisan optimize` (or
 ## Laravel Forge (production target)
 
 This is the intended deploy path: a **site on an existing Forge server**, served
-at **`sol.wickedsick.com`**, talking to the FastAPI backend on its **own
-subdomain** (e.g. `https://api.sol.wickedsick.com/api/v1`), with **Redis** for
-cache + queue and **Ceph S3** for OG cards.
+at **`publicuniverse.net`** (canonical) with **`sol.wickedsick.com`** as an
+alias, talking to the FastAPI backend on its **own subdomain** (e.g.
+`https://api.sol.wickedsick.com/api/v1`), with **Redis** for cache + queue and
+**Ceph S3** for OG cards.
 
 **1. Server prerequisites** (one-off, on the Forge box):
 
@@ -59,9 +60,15 @@ cache + queue and **Ceph S3** for OG cards.
 
 **2. Create the site**
 
-- New Site → `sol.wickedsick.com`, project type **PHP/Laravel**, web directory **`/public`**.
+- New Site → `publicuniverse.net`, project type **PHP/Laravel**, web directory **`/public`**.
 - Repository: `Wicked-Sick-Ltd/solar-system-web`, branch `main`.
-- **SSL**: Let's Encrypt for `sol.wickedsick.com`.
+- **Aliases** (site → Settings → *Aliases*): add `www.publicuniverse.net` and
+  `sol.wickedsick.com`. One site, one deploy, three hostnames.
+- **SSL**: Let's Encrypt covering **all three** hostnames (tick every alias
+  when requesting the certificate; re-issue it if an alias is added later).
+  Cloudflare runs *Full (strict)*, so the origin certificate must be valid for
+  whichever hostname is being proxied.
+- See *Hostnames: canonical and alias* below for the DNS / Cloudflare side.
 
 **3. Deploy script** — paste [`deploy.sh`](deploy.sh) into the site's Deploy
 Script (it pulls, installs `--no-dev`, builds assets, caches config/routes/views,
@@ -74,7 +81,7 @@ the app has no database.
 APP_NAME=Solar
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://sol.wickedsick.com
+APP_URL=https://publicuniverse.net
 
 API_BASE_URL=https://api.sol.wickedsick.com/api/v1   # the backend's subdomain
 SOLAR_API_TIMEOUT=8
@@ -112,6 +119,61 @@ php artisan queue:work redis --sleep=3 --tries=1 --max-time=3600
 **7. CDN** — front the site with Cloudflare and add the cache rule described in
 *Headers & edge caching* below so the cookie-less public pages are edge-cached.
 
+## Hostnames: canonical and alias
+
+The site answers on more than one hostname. **`publicuniverse.net` is
+canonical**; **`sol.wickedsick.com` is an alias that stays live
+indefinitely** — the printed classroom handouts on `/educators` and their QR
+codes carry `sol.wickedsick.com`, and paper does not get redeployed.
+
+What that means in practice:
+
+- **No host redirect.** There is deliberately no middleware or edge rule that
+  301s the alias to the canonical host. A visitor who scans a handout lands on
+  `sol.wickedsick.com` and browses there; every link, asset and Livewire
+  round-trip stays on the host that served the page.
+- **SEO surfaces always name the canonical host.** `<link rel="canonical">`,
+  the Open Graph / Twitter URLs and images, JSON-LD, every `<loc>` in
+  `sitemap.xml` and the `Sitemap:` line in `robots.txt` are rewritten onto
+  `APP_URL` whichever host the request arrived on (`App\Support\Links::canonical()`,
+  used by `Seo`, `SitemapController` and `RobotsController`). Search engines
+  therefore treat the alias as a duplicate of the canonical host rather than a
+  second site. Covered by `tests/Feature/CanonicalHostTest.php`.
+- **Nothing hard-codes a hostname at runtime.** `APP_URL` is the single source
+  of truth (also for the Mailchimp signup tag and the `tools/handout`
+  generator's printed URL). Add a hostname in Forge + Cloudflare and the app
+  needs no change.
+- **`/educators` uses root-relative URLs** for the PDFs and page images, so the
+  same markup works on both hosts.
+
+**Cloudflare (`publicuniverse.net` zone)**
+
+1. DNS: `A`/`AAAA` (or `CNAME`) for the **apex** and **`www`** → the Forge
+   server, both **proxied** (orange cloud).
+2. SSL/TLS → **Full (strict)**; *Always Use HTTPS* on. The origin presents the
+   Let's Encrypt certificate Forge issued for the aliases above.
+3. **Redirect `www` → apex**: a Redirect Rule — *if* hostname equals
+   `www.publicuniverse.net`, *then* dynamic redirect to
+   `concat("https://publicuniverse.net", http.request.uri.path)`, status
+   **301**, *preserve query string* ticked. `www` is the one hostname that
+   *does* redirect — nothing printed points at it.
+4. Cache rule for the cookie-less pages, as in *Headers & edge caching*.
+
+**Cloudflare (`wickedsick.com` zone)** — leave the existing proxied
+`sol.wickedsick.com` record and its *Full (strict)* setting exactly as they
+are. Do **not** add a redirect rule for it.
+
+**If `sol.wickedsick.com` is ever retired** (it should not be): it must
+**301 permanently, path for path, to the same path on `publicuniverse.net`** —
+every path, including `/orrery` (printed on the handouts), `/api`,
+`/educators` and the PDF paths under `/handouts/*.pdf`, with the query string
+preserved — and that redirect must stay in place forever, because the printed
+URLs cannot be recalled. Do it as a Cloudflare Redirect Rule on the
+`wickedsick.com` zone (hostname equals `sol.wickedsick.com` → dynamic
+`concat("https://publicuniverse.net", http.request.uri.path)`, 301, preserve
+query string), *not* in application code, so it keeps working even if the app
+is down or moves host again.
+
 > **Backend dependency:** the API subdomain must be deployed and reachable
 > before launch — the front end is a pure consumer. If it's down the site still
 > renders (degradation panels), but it has no data to show.
@@ -139,7 +201,7 @@ response (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
 
 For caching it splits pages in two:
 
-- **Non-interactive pages** (`/`, `/planets`, `/about`, `/api`,
+- **Non-interactive pages** (`/`, `/planets`, `/about`, `/educators`, `/api`,
   `/dwarf-planets`) are served **cookie-less** with
   `Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=86400`,
   so a shared cache (Cloudflare) can store one copy for everyone. The sitemap
@@ -166,4 +228,17 @@ them, Cloudflare will cache without cookie contamination. Leave everything else
 curl -sI https://YOUR_DOMAIN/ | head -1                 # 200
 curl -s  https://YOUR_DOMAIN/objects/planet-saturn | grep -o '<title>[^<]*'
 curl -s  https://YOUR_DOMAIN/robots.txt | head -1
+```
+
+And for the hostnames (both must be 200 — no redirect on the alias — and both
+must name the canonical host in SEO surfaces):
+
+```bash
+for h in publicuniverse.net sol.wickedsick.com; do
+  curl -sI "https://$h/educators" | head -1                                   # 200
+  curl -s  "https://$h/educators" | grep -o '<link rel="canonical" href="[^"]*'   # …publicuniverse.net/educators
+  curl -s  "https://$h/robots.txt" | grep Sitemap                              # https://publicuniverse.net/sitemap.xml
+  curl -sI "https://$h/handouts/solar-handout-primary-y1-6.pdf" | grep -i '^content-type'   # application/pdf
+done
+curl -sI https://www.publicuniverse.net/ | grep -i '^location'              # https://publicuniverse.net/
 ```

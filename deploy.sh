@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Laravel Forge deploy script for Solar (sol.wickedsick.com).
+# Laravel Forge deploy script for Solar. The public hostname(s) are set in the
+# Forge site (canonical URL comes from APP_URL), not here.
 # Paste this into the site's "Deploy Script" in the Forge UI, or have Forge run
 # it from the repo. Forge provides $FORGE_* variables at run time.
 #

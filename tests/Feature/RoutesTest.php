@@ -29,6 +29,7 @@ it('renders every public P0 route', function (string $uri) {
     'galaxy' => '/galaxy',
     'close approaches' => '/close-approaches',
     'about' => '/about',
+    'educators' => '/educators',
     'api' => '/api',
     'privacy' => '/privacy',
 ]);

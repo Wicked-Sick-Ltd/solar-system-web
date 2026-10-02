@@ -107,15 +107,16 @@ class Seo
         return $this->description;
     }
 
+    /** Always on the canonical host (APP_URL), whichever hostname served the request. */
     public function getCanonical(): string
     {
-        return $this->canonical ?? url()->current();
+        return Links::canonical($this->canonical ?? url()->current());
     }
 
     public function getImage(): ?string
     {
         // Fall back to the site's branded share card when a page sets none.
-        return $this->image ?? asset('images/og-default.png');
+        return Links::canonical($this->image ?? asset('images/og-default.png'));
     }
 
     public function getType(): string
@@ -128,9 +129,32 @@ class Seo
         return $this->noindex;
     }
 
-    /** @return list<array<string,mixed>> */
+    /**
+     * Structured data with every URL on this site rewritten onto the canonical
+     * host, so the same page served from an alias hostname emits identical
+     * JSON-LD. External URLs (e.g. sameAs → Wikipedia) are left alone.
+     *
+     * @return list<array<string,mixed>>
+     */
     public function getJsonLd(): array
     {
-        return $this->jsonLd;
+        return array_map(fn (array $schema): array => $this->canonicalise($schema), $this->jsonLd);
+    }
+
+    /**
+     * @param  array<array-key,mixed>  $value
+     * @return array<array-key,mixed>
+     */
+    private function canonicalise(array $value): array
+    {
+        foreach ($value as $key => $item) {
+            if (is_array($item)) {
+                $value[$key] = $this->canonicalise($item);
+            } elseif (is_string($item) && str_starts_with($item, 'http')) {
+                $value[$key] = Links::canonical($item);
+            }
+        }
+
+        return $value;
     }
 }

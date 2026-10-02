@@ -12,6 +12,7 @@ use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
 use App\Livewire\Category;
 use App\Livewire\CloseApproaches;
+use App\Livewire\EducatorsPage;
 use App\Livewire\ExoplanetDetail;
 use App\Livewire\Exoplanets;
 use App\Livewire\ExoplanetSystem;
@@ -62,6 +63,8 @@ Route::get('/og/objects/{slug}.png', OgImageController::class)
     ->name('og.object');
 
 Route::get('/about', AboutPage::class)->name('about');
+// Classroom handouts for teachers (static PDFs under public/educators/).
+Route::get('/educators', EducatorsPage::class)->name('educators');
 Route::get('/api', ApiPage::class)->name('api');
 Route::get('/privacy', PrivacyPage::class)->name('privacy');
 Route::get('/settings', SettingsPage::class)->name('settings');
