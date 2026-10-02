@@ -31,7 +31,7 @@ final class SetResponseHeaders
      * When Mailchimp is configured the shared footer mounts a Livewire signup
      * form, so these routes need the session too and are skipped at runtime.
      */
-    private const CACHEABLE_ROUTES = ['home', 'planets.index', 'about', 'api', 'dwarf-planets'];
+    private const CACHEABLE_ROUTES = ['home', 'planets.index', 'about', 'educators', 'api', 'dwarf-planets'];
 
     public function handle(Request $request, Closure $next): Response
     {
