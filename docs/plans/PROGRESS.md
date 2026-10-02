@@ -340,3 +340,24 @@ constraint and workspace browser reports for hashes, fixtures and precise scope.
 The user also identified excessive scrolling through complex pages. Focused
 section navigation is the next usability change; broader form/disclosure changes
 will preserve visible results, errors and relevant scientific/privacy context.
+
+
+## Section navigation follow-up — 2 October
+
+`6c079c3` adds native On this page links for observatory, journal and planner
+sections. Links wrap on narrow layouts, focus their headings, use the existing
+sticky-header offset, and disappear in print. Result destinations are conditional;
+there is no link to a missing result after validation or provider errors.
+
+Author checks: 97 relevant PHP tests /528 assertions, Pint, PHPStan and production
+build. Independent review is clear; five dedicated tests /101 assertions also
+pass on the combined root. [Native browser evidence](../qa/2026-10-02/section-navigation.md)
+covers journal keyboard focus and the 320px observatory menu/destination. Pushed
+integration CI must be checked at its exact new head.
+
+Further usability work should prioritize showing target results before optional
+equipment comparison, making create/record actions reachable before long saved
+lists, and grouping optional hours/terrain fields with disclosures that reopen
+for existing values or errors. Preserve applied-constraint summaries, error
+visibility and scientific/privacy context. These are follow-up recommendations,
+not claims of delivered changes.

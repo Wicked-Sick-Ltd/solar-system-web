@@ -36,7 +36,7 @@ separates implementation from acceptance.
 | [#83](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/83) | Saved/temporary eyepiece comparison and sourced appearance context | Integrated desktop/mobile and saved-workspace browser checks pass. This compares equipment for already chosen targets; the separate #91 discovery flow provides the bounded candidate shortlist. |
 | [#84](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/84) | Repeatable route and asset workload budgets | Fixed fixtures and local request-kernel measurements, not public latency. The inherited-debug correction is included in #90. Later shortlist checks are recorded separately below, without turning kernel timings into public speed claims. |
 | [#85](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/85) | Correct observations, rename lists and recover original unreadable storage | Preserves historical identity/setup. Chrome correction/error/undo/reload passes; recovery files are explicitly unredacted. |
-| [#86](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/86) | Exoplanet exports retain optional identity associated with their page rows | Backend [#42](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/42); older responses remain unassociated. Not a multi-page snapshot guarantee. Native Chrome attachment download was blocked; browser artifact acceptance remains incomplete, without bypassing that restriction. |
+| [#86](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/86) | Exoplanet exports retain optional identity associated with their page rows | Backend [#42](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/42); older responses remain unassociated. Not a multi-page snapshot guarantee. The earlier automated attachment was blocked; user-assisted native JSON download now passes on the local fixture without changing browser security settings. CSV was not repeated in that assisted pass. |
 | Scientific followthrough `1b14b81` | Preserve reported algorithm-source identity and explain older omissions | Backend retained-fixture replay requires compatible source/runtime/kernel/IERS identities; no executable session import or hosted archive is implied. |
 | [#88](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/88), `087e70e` | Reconcile accepted behaviour, remaining QA and private account-backup wording | Documentation audit only; distinguishes reviewed implementation, combined validation and operational rollout. It does not mark the programme complete. |
 | [#89](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/89), `44b66f4` | Combine redundant galaxy-map redraw requests without an idle render loop | Deterministic renderer-call tests pass. Browser cadence samples are diagnostic, with inconsistent baseline conditions; no causal speed, memory or lower-power-device claim follows. |
@@ -157,3 +157,24 @@ publication is implied by this packet.
   a calculation. CSV is a companion window index, not the full provenance record.
 - Public Universe branding does not mean the new domain is serving this code.
   No production, DNS, TLS, email or API/MCP client endpoint has changed here.
+
+
+## User-assisted acceptance update
+
+Later user-assisted checks supersede the earlier unresolved native JSON/import/
+print attempts for the recorded cases. Workspace v2 import/reload/export is an
+exact fixture roundtrip; journal import/reload/full JSON is exact and default
+JSON removes only the site snapshot. Native session JSON retains source identity
+and omits observer inputs. Native exoplanet JSON retains 11 local fixture rows
+and page-associated identity. No browser permissions or security settings changed.
+
+Print-only repair `457ef2b` passed its targeted checks and all pushed CI. A fresh
+user-saved three-target PDF has readable graphs and intact explanation/method
+blocks, with no isolated weather-note page. It differs from the original inputs,
+so no like-for-like page-count reduction is claimed.
+
+Section navigation `6c079c3` adds native, keyboard-usable links across observatory,
+journal and planner; it wraps on narrow layouts and is excluded from print.
+[Navigation evidence](qa/2026-10-02/section-navigation.md) records checks and screenshots.
+Lower-power hardware remains unmeasured. Neither this acceptance update nor the
+unpublished release packet authorizes deployment or activates a version/domain.
