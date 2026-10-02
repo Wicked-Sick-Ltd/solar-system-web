@@ -67,3 +67,17 @@ memory reduction, mobile GPU or lower-power-device result is claimed.
 
 [Before map](galaxy-5000-before.jpg) · [After map](galaxy-5000-after.jpg).
 Screenshots include extension overlays, which are not application UI.
+
+## Retained-catalogue identity finalization
+
+The independently run [raw report](../../performance/2026-10-02-retained-catalogue-finalization.json)
+measures backend `a4ef9bb` on a 35,713,024-byte retained SQLite catalogue:
+2,431 solar-system objects, 6,366 exoplanets and 4,775 hosts. It is not the full
+minor-planet catalogue. A mode=ro SQLite backup supplied three fresh disposable
+copies; the original checksum, size and modification time were unchanged.
+
+Finalization took 0.710, 0.637 and 0.642 seconds and produced the same logical ID
+each time. Whole-child peak RSS was 33,898,496, 31,801,344 and 33,898,496 bytes on
+Python 3.12.14 / macOS arm64. Elapsed time excludes copying/imports; peak RSS
+includes imports. OS caches were warm. These runs establish a retained-fixture
+baseline only; full-catalogue cost and production throughput remain unmeasured.
