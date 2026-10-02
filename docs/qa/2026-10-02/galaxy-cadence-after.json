@@ -1,0 +1,455 @@
+{
+  "metadata": {
+    "source_head": "44b66f4",
+    "production_manifest_sha256": "73e08b524efeb56986397ad3f152f70677263d94f53f7f0ee0a1209ef3103e12",
+    "host_fixture_sha256": "20967fd5fc0d627b9f73ea0dec0b328830c3f4b4fd0b1a026d718ddec5690370",
+    "host_count": 5000,
+    "distribution": "Synthetic golden-angle directions and linearly spaced 1–500.9 pc radii; not measured astronomy. No real locations.",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "device_pixel_ratio": 2,
+    "hardware_concurrency": 16,
+    "window_css_px": [
+      1728,
+      855
+    ]
+  },
+  "samples": [
+    {
+      "label": "active-map",
+      "started_at": "2026-10-02T06:49:24.513Z",
+      "duration_ms": 20095.9,
+      "canvas_start": true,
+      "canvas_end": true,
+      "map_state": "5000 measured systems · Sun-centred · radius 1,633.72 light-years",
+      "view": "nearby",
+      "radius": "all",
+      "interval_count": 1597,
+      "interval_ms": {
+        "median": 9.4,
+        "p95": 23.3,
+        "p99": 26.6,
+        "max": 184.7
+      },
+      "intervals_over_16_7ms": 271,
+      "intervals_over_33_4ms": 10,
+      "visibility_changes": 0,
+      "hidden_at_end": false,
+      "interaction_events": {
+        "keydown": 1,
+        "pointermove": 1,
+        "pointerdown": 1
+      },
+      "long_tasks_supported": true,
+      "long_tasks": [
+        {
+          "start_ms": 429.1,
+          "duration_ms": 58
+        },
+        {
+          "start_ms": 860.4,
+          "duration_ms": 87
+        }
+      ],
+      "gpu": {
+        "vendor": "WebKit",
+        "renderer": "WebKit WebGL",
+        "unmasked_renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+        "drawing_buffer": [
+          2396,
+          996
+        ]
+      },
+      "resources": [
+        {
+          "path": "/build/assets/app-BbbSgZ0X.css",
+          "initiator": "link",
+          "duration_ms": 24.5,
+          "transfer_bytes": 0,
+          "encoded_bytes": 34289,
+          "decoded_bytes": 34289
+        },
+        {
+          "path": "/probe.js",
+          "initiator": "script",
+          "duration_ms": 27.9,
+          "transfer_bytes": 4418,
+          "encoded_bytes": 4118,
+          "decoded_bytes": 4118
+        },
+        {
+          "path": "/build/assets/newsreader-latin-500-normal-B66TYsaK.woff2",
+          "initiator": "css",
+          "duration_ms": 4.7,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23624,
+          "decoded_bytes": 23624
+        },
+        {
+          "path": "/entry.json",
+          "initiator": "fetch",
+          "duration_ms": 7,
+          "transfer_bytes": 334,
+          "encoded_bytes": 34,
+          "decoded_bytes": 34
+        },
+        {
+          "path": "/metadata.json",
+          "initiator": "fetch",
+          "duration_ms": 8.1,
+          "transfer_bytes": 686,
+          "encoded_bytes": 386,
+          "decoded_bytes": 386
+        },
+        {
+          "path": "/build/assets/galaxy-4nBAwzi2.js",
+          "initiator": "script",
+          "duration_ms": 9.7,
+          "transfer_bytes": 3966,
+          "encoded_bytes": 3666,
+          "decoded_bytes": 3666
+        },
+        {
+          "path": "/build/assets/inter-latin-400-normal-C38fXH4l.woff2",
+          "initiator": "css",
+          "duration_ms": 1.8,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23664,
+          "decoded_bytes": 23664
+        },
+        {
+          "path": "/hosts.json",
+          "initiator": "fetch",
+          "duration_ms": 6.6,
+          "transfer_bytes": 0,
+          "encoded_bytes": 1742405,
+          "decoded_bytes": 1742405
+        },
+        {
+          "path": "/build/assets/galaxy-renderer-BQJP7tn0.js",
+          "initiator": "script",
+          "duration_ms": 45.2,
+          "transfer_bytes": 557901,
+          "encoded_bytes": 557601,
+          "decoded_bytes": 557601
+        }
+      ]
+    },
+    {
+      "label": "active-map",
+      "started_at": "2026-10-02T06:48:51.393Z",
+      "duration_ms": 20099.4,
+      "canvas_start": true,
+      "canvas_end": true,
+      "map_state": "5000 measured systems · Sun-centred · radius 1,633.72 light-years",
+      "view": "nearby",
+      "radius": "all",
+      "interval_count": 1681,
+      "interval_ms": {
+        "median": 9.1,
+        "p95": 17.7,
+        "p99": 26.5,
+        "max": 58.1
+      },
+      "intervals_over_16_7ms": 240,
+      "intervals_over_33_4ms": 8,
+      "visibility_changes": 0,
+      "hidden_at_end": false,
+      "interaction_events": {
+        "change": 4,
+        "keydown": 2
+      },
+      "long_tasks_supported": true,
+      "long_tasks": [],
+      "gpu": {
+        "vendor": "WebKit",
+        "renderer": "WebKit WebGL",
+        "unmasked_renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+        "drawing_buffer": [
+          2396,
+          996
+        ]
+      },
+      "resources": [
+        {
+          "path": "/build/assets/app-BbbSgZ0X.css",
+          "initiator": "link",
+          "duration_ms": 24.5,
+          "transfer_bytes": 0,
+          "encoded_bytes": 34289,
+          "decoded_bytes": 34289
+        },
+        {
+          "path": "/probe.js",
+          "initiator": "script",
+          "duration_ms": 27.9,
+          "transfer_bytes": 4418,
+          "encoded_bytes": 4118,
+          "decoded_bytes": 4118
+        },
+        {
+          "path": "/build/assets/newsreader-latin-500-normal-B66TYsaK.woff2",
+          "initiator": "css",
+          "duration_ms": 4.7,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23624,
+          "decoded_bytes": 23624
+        },
+        {
+          "path": "/entry.json",
+          "initiator": "fetch",
+          "duration_ms": 7,
+          "transfer_bytes": 334,
+          "encoded_bytes": 34,
+          "decoded_bytes": 34
+        },
+        {
+          "path": "/metadata.json",
+          "initiator": "fetch",
+          "duration_ms": 8.1,
+          "transfer_bytes": 686,
+          "encoded_bytes": 386,
+          "decoded_bytes": 386
+        },
+        {
+          "path": "/build/assets/galaxy-4nBAwzi2.js",
+          "initiator": "script",
+          "duration_ms": 9.7,
+          "transfer_bytes": 3966,
+          "encoded_bytes": 3666,
+          "decoded_bytes": 3666
+        },
+        {
+          "path": "/build/assets/inter-latin-400-normal-C38fXH4l.woff2",
+          "initiator": "css",
+          "duration_ms": 1.8,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23664,
+          "decoded_bytes": 23664
+        },
+        {
+          "path": "/hosts.json",
+          "initiator": "fetch",
+          "duration_ms": 6.6,
+          "transfer_bytes": 0,
+          "encoded_bytes": 1742405,
+          "decoded_bytes": 1742405
+        },
+        {
+          "path": "/build/assets/galaxy-renderer-BQJP7tn0.js",
+          "initiator": "script",
+          "duration_ms": 45.2,
+          "transfer_bytes": 557901,
+          "encoded_bytes": 557601,
+          "decoded_bytes": 557601
+        }
+      ]
+    },
+    {
+      "label": "initial-or-load",
+      "started_at": "2026-10-02T06:48:19.496Z",
+      "duration_ms": 10013.9,
+      "canvas_start": false,
+      "canvas_end": true,
+      "map_state": "241 measured systems · Sun-centred · radius 81.54 light-years",
+      "view": "nearby",
+      "radius": "25",
+      "interval_count": 800,
+      "interval_ms": {
+        "median": 9,
+        "p95": 23.4,
+        "p99": 33.4,
+        "max": 258.6
+      },
+      "intervals_over_16_7ms": 133,
+      "intervals_over_33_4ms": 8,
+      "visibility_changes": 0,
+      "hidden_at_end": false,
+      "interaction_events": {
+        "pointermove": 1,
+        "pointerdown": 1
+      },
+      "long_tasks_supported": true,
+      "long_tasks": [
+        {
+          "start_ms": 340.1,
+          "duration_ms": 253
+        }
+      ],
+      "gpu": {
+        "vendor": "WebKit",
+        "renderer": "WebKit WebGL",
+        "unmasked_renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+        "drawing_buffer": [
+          2396,
+          996
+        ]
+      },
+      "resources": [
+        {
+          "path": "/build/assets/app-BbbSgZ0X.css",
+          "initiator": "link",
+          "duration_ms": 24.5,
+          "transfer_bytes": 0,
+          "encoded_bytes": 34289,
+          "decoded_bytes": 34289
+        },
+        {
+          "path": "/probe.js",
+          "initiator": "script",
+          "duration_ms": 27.9,
+          "transfer_bytes": 4418,
+          "encoded_bytes": 4118,
+          "decoded_bytes": 4118
+        },
+        {
+          "path": "/build/assets/newsreader-latin-500-normal-B66TYsaK.woff2",
+          "initiator": "css",
+          "duration_ms": 4.7,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23624,
+          "decoded_bytes": 23624
+        },
+        {
+          "path": "/entry.json",
+          "initiator": "fetch",
+          "duration_ms": 7,
+          "transfer_bytes": 334,
+          "encoded_bytes": 34,
+          "decoded_bytes": 34
+        },
+        {
+          "path": "/metadata.json",
+          "initiator": "fetch",
+          "duration_ms": 8.1,
+          "transfer_bytes": 686,
+          "encoded_bytes": 386,
+          "decoded_bytes": 386
+        },
+        {
+          "path": "/build/assets/galaxy-4nBAwzi2.js",
+          "initiator": "script",
+          "duration_ms": 9.7,
+          "transfer_bytes": 3966,
+          "encoded_bytes": 3666,
+          "decoded_bytes": 3666
+        },
+        {
+          "path": "/build/assets/inter-latin-400-normal-C38fXH4l.woff2",
+          "initiator": "css",
+          "duration_ms": 1.8,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23664,
+          "decoded_bytes": 23664
+        },
+        {
+          "path": "/hosts.json",
+          "initiator": "fetch",
+          "duration_ms": 6.6,
+          "transfer_bytes": 0,
+          "encoded_bytes": 1742405,
+          "decoded_bytes": 1742405
+        },
+        {
+          "path": "/build/assets/galaxy-renderer-BQJP7tn0.js",
+          "initiator": "script",
+          "duration_ms": 45.2,
+          "transfer_bytes": 557901,
+          "encoded_bytes": 557601,
+          "decoded_bytes": 557601
+        }
+      ]
+    },
+    {
+      "label": "initial-or-load",
+      "started_at": "2026-10-02T06:48:00.191Z",
+      "duration_ms": 10011.8,
+      "canvas_start": false,
+      "canvas_end": false,
+      "map_state": "Load the map to explore in 3D, or browse the accessible system directory.",
+      "view": "nearby",
+      "radius": "25",
+      "interval_count": 649,
+      "interval_ms": {
+        "median": 15.5,
+        "p95": 32.9,
+        "p99": 41.3,
+        "max": 148.8
+      },
+      "intervals_over_16_7ms": 218,
+      "intervals_over_33_4ms": 24,
+      "visibility_changes": 0,
+      "hidden_at_end": false,
+      "interaction_events": {},
+      "long_tasks_supported": true,
+      "long_tasks": [
+        {
+          "start_ms": 106.5,
+          "duration_ms": 71
+        },
+        {
+          "start_ms": 450.3,
+          "duration_ms": 148
+        }
+      ],
+      "gpu": null,
+      "resources": [
+        {
+          "path": "/build/assets/app-BbbSgZ0X.css",
+          "initiator": "link",
+          "duration_ms": 24.5,
+          "transfer_bytes": 0,
+          "encoded_bytes": 34289,
+          "decoded_bytes": 34289
+        },
+        {
+          "path": "/probe.js",
+          "initiator": "script",
+          "duration_ms": 27.9,
+          "transfer_bytes": 4418,
+          "encoded_bytes": 4118,
+          "decoded_bytes": 4118
+        },
+        {
+          "path": "/build/assets/newsreader-latin-500-normal-B66TYsaK.woff2",
+          "initiator": "css",
+          "duration_ms": 4.7,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23624,
+          "decoded_bytes": 23624
+        },
+        {
+          "path": "/entry.json",
+          "initiator": "fetch",
+          "duration_ms": 7,
+          "transfer_bytes": 334,
+          "encoded_bytes": 34,
+          "decoded_bytes": 34
+        },
+        {
+          "path": "/metadata.json",
+          "initiator": "fetch",
+          "duration_ms": 8.1,
+          "transfer_bytes": 686,
+          "encoded_bytes": 386,
+          "decoded_bytes": 386
+        },
+        {
+          "path": "/build/assets/galaxy-4nBAwzi2.js",
+          "initiator": "script",
+          "duration_ms": 9.7,
+          "transfer_bytes": 3966,
+          "encoded_bytes": 3666,
+          "decoded_bytes": 3666
+        },
+        {
+          "path": "/build/assets/inter-latin-400-normal-C38fXH4l.woff2",
+          "initiator": "css",
+          "duration_ms": 1.8,
+          "transfer_bytes": 0,
+          "encoded_bytes": 23664,
+          "decoded_bytes": 23664
+        }
+      ]
+    }
+  ]
+}
