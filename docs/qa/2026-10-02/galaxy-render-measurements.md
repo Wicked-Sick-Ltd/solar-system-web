@@ -51,7 +51,7 @@ CPU measurement surrounds only the synchronous `renderer.render` call, including
 submission or possible driver blocking. GPU measurement is asynchronous elapsed
 query time for commands issued in that interval. Neither is whole-page startup,
 frame presentation or input latency. A reported CPU zero is timer resolution,
-not proof of free work. The first draw includes cold compilation effects; caches
+not proof of free work. The first draw can include cold compilation effects; caches
 and other host activity were not controlled between reloads.
 
 Three resource counters are counts, not browser heap or GPU bytes, and zero does
@@ -59,3 +59,6 @@ not prove immediate physical driver reclamation. The observed variation prevents
 a general performance or causal speedup claim. These results extend the earlier
 [callback-cadence evidence](combined-browser-evidence.md); they do not substitute
 for lower-power hardware, physical-device or field Core Web Vitals acceptance.
+Nearby and Galaxy stages also have different camera scale, rasterized coverage
+and shader programs; their GPU timings are different workloads, not evidence
+that one code path is intrinsically faster.
