@@ -11,7 +11,8 @@ it('renders the guest workspace without personal Livewire state or catalogue req
     Http::preventStrayRequests();
     $page = Livewire::test(ObservingWorkspace::class)
         ->assertSee('Your observatory')
-        ->assertSee('No equipment or named sites are uploaded')
+        ->assertSee('Saving here or signing in does not upload equipment or named sites.')
+        ->assertSee('A separate private account backup requires your explicit preview and upload choice.')
         ->assertSee('No observing sites saved yet.')
         ->assertSee('Review before replacing')
         ->assertSee('Activating a site only selects its approximate location for other sky views.');
