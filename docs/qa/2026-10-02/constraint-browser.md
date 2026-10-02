@@ -91,3 +91,24 @@ This verifies the native default session JSON download for the retained
 `2026-10-02T07:40:57Z` calculation. It does not establish the opt-in terrain case
 or CSV output. Browser automation's click timeout was not a download defect in
 this manually completed journey.
+
+## Revised print layout: user-assisted visual check
+
+After integration `457ef2b` and a production asset rebuild, the user calculated
+a new night and saved over the previous PDF. The resulting 108,860-byte Chrome
+PDF was created at 15:50:39 BST, rendered with Poppler and visually inspected on
+all four A4 pages. Its SHA-256 is
+`8cf1079e65e47fc69fdccba5c7543a73ffa05723749d1737ec7b9b28420375ea`.
+
+This is a different workload: 2 October, full 24-hour local night, Moon/Jupiter/
+Saturn, supplied terrain, and Chrome page headers/footers enabled. Each independent
+constraint explanation stays together; the three charts and legends are readable
+and unclipped; the calculation/limits block includes its final weather note on
+one page. There is no weather-note-only page. Coordinates and terrain point
+values remain omitted from printed text. The footer contains only the local
+planner route, with no private query values.
+
+The result verifies the revised layout for this three-target workload. Because
+the inputs and print headers changed, it does not establish a like-for-like
+page-count reduction for the earlier Sirius case. Target cards can span pages;
+closed sample/source disclosures retain their existing closed state.

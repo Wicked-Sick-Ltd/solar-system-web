@@ -317,3 +317,26 @@ print attempt reproduced the unobservable native dialog without changing any
 permissions. Import and attachment restrictions were not bypassed. No additional
 accepted product feature was found missing; this checkpoint is not full programme
 completion or a deployment authorization.
+
+
+## User-assisted browser acceptance and print repair — 2 October
+
+The user completed native browser actions that automation could not observe.
+Workspace import/reload/export matches all synthetic fields; journal import and
+reload preserve the example observation, and default/full exports match the
+expected redacted/full documents exactly. Session JSON preserves JPL/IERS/source
+identity and independent constraint explanations while omitting observer inputs.
+Exoplanet JSON preserves 11 local rows and their page-associated identity. No
+permission or browser security setting changed.
+
+The saved PDF exposed an orphaned weather note. Print-only layout repair
+`457ef2b` passes 118 targeted PHP tests /434 assertions, static/build checks and
+all pushed CI checks. A subsequent user-saved three-target PDF was visually
+inspected on all four pages: explanations remain together, charts are readable,
+and the weather note stays with calculation limits. Different inputs and browser
+headers mean it is not a like-for-like page-count comparison. See the updated
+constraint and workspace browser reports for hashes, fixtures and precise scope.
+
+The user also identified excessive scrolling through complex pages. Focused
+section navigation is the next usability change; broader form/disclosure changes
+will preserve visible results, errors and relevant scientific/privacy context.

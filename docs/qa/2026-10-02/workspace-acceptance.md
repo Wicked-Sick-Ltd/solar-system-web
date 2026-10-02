@@ -150,3 +150,31 @@ four horizon points and `activeSiteId=null` survive import, reload and export.
 Only serialization formatting may differ. Artifact SHA-256:
 `fbcbe4462ab98c227dcf2442d719e09da9956c6e6c58358f1c3d8d680032e425`. This closes the native
 v2 workspace roundtrip check for these synthetic records.
+
+## User-assisted journal import
+
+The user selected `public-universe-journal-test.json` through the native file
+picker on local `/observing-journal` and completed the replacement. The journal
+was visibly empty beforehand. The fixture was built and validated with the
+application's `snapshotSetup`/`validateJournal` functions, containing one QA list
+and one explicitly synthetic Saturn observation with telescope, camera and
+example-site history. Fixture SHA-256:
+`9684e355d2689931d28ca9023bfeb043b640599647f242259bb974a3fe871333`.
+
+Native inspection showed Saved in this browser, the QA October test list, Saturn's
+planned list status, observation UTC time `2026-10-01T22:30:00Z`, Europe/London,
+uncertain outcome, exact synthetic note and recorded telescope/camera/site names.
+All remained after a full page reload. The preview was completed before agent
+inspection, so this establishes import and persistence rather than independent
+visual review of that transient preview. No browser permission changes occurred.
+
+The user exported journal JSON first with site inclusion unchecked, then checked.
+`public-universe-journal-v1.json` (882 bytes, SHA-256
+`e9d71e28e41cdf852b226d3f2db2cd13cfe3c5882eb6114467c10a4187a29a86`)
+is exactly equal to the original fixture after removing its site snapshot and
+clearing the snapshot's active site. Lists, observation, notes and equipment
+remain unchanged. `public-universe-journal-v1 (1).json` (1,240 bytes, SHA-256
+`c1c443a33f22f4675e7e3efb436c7d5af67b7b408052a9a2bdc413b21e8848b2`)
+is exactly equal to the full original parsed fixture, including the historical
+site and four terrain points. This establishes the native journal import/reload/
+export roundtrip and both privacy modes for these synthetic records.
