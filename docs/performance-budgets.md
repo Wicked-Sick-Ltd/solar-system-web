@@ -23,6 +23,14 @@ node --test tests/js/performance-assets.test.js tests/js/galaxy-bundle.test.js \
   tests/js/galaxy-lifecycle.test.js tests/js/galaxy-navigation.test.js tests/js/galaxy-renderer.test.js
 ```
 
+The PHPUnit configuration pins `APP_DEBUG=false` before application bootstrap,
+including when the developer shell or local `.env` enables debug mode. Livewire
+selects its production runtime route during provider boot; changing configuration
+after boot cannot make a debug runtime represent a production asset workload.
+This affects test processes only. The exact-one-production-runtime assertion
+remains required for every HTML sample. The dedicated CI workload deliberately
+starts with inherited `APP_DEBUG=true` to exercise this override.
+
 The synthetic APP_KEY is for these isolated tests only. Do not use it for a
 running application. No `.env` copy, database migration or server is needed.
 The test kernel uses an in-memory session/cache and HTTP fakes. Production

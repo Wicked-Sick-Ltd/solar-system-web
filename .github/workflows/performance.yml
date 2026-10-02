@@ -43,6 +43,8 @@ jobs:
           node --test tests/js/performance-assets.test.js tests/js/galaxy-bundle.test.js tests/js/galaxy-lifecycle.test.js tests/js/galaxy-navigation.test.js tests/js/galaxy-renderer.test.js
       - name: Measure isolated request kernels and assert structural budgets
         env:
+          # Regression: PHPUnit must pin production runtime selection before bootstrap.
+          APP_DEBUG: 'true'
           APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           PERFORMANCE_REQUIRED: '1'
           PERFORMANCE_MACHINE: GitHub hosted ubuntu-latest; hardware varies
