@@ -3,7 +3,8 @@ import json
 import statistics
 import sys
 
-report = json.load(open(sys.argv[1], encoding='utf-8'))
+with open(sys.argv[1], encoding='utf-8') as source:
+    report = json.load(source)
 print('| Route workload | API cold/fresh | Response bytes | DOM elements | Kernel median ms cold/fresh | Peak PHP MiB |')
 print('| --- | ---: | ---: | ---: | ---: | ---: |')
 for name, route in report['routes'].items():

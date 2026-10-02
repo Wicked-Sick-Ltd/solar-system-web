@@ -241,21 +241,6 @@ is down or moves host again.
 > before launch — the front end is a pure consumer. If it's down the site still
 > renders (degradation panels), but it has no data to show.
 
-## Web server
-
-Point the document root at `public/`. Standard Laravel rewrite to
-`public/index.php`. HTTPS should terminate at the proxy/load balancer; the app
-forces the `https` scheme for generated URLs in production.
-
-## Caching & cache warming
-
-All API responses are cached (see `config/services.php` → `solar.cache`). With a
-real queue driver (Redis), stale entries refresh in the background so the cache
-never goes cold. The `solar:warm-cache` command pre-warms the hot paths and is
-**scheduled** (04:30 + 12:30 daily, see `routes/console.php`) — so as long as
-the Laravel scheduler runs, no cron of your own is needed. Run it by hand any
-time with `php artisan solar:warm-cache`.
-
 ## Headers and edge caching
 
 Baseline headers include `Permissions-Policy: geolocation=(self)`: same-origin

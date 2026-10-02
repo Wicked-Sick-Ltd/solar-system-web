@@ -146,5 +146,5 @@ canonical-host/Educators/asteroid/contract cases passed locally.
 CodeQL initially flagged two inherited test-only selector helpers as incomplete
 escaping. They now extract the fixed selector prefix/suffix with `slice`, matching
 the journal harness, rather than using chained first-match replacements. Their
-24 focused checks pass; the final revision is checked again by CI. These helpers
+18 focused checks pass; the final revision is checked again by CI. These helpers
 receive selectors from the test modules, not user-controlled product inputs.

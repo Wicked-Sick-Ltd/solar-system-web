@@ -38,6 +38,7 @@ class Handler(BaseHTTPRequestHandler):
             for index in range(0, len(body), 8192):
                 self.wfile.write(body[index:index + 8192])
         except (BrokenPipeError, ConnectionResetError):
+            # The bounded client deliberately disconnects before reading the full body.
             pass
 
 

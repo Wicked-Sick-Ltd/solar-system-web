@@ -24,6 +24,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             self.wfile.write(body)
         except (BrokenPipeError, ConnectionResetError):
+            # The bounded client deliberately disconnects before reading the full body.
             pass
 
     def log_message(self, *_args):
