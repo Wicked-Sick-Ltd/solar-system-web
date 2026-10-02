@@ -7,6 +7,8 @@ import { WORKSPACE_KEY } from '../../resources/js/observing/workspace-store.js';
 
 class Element {
     constructor() { this.events = new Map(); this.children = []; this.dataset = {}; this.style = {}; this.textContent = ''; this.disabled = true; this.hidden = false; this.value = ''; }
+    get value() { return this._value; }
+    set value(value) { this._value = String(value ?? ''); }
     addEventListener(type, fn) { const fns = this.events.get(type) || []; fns.push(fn); this.events.set(type, fns); }
     removeEventListener(type, fn) { this.events.set(type, (this.events.get(type) || []).filter(item => item !== fn)); }
     emit(type, event = {}) { for (const fn of [...this.events.get(type) || []]) fn({ target: this, ...event }); }
@@ -31,7 +33,7 @@ function harness(saved = null) {
     const elements = Object.fromEntries(names.map(name => [name, new Element()]));
     for (const name of ['equipment-form', 'site-form']) {
         const form = elements[name];
-        const keys = ['entryId', 'name', 'kind', 'apertureMm', 'focalLengthMm', 'magnification', 'apparentFovDeg', 'fieldStopMm', 'factor', 'latitude', 'longitude', 'timezone', 'minAltitudeDeg'];
+        const keys = ['entryId', 'name', 'kind', 'apertureMm', 'focalLengthMm', 'magnification', 'apparentFovDeg', 'fieldStopMm', 'factor', 'latitude', 'longitude', 'timezone', 'minAltitudeDeg', 'horizonMask', 'sensorWidthMm', 'sensorHeightMm', 'pixelSizeUm'];
         const fields = Object.fromEntries(keys.map(key => [key, new Element()]));
         const submit = new Element();
         form.elements = { namedItem: key => fields[key] };
@@ -128,4 +130,39 @@ test('entry mounts once per root and cleans up on navigation and BFCache transit
     window.emit('pageshow', { persisted: true });
     assert.equal(mounts, 3);
     assert.equal(disposals, 2);
+});
+
+test('saved user horizon points have editable text, explicit provenance and no immediate observer side effect', () => {
+    const h = harness(); h.mount();
+    const form = h.elements['site-form'];
+    for (const [key, value] of Object.entries({ name: 'My site', latitude: '51.5', longitude: '-0.1', timezone: 'UTC', minAltitudeDeg: '20', horizonMask: '360, -5\n180, 30' })) form.elements.namedItem(key).value = value;
+    h.root.emit('submit', { target: form, preventDefault() {} });
+    const saved = JSON.parse(h.storage.getItem(WORKSPACE_KEY));
+    assert.equal(saved.schemaVersion, 2);
+    assert.deepEqual(saved.sites[0].horizonMask, [{ azimuthDeg: 0, minAltitudeDeg: -5 }, { azimuthDeg: 180, minAltitudeDeg: 30 }]);
+    assert.equal(h.storage.getItem('observer_location'), null);
+    assert.match(h.elements['sites-list'].children[0].children[1].textContent, /user-entered horizon points/);
+    h.action('edit', { collection: 'sites', entryId: saved.sites[0].id });
+    assert.equal(form.elements.namedItem('horizonMask').value, '0, -5\n180, 30');
+});
+
+test('camera form saves unknown pixels and edits the same profile without collecting unrelated optical fields', () => {
+    const h = harness(); h.mount();
+    const form = h.elements['equipment-form'];
+    for (const [key, value] of Object.entries({ name: 'My camera', kind: 'camera', sensorWidthMm: '36', sensorHeightMm: '24', pixelSizeUm: '' })) form.elements.namedItem(key).value = value;
+    h.root.emit('submit', { target: form, preventDefault() {} });
+    const saved = JSON.parse(h.storage.getItem(WORKSPACE_KEY));
+    const camera = saved.equipment[0];
+    assert.equal(camera.pixelSizeUm, null);
+    assert.equal(camera.sensorWidthMm, 36);
+    assert.equal(Object.hasOwn(camera, 'focalLengthMm'), false);
+    assert.match(h.elements['equipment-list'].children[0].children[1].textContent, /pixel size unknown/);
+    h.action('edit', { collection: 'equipment', entryId: camera.id });
+    assert.equal(form.elements.namedItem('pixelSizeUm').value, '');
+    form.elements.namedItem('pixelSizeUm').value = '5';
+    h.root.emit('submit', { target: form, preventDefault() {} });
+    const edited = JSON.parse(h.storage.getItem(WORKSPACE_KEY)).equipment;
+    assert.equal(edited.length, 1);
+    assert.equal(edited[0].id, camera.id);
+    assert.equal(edited[0].pixelSizeUm, 5);
 });
