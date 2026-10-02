@@ -48,7 +48,7 @@
         <section class="surface space-y-4 p-4" aria-labelledby="catalogue-version-heading">
             <h3 id="catalogue-version-heading" class="text-lg font-semibold">{{ __('Catalogue versions and checksums') }}</h3>
             @if ($catalogueIdentity->known())
-                <p>{{ __('The API reports this catalogue identity. Website caches check for changes about once a minute; a separate page response is not an atomically pinned snapshot.') }}</p>
+                <p>{{ __('The API reports this catalogue identity. Website caches check for changes about once a minute. This separate identity check does not pin another page response.') }}</p>
                 <dl class="space-y-2 text-sm">
                     <div><dt class="font-semibold">{{ __('API logical catalogue ID') }}</dt><dd class="break-all font-mono">{{ $catalogueIdentity->catalogueId }}</dd></div>
                     <div><dt class="font-semibold">{{ __('API build ID') }}</dt><dd class="break-all font-mono">{{ $catalogueIdentity->buildIdentifier }}</dd></div>

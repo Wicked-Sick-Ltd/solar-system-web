@@ -220,7 +220,7 @@ it('distinguishes API download data changes build changes and unknown historical
     }));
     $this->get('/about')->assertOk()->assertSee($copy)
         ->assertSee('Compressed file SHA-256')->assertSee('Uncompressed SQLite SHA-256')
-        ->assertSee(config('site.download_url'), false)->assertSee('not an atomically pinned snapshot');
+        ->assertSee(config('site.download_url'), false)->assertSee('This separate identity check does not pin another page response.');
 })->with([
     [CatalogueObservation::payload(), 'same build ID'],
     [CatalogueObservation::payload('a', 'c'), 'same logical data ID but different build provenance'],

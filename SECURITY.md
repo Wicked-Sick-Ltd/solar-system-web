@@ -25,7 +25,13 @@ There is no bug bounty programme.
   up (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 - The website stores account names, email addresses, password hashes and saved
   visibility alerts (including approximate observer coordinates) in its own
-  database. Treat account/session compromise, access to another user's alerts,
+  database. Optional explicit observing backups also store encrypted equipment,
+  sites, lists and journals, including any uploaded coordinates and notes. The
+  application can decrypt these copies; this is not end-to-end encryption.
+  Deletion removes the payload but retains an owner/revision tombstone until
+  account deletion. See [observing-sync.md](docs/observing-sync.md) for consent,
+  key recovery and revision boundaries. Treat account/session compromise, access
+  to another user's alerts or observing backup,
   location disclosure and accidental caching of private responses as security
   issues. Do not include real account records or credentials in reports.
 - We also care about backend API abuse through this front end, cache poisoning,

@@ -1,51 +1,55 @@
-# Observing programme: independent gap review
+# Observing programme: independent acceptance audit
 
-Assessment at 2 October 2026, against the [accepted programme](2026-10-01-observing-programme.md),
-[progress log](PROGRESS.md), topic source and current review checkpoints. This
-review neither replaces the programme nor marks it complete. PR implementation,
-integrated validation, physical acceptance and live availability are distinct.
+Updated 2 October 2026 against web `1b14b81`, published review slices through
+[#86](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/86), and the
+[accepted programme](2026-10-01-observing-programme.md). This documentation branch
+does not itself contain every reviewed topic. The [progress log](PROGRESS.md)
+records integration checkpoints; a passing topic suite does not establish that
+the final combined revision passed. No release or deployment is claimed.
 
 ## Acceptance matrix
 
-| Accepted items | Evidence now available | Remaining work or qualification |
+| Accepted items | Implemented/reviewed evidence | Remaining acceptance or implementation |
 | --- | --- | --- |
-| P1 | Foundation and observing screenshots; desktop Explore skip-to-main, live search, system filters, settings inventory, explicit WebGL loading, host picker and arrow/zoom checked on local fixtures. Two found UI issues fixed in web #80. | Reconcile the older pending lists in PROGRESS with newer evidence. Latest integrated mobile navigation/errors/reduced-motion and no-JavaScript journeys still need named evidence. Emulation does not close physical-touch acceptance. |
-| P2, P6 | Request-count baseline, lazy map entry and lifecycle tests. A separate performance lane is adding built-asset and fixture request-kernel budgets for ten routes, including a real eight-target planner response. | Execute and retain the final combined workload. Kernel latency excludes provider/network/browser work; measure actual map frame time, memory, interaction and lower-power hardware separately. No field p75/Core Web Vitals result exists. |
-| P3 | Web #67 queue deduplication, multiprocess lease/retry coverage; later identity/weather producer-lease regressions. | Combined cache-generation/queue checks after #79 integration and operational worker restart/drain acceptance at an authorized rollout. |
-| P4 | Backend #38 query profiling with unchanged output hashes; vectorized horizon crossings and one batched planner request. | Larger real catalogue build/finalization cost remains unmeasured. Existing warmed synthetic timings do not establish production or every-target planner cost. |
-| P5 | Bounded planner/weather/private-sync streams and inputs; #79 catalogue observation/cache generations; private response isolation. | Response-level scientific snapshot association remains absent. Confirm combined route headers and document old CDN entry expiry/purge; no claim that a changed header retroactively clears edge caches. |
-| E1–E5 | Guest CRUD, bounded v1/v2 imports, explicit site activation, camera geometry, circular masks, settings/privacy links and storage-failure tests. #77 copies selected site inputs explicitly. | Latest combined camera/mask browser acceptance and real import roundtrip evidence need completing where still pending. Older workspace-schema prose saying night planning cannot use masks is stale after #77 and should be corrected on integration. |
-| A1–A6 | UTC/legacy Moon corrections; bounded Astropy/JPL planner; DST/polar/grazing/terrain tests, true lunar positions, Moon constraints, retained selected Horizons fixtures and exact provider/IERS metadata. | Keep reference coverage/tolerances scoped to tested cases; no all-date observational-accuracy certification. Production kernel/IERS provisioning is a separate prerequisite, not an implementation result. |
-| N1–N3 | Native private form, selected hours, charts/tables, explained statuses and optics/camera comparisons. | Record final combined screen-reader/keyboard/mobile acceptance; optical compatibility and visibility are deliberately not promised. |
-| N4, C4 | Reviewed saved/temporary eyepiece comparison, explicit order, missing fields, source magnitude band/flags and angular-extent containment. Horizon constraints are in the night calculation. | Integrate and browser-check the comparison. This is explained geometric comparison, not a general automatic target recommender; naked-eye/binocular discovery and site/gear-guided target selection should be assessed against the product outcome. Do not invent unsupported success scores. |
-| N5 | Web #78 explicit matching-hour forecast, null/partial/out-of-range states and privacy/bounds tests. | Integrate into the combined night result and record an actual bounded local-fixture browser flow. Future-night geometry must work without weather. |
-| N6, D3 | Reviewed session summary JSON, CSV window index and print with explicit coordinate/terrain choice; private inputs/units/UTC/timezone/provider/source details retained when selected. | Combined acceptance and documented repeatability check against retained input/result fixtures. Additive algorithm-source identity and offline replay checks are in progress in a separate backend lane, not yet accepted here. No summary import/replay UI or immutable live archive is implemented; exported summaries intentionally omit samples, equipment, weather and actual observations. |
-| C1–C3 | Licensed bounded star/multiple-star/deep-sky samples, repeatable ingestion, native browsing, exact namespaced IDs and verified frame/motion metadata; backend #39 mixed planning and frontend integration under review. | Integrate mixed-target links/form/results. M45 remains unsupported; historical double records are not current companion ephemerides. Do not describe the sample as a full sky catalogue. |
-| J1–J3 | Multiple lists, target status/reordering, actual-time/outcome/notes observations, historical setup snapshots, JSON/CSV/print, stale-tab rejection and one-level undo for removal/import. | Concrete UI gap: existing observations cannot be corrected, and list names cannot be renamed; current code only creates/removes observations. Safe explicit edit/cancel/save with preserved identity/snapshot should be the next focused product slice. Journal raw-corrupt-data recovery and real browser import acceptance also need confirmation. |
-| J4–J5 | #74/#76 owner-isolated encrypted copies, explicit actions, CAS revisions/tombstones, account-scope guard, ephemeral previews and logout/Back browser checks. | Validate combined browser account-switch and partial restore recovery where missing. LocalStorage has no atomic multi-key compare-and-swap; the documented residual race is not solved by server revisions. No automatic login upload. |
-| D1 | Backend #40 logical data hash, independent build provenance, public source metadata, mutation/schema invalidation and consistent backup/export checksums. | Measure full catalogue finalization; decide retained snapshot distribution/retention before promising historical retrieval. |
-| D2 | #79 typed known/unknown identity, cache generation transitions and API/download comparison. Night results retain source-specific snapshot/provider hashes. | Exoplanet export still says the API supplies no immutable identifier; revise to distinguish known catalogue identity from the absent atomic response association. Do not attach a separately observed ID as a certified response snapshot. A backend response-level identity/pinned-read contract is the meaningful remaining implementation dependency. Planner calculations use packaged starter rows rather than the SQLite catalogue; their own source hashes must not inherit a separately observed global database ID. |
-| D4 | Existing scoped contracts/runbooks plus [the unreleased release packet](../RELEASE-1.0.0-REVIEW.md). | Reconcile rolling-upgrade docs with the final integrated code, replace forthcoming checkpoint rows, review final copy and verify actual target revision before any separately authorized publication. |
+| P1 | Local foundation and observing screenshots; native catalogue filters, skip-to-main, search-title updates, settings inventory, explicit WebGL activation and keyboard camera controls. Web #80 fixes the two reproduced browsing defects. | Latest integrated 320px/landscape, menu Escape/focus return, observer error focus, settings radio keys, reduced-motion and JavaScript-disabled browser journeys still need explicit evidence. Native file import remains blocked by extension file-URL permission. Physical touch and assistive-technology acceptance are separate. |
+| P2, P6 | Web #84 retains ten fixed-fixture request workloads, cold/fresh counts, seven-pair latency/memory samples and built-asset budgets, including an actual eight-target response fixture. | Combined integration exposed debug-environment contamination of runtime counts. PR #84 follow-up `72543c0` pins both PHP environment adapters before boot; an independent inherited-debug run passed all ten cases. The parent subsequently reports 1,215 PHP tests/5,333 assertions and 234 JS checks passing on the combined branch; see the progress checkpoint. Actual map cadence/memory profiling is in progress. Lower-power hardware and field p75/Core Web Vitals remain unmeasured. Mock HTTP kernel timings exclude provider/network/browser work. |
+| P3 | Web #67 multiprocess queue lease/retry coverage; later catalogue/weather producer-lease regressions prevent obsolete cache publication. | Preserve combined generation/queue regression checks. Authorized rollout must restart/drain workers as documented; this is an operational prerequisite, not an absent queue implementation. |
+| P4 | Backend #38 measured representative object/exoplanet queries with unchanged output hashes; vectorized terrain crossings and one batched planner request avoid per-time HTTP fan-out. | Full-catalogue identity finalization remains unmeasured. Warm synthetic queries and selected planner workloads do not establish production throughput. |
+| P5 | Bounded private planner/weather/sync transport and inputs; #79 catalogue-generation fencing and private response isolation. #86 retains response-associated exoplanet metadata with cached rows. | Verify combined route/header/cache checks. Old edge entries need expiry or separately authorized purge; new headers cannot clear earlier responses. Page identity does not pin a later page or every catalogue route. |
+| E1–E5 | Stable bounded guest profiles/sites, v1/v2 migration, cameras, circular masks, explicit activation/copy, settings/privacy integration. Browser creation, rounded site/mask persistence, saved optics reload, site copy and native workspace export are recorded. | Native file-picker import roundtrip remains unverified; malformed/stale/quota/storage-denied flows have isolated tests. Stored camera geometry is reviewed, but camera-specific combined browser interaction should not be inferred from visual-eyepiece screenshots. |
+| A1–A6 | UTC/legacy Moon correction; bounded true lunar/planet calculations, selected hours, DST/polar/grazing/terrain cases, Moon constraints, pinned JPL option and selected independent Horizons references. | Accuracy evidence is limited to the retained tested cases and model assumptions. Production kernel/IERS provisioning and broader field validation are not claimed. |
+| N1–N3 | Native private form, selected hours, chart/table equivalents, explained windows/statuses and telescope/binocular/camera geometry. | Final combined keyboard/assistive-technology checks remain. No optical compatibility or visual-detection guarantee is intended. |
+| N4, C4 | Web #83 integrates saved/temporary eyepiece comparison, explicit ordering, source magnitude bands/flags and angular containment. Browser saved and temporary setups pass; site hours/terrain constrain the night model. | **Implementation gap:** the visitor currently chooses targets, then compares equipment. A bounded, explained site/time/gear-guided candidate shortlist, including naked-eye discovery, is not implemented. Do not mark the broader product outcome complete or substitute a universal visibility score. |
+| N5 | Web #78/#83 matching-hour optional forecast; browser current and distant-date/out-of-coverage flows pass. New-tab submission preserves the original private POST result. | Forecast coverage is independent of geometric windows; no weather request occurs until requested. These are fixture/local journey checks, not weather-accuracy certification. |
+| N6, D3 | Web #81 session JSON/CSV/print; `1b14b81` retains optional calculation source identity and explains older omission. Backend retained replay documents matching source/runtime/IERS/kernel identities, builtin and actual JPL/DST fixtures. Default redacted JSON and native print preview were inspected. | No general session import/replay UI or hosted historical archive is promised. Repetition needs original private inputs and retained compatible resources. The parent recovered a 12,831-byte opt-in download containing location and all four terrain points; the 12,253-byte default omitted them. Final combined print/privacy acceptance remains distinct from automated coverage. |
+| C1–C3 | Licensed bounded bright-star/multiple-star/deep-sky samples, offline ingestion, native browsing, exact namespaced IDs, frame/motion evidence and mixed-target planner/journal links. Actual JPL mixed plan is browser-verified. | Current starter browser with the latest catalogue still awaits parent acceptance at this audit checkpoint. M45 remains unsupported; historical doubles are not current companion ephemerides or a complete sky survey. |
+| J1–J3 | Lists, statuses/reordering, actual-time/outcome/notes observations and historical setup snapshots; JSON/CSV/print and explicit deletion/undo. Web #85 adds correction/rename and lossless corrupt-storage recovery; independent reviews and Chrome edit/error/undo/reload acceptance pass. | Native import permission remains unresolved. Raw recovery is explicitly unredacted, unlike normal privacy-filtered exports. Browser deletion/undo, narrow correction layout and broader keyboard flows should be recorded where still missing; do not reopen the delivered editing implementation. |
+| J4–J5 | #74/#76 encrypted owner-isolated copies, explicit previews/transfers, revision tombstones, account-scope guard and ephemeral previews. Synthetic-account Chrome upload/restore/logout/Back checks pass. | Browser account-switch, concurrent-tab conflict and partial local restore failure have automated coverage but incomplete manual acceptance. LocalStorage has no atomic multi-key compare-and-swap; the residual race is documented, not solved by server revisions. |
+| D1 | Backend #40 logical data IDs, separate build/source provenance, mutation/schema invalidation and fixed-backup file checksums. | Full-catalogue finalization cost and any future retained-download policy are not established. IDs cannot recover files no longer hosted. |
+| D2 | #79 observed catalogue/cache/download identities; #86 strict optional same-read-transaction page association, cached-row retention and JSON/CSV propagation. Backend #42 tests real WAL writes/replacement and unknown metadata. Planner uses its own packaged source hashes, not the separately observed SQLite ID. | Current About metadata passed against the new API. Chrome blocked the native exoplanet attachment with ERR_BLOCKED_BY_CLIENT; actual browser export acceptance remains pending without bypassing that restriction. Legacy pages remain unassociated; associated unknown is distinct. A separately probed global ID must never certify returned rows. No all-route or multi-page pinning contract exists. |
+| D4 | Scoped scientific/privacy contracts, release runbooks and [unpublished release packet](../RELEASE-1.0.0-REVIEW.md), now reconciled with delivered topics. | Review the exact final combined revision and remaining acceptance before publication. No release ledger, version, production endpoint or domain has changed. |
 
-## Recommended next implementation order
+## Next useful work
 
-1. Complete the already active integration and acceptance loops for C3/N6, N4,
-   weather and catalogue identity. Re-run meaningful mixed-input/privacy/cache
-   checks; do not create duplicate implementations to bypass topic dependencies.
-2. Add journal observation editing and list renaming. Preserve record UUID and
-   target identity, default to the recorded setup snapshot, offer explicit
-   cancellation, reject stale storage and keep pending edits visible on quota
-   failure. Replacing a historical snapshot must be a separate explicit choice,
-   not an automatic copy of today's equipment. Regressions should include failed
-   persistence, another-tab changes, import/reload interaction and exact UTC text.
-3. Design response-level catalogue provenance before broadening reproducibility
-   claims. Pin identity and queried rows to the same read transaction/snapshot,
-   expose known/unknown association, retain version compatibility and invalidation,
-   then consume it in exports. Before/after probes alone do not prove atomicity.
-4. Finish measured performance/browser acceptance on the integrated result. Keep
-   representative lab distributions and physical-device limitations separate from
-   field targets. Pick map optimizations only after the workload exposes a cost.
+1. Finish current PR #84/#85/#86 integration checks and retain the measured map
+   workload and current-catalogue browser evidence. Report any new combined failure
+   instead of aggregating topic counts into an invented passing total.
+2. Design the remaining bounded candidate shortlist using available source data,
+   actual model windows and explicitly selected equipment/preferences. Explain
+   each inclusion/exclusion and unknown measurement; support naked-eye visitors.
+   Keep weather and geometric/equipment facts separate. This is remaining accepted
+   product work, not a requirement to ingest a new unreviewed catalogue.
+3. Complete feasible local browser acceptance above. Native file import requires
+   the outstanding extension permission; no alternate tool should bypass that
+   refusal. Retain automated import evidence while reporting the manual gap.
+4. Keep physical-device/touch, assistive-technology, lower-power GPU and field p75
+   evidence explicitly incomplete until measured. Production provisioning, edge
+   retirement and publication are separately authorized operations.
 
-The plugin repository/path remains unresolved in the foundation record. Domain
-cutover, production migration/backups, external delivery and credentials remain
-outside this development authorization. None is silently treated as completed.
+## Scope limits, not invented blockers
+
+The accepted programme does not require a full-Gaia import, motor control, exposure
+advice, a universal detection score, an executable session-import UI or indefinite
+hosting of every catalogue version. Missing these is not a reason to invent scope.
+The related plugin repository remains unidentified. Domain migration, production
+changes, external delivery and new permissions remain outside this authorization.

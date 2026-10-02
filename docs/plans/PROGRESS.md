@@ -1,7 +1,12 @@
 # Public Universe progress and continuation
 
-Updated: 2026-10-01. Foundation, accessible systems, release workflow and evening usability pass implemented.
+Updated: 2026-10-02. Reviewed development checkpoints through web #86; programme remains active.
 See [development plan](2026-10-01-public-universe.md).
+
+This is a chronological record. Pending statements in earlier waves describe
+those revisions, not the latest status. Use the [current acceptance audit](2026-10-02-programme-gap-review.md)
+for reconciled implementation, browser and external limitations. Topic PRs are
+unmerged review checkpoints; their test counts are not a combined release result.
 
 ## Active programme: performance and equipment-aware observing
 
@@ -168,3 +173,52 @@ and corrects stale workspace/export wording discovered during browser QA.
 Journal corrections/recovery and backend retained replay are independently
 reviewed; per-response exoplanet identity and actual map-cadence measurements
 are active. File import and physical-device/field performance remain incomplete.
+
+
+Sixth-wave reviewed checkpoints (2 October):
+
+- [Web #85](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/85),
+  `3111845`: journal observation correction and list renaming preserve UUIDs,
+  target identity and historical setup. Lossless original-data recovery is
+  explicitly unredacted. Independent 39-case store/UI review and real Chrome
+  validation/error/undo/reload checks pass; full topic 955 PHP/210 JS passed.
+  The journal-editing implementation gap in the earlier audit is closed.
+- [Web #86](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/86),
+  `24ec3eb`: optional response-associated exoplanet identity travels with cached
+  rows and exports. Known, unknown and legacy unassociated states stay distinct;
+  a separate catalogue probe cannot certify a page. Topic 88 targeted tests/547
+  assertions passed. Backend [#42](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/42)
+  `17583c9` pins metadata, table capability, rows and count to one read transaction;
+  independent 13-case WAL/replacement/error suite passed. Actual combined browser
+  export acceptance is still pending.
+- Scientific followthrough `1b14b81` retains optional algorithm-source identity,
+  explains missing older metadata and fixes negative magnitude display and stale
+  site/export wording. Independent 201 scoped PHP/638 assertions and 23 optics
+  JS checks passed. Backend retained replay compares only compatible recorded
+  source/runtime/IERS/kernel identities; it is not replay of a moving live API.
+
+At this audit checkpoint the parent is combining #84/#85/#86. Nine performance
+harness runtime-count failures were traced to inherited debug configuration.
+PR #84 follow-up `72543c0` pins both PHP environment adapters before application
+boot; an independent inherited-debug run passed ten cases/584 assertions without
+weakening the runtime assertion. The full combined baseline still needs its final
+rerun. Actual map profiling and
+current-catalogue browsing are in progress. Append their results with exact
+revision/workload rather than retroactively changing earlier evidence.
+
+The [acceptance matrix](2026-10-02-programme-gap-review.md) identifies the remaining
+product implementation gap: explained site/time/equipment-guided target selection,
+including naked-eye discovery. Existing eyepiece comparison does not itself choose
+a target shortlist. Native file import remains blocked by extension permission;
+physical touch/lower-power performance, field p75 and several final keyboard and
+assistive-technology journeys remain unverified. These limitations do not reopen
+already delivered journal correction, weather or page-associated identity work.
+
+Follow-up reported during audit review: the parent combined branch now passes
+1,215 PHP tests/5,333 assertions, 234 JS tests, Pint, PHPStan and build after the
+pre-bootstrap debug fix. Current About metadata works against backend #42. Chrome
+blocked the native exoplanet download with `ERR_BLOCKED_BY_CLIENT`; browser export
+acceptance remains incomplete and that restriction was not bypassed. The parent
+also recovered the opt-in session artifact (12,831 bytes, location included and
+all four terrain points), alongside the 12,253-byte default with coordinates
+omitted. Detailed screenshots/revision evidence belong in the parent QA update.

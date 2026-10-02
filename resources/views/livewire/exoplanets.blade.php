@@ -44,7 +44,7 @@
     @if(! $apiDown && $filterErrors === [])
         <section class="surface mt-8 space-y-3 p-5" aria-labelledby="export-heading">
             <h2 id="export-heading" class="font-semibold">{{ __('Download this filtered page') }}</h2>
-            <p class="text-sm" style="color: var(--muted)">{{ __('Up to 24 planets with original measurements, uncertainties, limits and references. JSON preserves missing fields and null values; CSV includes the original source data as JSON alongside measurement columns. The catalogue can change between viewing and downloading; exports do not have an immutable snapshot ID.') }}</p>
+            <p class="text-sm" style="color: var(--muted)">{{ __('Up to 24 planets with original measurements, uncertainties, limits and references. JSON preserves missing fields and null values; CSV includes the original source data as JSON alongside measurement columns. The catalogue can change between viewing and downloading. When supplied by the backend, exports retain the catalogue identity read with that downloaded page. Older responses remain unassociated, and an unknown identity remains unknown. This does not pin your earlier view or subsequent pages.') }}</p>
             <div class="flex flex-wrap gap-5">
                 <a href="{{ route('exoplanets.export', ['format' => 'csv'] + $exportQuery) }}" class="rounded underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">{{ __('Download page as CSV') }}</a>
                 <a href="{{ route('exoplanets.export', ['format' => 'json'] + $exportQuery) }}" class="rounded underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">{{ __('Download page as JSON') }}</a>
