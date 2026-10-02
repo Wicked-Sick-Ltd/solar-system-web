@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Category;
+use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
@@ -70,9 +71,31 @@ it('starts ID ordering explicitly with an empty cursor and uses the last display
 });
 
 it('loads a deep shared cursor directly with bounded offset and retained filters', function () {
-    Http::fake(['*/objects*' => Http::response(['results' => objectRows(25), 'next_after' => 'object-24'])]);
+    $rows = array_map(fn ($i) => ['id' => sprintf('asteroid-9%05d', $i), 'name' => 'Asteroid '.$i, 'object_type' => 'asteroid'], range(1, 25));
+    Http::fake(['*/objects*' => Http::response(['results' => $rows, 'next_after' => 'asteroid-900025'])]);
     $this->get('/asteroids?order=id&after=asteroid-900000&orbit=MBA')->assertOk()->assertSee('catalogue ID order');
     Http::assertSent(fn ($r) => str_contains($r->url(), '/objects') && $r['after'] === 'asteroid-900000' && $r['offset'] === 0 && $r['orbit_class'] === 'MBA');
+});
+
+it('fails closed when an offset-only API ignores the cursor and repeats its first page', function () {
+    // An older backend that does not implement keyset paging answers every
+    // request with its offset-ordered first page and no next_after. Neither
+    // the page nor its "Next" link may pretend the catalogue advanced.
+    $firstPage = ['results' => objectRows(25), 'limit' => 25, 'offset' => 0];
+    Http::fake(['*/objects*' => Http::response($firstPage)]);
+    $this->get('/asteroids?order=id&after=obj-23')->assertOk()->assertSee('temporarily unavailable')
+        ->assertDontSee('catalogue ID order')->assertDontSee('rel="next"', false);
+
+    // Even with a next_after field present, rows that are not strictly after
+    // the cursor in ascending ID order mean the cursor was ignored.
+    Cache::flush();
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    Http::fake(['*/objects*' => Http::response($firstPage + ['next_after' => 'obj-24'])]);
+    $this->get('/asteroids?order=id&after=obj-23')->assertOk()->assertSee('temporarily unavailable')
+        ->assertDontSee('catalogue ID order')->assertDontSee('rel="next"', false);
+    expect(fn () => app(SolarApiClient::class)->objects(['type' => 'asteroid'], 24, 0, 'obj-23'))
+        ->toThrow(SolarApiException::class, 'did not honour the catalogue cursor');
 });
 
 it('rejects invalid filter and paging URLs without querying the backend', function (array $query) {

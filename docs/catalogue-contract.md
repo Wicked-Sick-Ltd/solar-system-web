@@ -35,6 +35,27 @@ asteroid-filter refusal and fractional meteor windows. Integrate it before
 release; older running APIs can silently ignore unsupported filters. The web
 preserves graceful unavailability when the corrected API reports those limits.
 
+## Asteroid cursor paging
+
+`GET /api/v1/objects` has two paging modes. Without `after` it is
+offset-paginated in the backend's orbital order and `next_after` is null.
+With `after` (an empty string for the first page) it is keyset-paginated:
+`api/main.py` declares `after` as "keyset pagination: last id of the previous
+page" and `offset` as "ignored when `after` is given", `find_objects` applies
+`o.id > :after ORDER BY o.id`, and the response's `next_after` is the last
+returned id while a full page came back. Backend `main` and the deployed API
+(`https://api.sol.wickedsick.com/api/v1/objects?type=asteroid&after=`) both
+behave this way; the committed `objects`/`next_objects` fixtures are its
+recorded page 1 and page 2.
+
+The website's "full catalogue by ID" mode (`/asteroids?order=id`) therefore
+sends `after`, requires `next_after` in the envelope, and additionally checks
+that every returned id is strictly after the cursor in ascending byte order.
+An older API that ignores `after` fails those checks, and the page reports
+unavailability instead of repeating page 1. `tests/Feature/CatalogueContractTest.php`
+follows the rendered `rel="next"` link onto page 2 against the recorded
+responses; `tests/Feature/AsteroidFiltersTest.php` covers the fail-closed path.
+
 ## Identity continuity
 
 Exoplanet ingestion currently hashes exact names and replaces records on refresh.
