@@ -238,3 +238,19 @@ source/build hashes are retained in the [browser report](../qa/2026-10-02/combin
 Backend bounded candidate discovery is now draft #43 (`a4ef9bb`), with 498 tests
 including actual JPL and independent 30-case review. Its frontend consumer and
 remaining feasible browser acceptance are in progress; the programme is active.
+
+
+## Shortlist integration and actual browser checkpoint — 2 October
+
+Frontend #91 (`ed54b0c`) is integrated as `f81d8cc`, with backend #43
+(`a4ef9bb`). The combined code passes 1,297 PHP tests / 5,809 assertions,
+239 JS tests, Pint, PHPStan, build and diff checks. Native desktop Chrome
+acceptance passed actual JPL naked-eye and telescope candidate selection,
+selected hours, explicit empty magnitude filtering and target-only handoff;
+[details and screenshots](../qa/2026-10-02/shortlist-browser.md).
+
+Workspace/camera/script-blocked evidence from #92 and release packet #93 are
+now integrated. Narrow-screen, sync account-transition and remaining feasible
+browser checks continue. Existing file-import/download browser restrictions,
+physical-device and field-performance limitations remain explicit. No deployment,
+version activation, domain change or community publication occurred.
