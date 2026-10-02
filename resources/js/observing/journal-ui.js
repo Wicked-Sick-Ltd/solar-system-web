@@ -129,6 +129,7 @@ export function mountJournal(root, storage = null) {
         const sequence = ++importSequence;
         pendingImport = null; get('import-preview').hidden = true;
         const file = event.target.files?.[0]; if (!file) return;
+        get('error').textContent = '';
         try {
             if (file.size > JOURNAL_MAX_BYTES) throw new Error('Choose a JSON file no larger than 1 MiB.');
             const candidate = parseJournal(await file.text()); if (disposed || sequence !== importSequence) return;
@@ -136,6 +137,7 @@ export function mountJournal(root, storage = null) {
             get('import-description').textContent = `${candidate.lists.length} lists and ${candidate.observations.length} observations. Applying replaces this browser’s journal; equipment/site profiles are unchanged.`;
             get('import-preview').hidden = false;
         } catch (error) { if (!disposed && sequence === importSequence) get('error').textContent = error.message; }
+        finally { if (!disposed && sequence === importSequence) event.target.value = ''; }
     });
     on(get('apply'), 'click', () => attempt(() => { if (pendingImport) { importSequence++; commit(pendingImport, true); pendingImport = null; get('import-preview').hidden = true; } }));
     on(get('cancel-import'), 'click', () => { importSequence++; pendingImport = null; get('import-preview').hidden = true; });
@@ -154,5 +156,9 @@ export function mountJournal(root, storage = null) {
     });
     // Enable only after listeners prevent accidental native submission.
     root.querySelectorAll('fieldset[data-journal-controls]').forEach(fieldset => fieldset.disabled = false);
-    return { dispose() { disposed = true; importSequence++; for (const cleanup of cleanups) cleanup(); } };
+    return { dispose() {
+        disposed = true; importSequence++; for (const cleanup of cleanups) cleanup();
+        // A BFCache/navigation snapshot must not contain enabled native forms.
+        root.querySelectorAll('fieldset[data-journal-controls]').forEach(fieldset => fieldset.disabled = true);
+    } };
 }
