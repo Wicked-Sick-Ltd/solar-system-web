@@ -10,6 +10,9 @@ use Illuminate\Validation\ValidationException;
 
 final class NightRequest
 {
+    public const CONDITION_FIELDS = ['date', 'timezone', 'lat', 'lon', 'min_altitude_deg', 'sun_altitude_deg',
+        'min_moon_separation_deg', 'window_start_utc', 'window_end_utc', 'horizon'];
+
     public const TARGETS = ['moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
 
     /** @param array<string,mixed> $input
@@ -17,8 +20,7 @@ final class NightRequest
      */
     public static function parse(array $input): array
     {
-        if (array_diff(array_keys($input), ['_token', 'date', 'timezone', 'lat', 'lon', 'targets',
-            'min_altitude_deg', 'sun_altitude_deg', 'min_moon_separation_deg', 'window_start_utc', 'window_end_utc', 'horizon', 'catalogue_targets']) !== []) {
+        if (array_diff(array_keys($input), [...self::CONDITION_FIELDS, '_token', 'targets', 'catalogue_targets']) !== []) {
             throw ValidationException::withMessages(['constraints' => 'An unsupported planning field was supplied.']);
         }
         $targets = $input['targets'] ?? [];
@@ -36,6 +38,16 @@ final class NightRequest
             $targets = [...$targets, ...$extra];
         }
         $targets = NightTargets::parse($targets);
+
+        return self::conditions($input) + ['targets' => implode(',', $targets)];
+    }
+
+    /** Shared validated geometry; callers allowlist their own form fields first.
+     * @param  array<string,mixed>  $input
+     * @return array<string,mixed>
+     */
+    public static function conditions(array $input): array
+    {
         $data = Validator::make($input, [
             'date' => ['required', 'date_format:Y-m-d', 'after_or_equal:1900-01-01', 'before_or_equal:2100-12-31'],
             'timezone' => ['required', 'string', 'max:100', 'timezone:all'],
@@ -49,7 +61,6 @@ final class NightRequest
         $query = [
             'date' => $data['date'], 'timezone' => $data['timezone'],
             'lat' => round((float) $data['lat'], 2), 'lon' => round((float) $data['lon'], 2),
-            'targets' => implode(',', $targets),
             'min_altitude_deg' => (float) $data['min_altitude_deg'],
             'sun_altitude_deg' => (float) $data['sun_altitude_deg'],
             'min_moon_separation_deg' => (float) $data['min_moon_separation_deg'],

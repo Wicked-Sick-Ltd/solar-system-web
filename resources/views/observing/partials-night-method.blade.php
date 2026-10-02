@@ -5,7 +5,7 @@
         @if(isset($method['calculation']))
             <p>Python {{ $method['calculation']['python_version'] }} · NumPy {{ $method['calculation']['numpy_version'] }}</p>
             <p class="break-all">{{ __('Calculation source SHA-256:') }} <code>{{ $method['calculation']['source_sha256'] }}</code></p>
-            <p>{{ __('Catalogue targets use the identified packaged snapshots. The separately reported database catalogue identity does not identify these calculation inputs. The JSON export retains the source-hash algorithm and file list.') }}</p>
+            <p>{{ __('Catalogue targets use the identified packaged snapshots. The separately reported database catalogue identity does not identify these calculation inputs.') }} @if($hasSessionExport ?? true) {{ __('The JSON export retains the source-hash algorithm and file list.') }} @endif</p>
         @else
             <p>{{ __('Calculation source identity was not reported by this backend. Library and data identities below do not identify the complete calculation software.') }}</p>
         @endif
