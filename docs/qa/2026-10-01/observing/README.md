@@ -93,3 +93,15 @@ all hours outside forecast coverage, and the original plan still present.
 Automated checks prove no weather request occurs while merely calculating or
 displaying a plan. Saved-equipment reload and saved-site copy still need their
 complete combined browser journeys; isolated storage/lifecycle tests pass.
+
+Combined saved-workspace acceptance on18018: created a synthetic200mm/1,000mm
+telescope,20mm/50° eyepiece and public London site through the UI. A four-point
+horizon and coordinates51.50123/−0.12345 saved as51.50/−0.12. Reload retained
+both equipment entries and the site. The already-open calculated plan’s explicit
+Reload saved equipment action found the new telescope; selecting it produced
+50×/4mm/1° from the saved eyepiece. A fresh planner did not prefill coordinates
+or calculate until Copy this site into the form was chosen; it then copied the
+rounded coordinates, Europe/London,20° minimum and all four terrain points.
+The native Export workspace Save dialog completed a699-byte JSON backup with
+two equipment entries and one rounded site, independently inspected from disk.
+File import remains blocked by the previously reported extension permission.

@@ -238,7 +238,7 @@ export function mountWorkspace(root, options = {}) {
             if (action === 'activate') {
                 controller.activate(entryId); render();
                 view.dispatchEvent(new view.CustomEvent('observer-location-changed'));
-                message('This site is now the active approximate location for sky calculations. Timezone and minimum altitude are saved preferences; current sky calculations do not apply them.');
+                message('This site is now the active approximate location for sky views. In the night planner, use Copy this site into the form to apply its timezone, minimum altitude and terrain.');
             }
             if (action === 'reload') load();
             if (action === 'export') { download(controller.export(), 'public-universe-workspace-v2.json'); message('Backup prepared. It includes private site names and coordinates.'); }

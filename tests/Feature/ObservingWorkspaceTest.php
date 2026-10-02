@@ -14,7 +14,7 @@ it('renders the guest workspace without personal Livewire state or catalogue req
         ->assertSee('No equipment or named sites are uploaded')
         ->assertSee('No observing sites saved yet.')
         ->assertSee('Review before replacing')
-        ->assertSee('Current sky calculations do not apply them.');
+        ->assertSee('Activating a site only selects its approximate location for other sky views.');
     expect($page->instance()->all())->toBe([]);
     Http::assertNothingSent();
 });
@@ -58,7 +58,7 @@ it('describes camera geometry and user-entered horizon limits without implying p
         ->assertSee('Camera sensor')
         ->assertSee('Sensor width (mm)')
         ->assertSee('Horizon mask (optional)')
-        ->assertSee('These points are not yet used by sky calculations.')
+        ->assertSee('Copy this saved site in the night planner to apply its horizon mask to a calculation.')
         ->assertSee('older version-1 backups remain readable')
         ->assertSee('Unknown pixel size stays unknown.')
         ->assertSee('no camera is controlled.');

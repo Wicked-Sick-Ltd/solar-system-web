@@ -141,3 +141,30 @@ map frame-time measurements and physical-device/field performance. File import
 currently requires the browser extension's file-URL permission; no new access
 has been granted. These checkpoints are unmerged development PRs. Do not mark
 the programme complete after this wave.
+
+Fifth-wave integration checkpoints:
+
+- [Web #81](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/81):
+  catalogue targets and private session exports; all CI checks pass.
+- [Web #82](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/82):
+  reviewed community/site release draft and full acceptance matrix. Still
+  unpublished; version remains0.0.0.
+- [Web #83](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/83):
+  explained saved/temporary equipment comparison and explicit weather in a new
+  tab;1128PHP/224JS passed. Chrome confirms sourced size context,50×/4mm/1°,
+  live matching-hour forecast, unknown distant-date weather, responsive optics
+  and retained original plan. Later combined browser checks confirm saved
+  equipment reload, explicit saved-site copy and downloaded workspace JSON.
+- [Web #84](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/84):
+  fixed-fixture request/asset budgets, with cold/fresh counts and raw7-pair
+  latency/memory samples. Full1168PHP/226JS passed. These are local request-kernel
+  measurements with fake backend responses, not public latency or device results.
+
+Published `codex/observing-provenance-integration`f54398d combines guidance,
+catalogue generation-aware caches, browsing fixes and release drafts;1158PHP
+tests/4518assertions passed. The next scientific followthrough retains an
+optional calculation source-code identity, explicitly reports older omissions,
+and corrects stale workspace/export wording discovered during browser QA.
+Journal corrections/recovery and backend retained replay are independently
+reviewed; per-response exoplanet identity and actual map-cadence measurements
+are active. File import and physical-device/field performance remain incomplete.

@@ -44,7 +44,7 @@ final class ExoplanetPageExport
         return ['metadata' => [
             'schema' => 'public-universe.exoplanets.page.v1', 'scope' => 'current_filtered_page',
             'generated_at' => now()->utc()->toIso8601String(), 'snapshot_id' => null,
-            'snapshot_note' => 'The API supplies no immutable snapshot identifier. This is a page retrieved at export time; the catalogue can change between requests.',
+            'snapshot_note' => 'This scientific response is not atomically associated with an immutable catalogue snapshot. A separately observed catalogue identity cannot certify this page; the catalogue can change between requests.',
             'source' => 'NASA Exoplanet Archive', 'source_table' => 'PSCompPars',
             'source_url' => 'https://exoplanetarchive.ipac.caltech.edu/docs/PSCompPars.html',
             'filters' => (object) $filters->apiFilters(),

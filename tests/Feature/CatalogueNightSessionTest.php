@@ -115,3 +115,20 @@ it('offers local equipment and an explicit separate forecast for the exact calcu
     ]);
     Http::assertSentCount(1); // Astronomy only; displaying weather controls cannot fetch a forecast.
 });
+
+it('retains optional calculation source identity and labels older backend omissions', function () {
+    $fixture = catalogueNightFixture();
+    $legacy = $fixture;
+    $metadata = json_decode(file_get_contents(base_path('tests/fixtures/observing/catalogue-provenance.json')), true, flags: JSON_THROW_ON_ERROR);
+    $fixture['method']['calculation'] = $metadata['providers']['jpl']['calculation'];
+    Http::fake(['*' => Http::sequence()->push($legacy)->push($fixture)]);
+    $this->post('/observe/night', catalogueNightInput())->assertOk()
+        ->assertSee('Calculation source identity was not reported');
+    $this->post('/observe/night', catalogueNightInput())->assertOk()
+        ->assertSee('Calculation source SHA-256:')
+        ->assertSee($fixture['method']['calculation']['source_sha256'])
+        ->assertDontSee('Calculation source identity was not reported');
+    $query = NightRequest::parse(catalogueNightInput());
+    $summary = NightSession::summary(NightPlan::validate($fixture, $query), $query);
+    expect($summary['method']['calculation'])->toBe($fixture['method']['calculation']);
+});

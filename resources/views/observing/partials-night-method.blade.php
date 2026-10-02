@@ -2,6 +2,13 @@
     <summary class="cursor-pointer py-2">{{ __('Software and ephemeris identity') }}</summary>
     <div class="mt-3 space-y-3 break-words">
         <p>Astropy {{ $method['astropy_version'] }} · ERFA {{ $method['erfa_version'] }} @if(isset($method['jplephem_version'])) · jplephem {{ $method['jplephem_version'] }} @endif</p>
+        @if(isset($method['calculation']))
+            <p>Python {{ $method['calculation']['python_version'] }} · NumPy {{ $method['calculation']['numpy_version'] }}</p>
+            <p class="break-all">{{ __('Calculation source SHA-256:') }} <code>{{ $method['calculation']['source_sha256'] }}</code></p>
+            <p>{{ __('Catalogue targets use the identified packaged snapshots. The separately reported database catalogue identity does not identify these calculation inputs. The JSON export retains the source-hash algorithm and file list.') }}</p>
+        @else
+            <p>{{ __('Calculation source identity was not reported by this backend. Library and data identities below do not identify the complete calculation software.') }}</p>
+        @endif
         <p>{{ __('Earth-orientation release:') }} {{ $method['iers']['data_version'] }} · {{ $method['iers']['start_utc'] }} → {{ $method['iers']['end_utc'] }}.</p>
         <p class="break-all">{{ __('Earth-orientation effective-column SHA-256:') }} <code>{{ $method['iers']['snapshot']['sha256'] }}</code></p>
         @if(isset($method['kernel']))
