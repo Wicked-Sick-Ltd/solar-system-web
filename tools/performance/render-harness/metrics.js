@@ -62,6 +62,9 @@ export function createMetrics({ now = () => performance.now(), schedule = fn => 
             finally {
                 row.cpuCallMs = now() - start;
                 Object.assign(row, memory(renderer));
+                row.draw = { calls: renderer.info?.render?.calls ?? null, points: renderer.info?.render?.points ?? null,
+                    triangles: renderer.info?.render?.triangles ?? null, lines: renderer.info?.render?.lines ?? null,
+                    bufferWidth: gl.drawingBufferWidth ?? null, bufferHeight: gl.drawingBufferHeight ?? null };
                 if (query) {
                     gl.endQuery(ext.TIME_ELAPSED_EXT);
                     pending.add({ gl, ext, query, row, started: now() });
