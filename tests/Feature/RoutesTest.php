@@ -17,6 +17,7 @@ it('renders every public P0 route', function (string $uri) {
     'home' => '/',
     'explore' => '/explore',
     'observe' => '/observe',
+    'observing shortlist' => '/observe/shortlist',
     'learn' => '/learn',
     'objects index' => '/objects',
     'objects filtered' => '/objects?type=asteroid&named=1&page=1',

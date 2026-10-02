@@ -1,0 +1,114 @@
+{
+  "backend_commit": "a4ef9bb43716cc6e0137a600dd48927e0c178d1c",
+  "backend_pull_request": "https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/43",
+  "endpoint": "POST /api/v1/observing/discover",
+  "provider": "builtin",
+  "example": "Public synthetic London location; computed model output, not an observation or user record.",
+  "compression": "gzip mtime=0; decoded output preserved without numeric reserialization.",
+  "fixtures": [
+    {
+      "file": "shortlist.json.gz",
+      "decoded_sha256": "806a8f759e2cacaa6179d4483c915cbe34313ff185a4408b97a8075970cbb8d1",
+      "gzip_sha256": "827084bb7d89c2ffabdc4060351f3221929ceb5d7400eaf693f4f3d93060d202",
+      "decoded_bytes": 568342,
+      "request": {
+        "date": "2026-10-01",
+        "timezone": "Europe/London",
+        "lat": 51.5,
+        "lon": -0.12,
+        "min_altitude_deg": 20.0,
+        "sun_altitude_deg": -12.0,
+        "min_moon_separation_deg": 0.0,
+        "window_start_utc": "2026-10-01T11:00:00Z",
+        "window_end_utc": "2026-10-02T11:00:00Z",
+        "horizon_mask": null
+      },
+      "options": {
+        "equipment_mode": "naked_eye",
+        "preference": "balanced",
+        "true_field_deg": null,
+        "max_catalogue_v_magnitude": null,
+        "shortlist_limit": 3
+      },
+      "sources": [
+        {
+          "source": "bsc5p",
+          "snapshot_sha256": "7fe926d80b535f9422ca81f8f3fee1d6422de29adaecfbd2f14b1a93fe5134b9",
+          "upstream_sha256": {
+            "bsc5p.tdat": "e2b2f8e9d615426f9478f88061235976143d49d8b25c6c15df3f3661c7095b53"
+          },
+          "source_url": "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_bsc5p.tdat.gz",
+          "retrieved_at": "2026-10-01T21:40:09.869946+00:00",
+          "license": "NASA government-works; HEASARC free-use policy",
+          "attribution": "Hoffleit and Warren (1991), Bright Star Catalog, 5th revised preliminary edition; NASA/GSFC HEASARC",
+          "license_url": "https://heasarc.gsfc.nasa.gov/docs/heasarc/data_policy.html"
+        },
+        {
+          "source": "openngc",
+          "snapshot_sha256": "d8517e8d195ce69700645b60f8d6603d2aebba0e8e21f47603a4d6a31fe667a1",
+          "upstream_sha256": {
+            "NGC.csv": "d3cd7f1ab83122e81b3453d765d93b6dbbb15c910716c9e4ff99c7e916cb2218",
+            "addendum.csv": "1d8f0914e643ada325a5a94d88d8fefad6a4937a2f77cc34f21483af22b11983"
+          },
+          "source_url": "https://github.com/mattiaverga/OpenNGC/tree/75ca7ff090e1d0081a5b08be70eb3bc45ccd9e06",
+          "retrieved_at": "2026-10-01T21:40:09.873502+00:00",
+          "license": "CC-BY-SA-4.0",
+          "attribution": "OpenNGC, copyright 2023 Mattia Verga; adapted by Public Universe: bounded selection and unit conversions; source row strings retained",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/"
+        }
+      ]
+    },
+    {
+      "file": "shortlist-empty.json.gz",
+      "decoded_sha256": "7e5c07c4413da04a11e7d45b5e3ea4eda5a8efa2e1d875aea1176c2c264495be",
+      "gzip_sha256": "b4de612e646f0e66dc1d58988e40606def23026b3bef7ad51b191d7a952c14f5",
+      "decoded_bytes": 6771,
+      "request": {
+        "date": "2026-10-01",
+        "timezone": "Europe/London",
+        "lat": 51.5,
+        "lon": -0.12,
+        "min_altitude_deg": 20.0,
+        "sun_altitude_deg": -12.0,
+        "min_moon_separation_deg": 0.0,
+        "window_start_utc": "2026-10-01T11:00:00Z",
+        "window_end_utc": "2026-10-02T11:00:00Z",
+        "horizon_mask": null
+      },
+      "options": {
+        "equipment_mode": "naked_eye",
+        "preference": "balanced",
+        "true_field_deg": null,
+        "max_catalogue_v_magnitude": -30.0,
+        "shortlist_limit": 3
+      },
+      "sources": [
+        {
+          "source": "bsc5p",
+          "snapshot_sha256": "7fe926d80b535f9422ca81f8f3fee1d6422de29adaecfbd2f14b1a93fe5134b9",
+          "upstream_sha256": {
+            "bsc5p.tdat": "e2b2f8e9d615426f9478f88061235976143d49d8b25c6c15df3f3661c7095b53"
+          },
+          "source_url": "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_bsc5p.tdat.gz",
+          "retrieved_at": "2026-10-01T21:40:09.869946+00:00",
+          "license": "NASA government-works; HEASARC free-use policy",
+          "attribution": "Hoffleit and Warren (1991), Bright Star Catalog, 5th revised preliminary edition; NASA/GSFC HEASARC",
+          "license_url": "https://heasarc.gsfc.nasa.gov/docs/heasarc/data_policy.html"
+        },
+        {
+          "source": "openngc",
+          "snapshot_sha256": "d8517e8d195ce69700645b60f8d6603d2aebba0e8e21f47603a4d6a31fe667a1",
+          "upstream_sha256": {
+            "NGC.csv": "d3cd7f1ab83122e81b3453d765d93b6dbbb15c910716c9e4ff99c7e916cb2218",
+            "addendum.csv": "1d8f0914e643ada325a5a94d88d8fefad6a4937a2f77cc34f21483af22b11983"
+          },
+          "source_url": "https://github.com/mattiaverga/OpenNGC/tree/75ca7ff090e1d0081a5b08be70eb3bc45ccd9e06",
+          "retrieved_at": "2026-10-01T21:40:09.873502+00:00",
+          "license": "CC-BY-SA-4.0",
+          "attribution": "OpenNGC, copyright 2023 Mattia Verga; adapted by Public Universe: bounded selection and unit conversions; source row strings retained",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/"
+        }
+      ]
+    }
+  ]
+}

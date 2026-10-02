@@ -30,5 +30,9 @@
     "resources/js/observing/night.js": {
         "bytes": 32000,
         "gzip_bytes": 12000
+    },
+    "resources/js/observing/shortlist.js": {
+        "bytes": 12000,
+        "gzip_bytes": 5000
     }
 }

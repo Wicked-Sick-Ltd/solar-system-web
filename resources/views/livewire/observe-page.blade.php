@@ -26,8 +26,9 @@
         </li>
     </ol>
     <section class="surface mt-6 p-6" aria-labelledby="observe-night-planner">
-        <h2 id="observe-night-planner" class="text-2xl">{{ __('Plan a night with the Moon and planets') }}</h2>
+        <h2 id="observe-night-planner" class="text-2xl">{{ __('Choose a night and find targets') }}</h2>
         <p class="mt-3 leading-relaxed">{{ __('Choose a date and approximate location for altitude charts, darkness and observing windows, with the calculation limits explained.') }}</p>
+        <p class="mt-4"><a class="underline" href="{{ route('observe.shortlist') }}">{{ __('Find an explained shortlist for my site and equipment') }} →</a></p>
         <a class="mt-4 inline-block underline" href="{{ route('observe.night') }}">{{ __('Plan a night') }} →</a>
     </section>
     <section class="surface mt-6 p-6" aria-labelledby="observe-starter-catalogues">

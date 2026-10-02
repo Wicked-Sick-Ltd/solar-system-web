@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Observing;
 
-final class NightPlanner
+final class ShortlistPlanner
 {
     public function __construct(private readonly NightTransport $transport) {}
 
@@ -13,6 +13,6 @@ final class NightPlanner
      */
     public function calculate(array $query): array
     {
-        return NightPlan::validate($this->transport->send('night', $query), $query);
+        return ShortlistPlan::validate($this->transport->send('discover', $query), $query);
     }
 }
