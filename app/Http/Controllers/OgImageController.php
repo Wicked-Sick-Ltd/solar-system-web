@@ -8,6 +8,7 @@ use App\Services\Og\OgImageRenderer;
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\SolarApiClient;
 use App\Support\ObjectType;
+use App\Support\ShareImage;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -26,7 +27,7 @@ final class OgImageController extends Controller
     public function __invoke(string $slug, SolarApiClient $api, OgImageRenderer $renderer): Response
     {
         $disk = Storage::disk((string) config('og.disk'));
-        $path = 'og/'.(string) config('og.version').'/'.sha1($slug).'.png';
+        $path = 'og/'.ShareImage::version().'/'.sha1($slug).'.png';
 
         try {
             if ($disk->exists($path) && ($cached = $disk->get($path)) !== null) {
@@ -73,7 +74,7 @@ final class OgImageController extends Controller
     /** The committed static site card, used whenever a per-object render isn't possible. */
     private function fallback(): Response
     {
-        $bytes = @file_get_contents(public_path('images/og-default.png')) ?: '';
+        $bytes = @file_get_contents(public_path(ShareImage::DEFAULT_PATH)) ?: '';
 
         return response($bytes, $bytes === '' ? 404 : 200, [
             'Content-Type' => 'image/png',

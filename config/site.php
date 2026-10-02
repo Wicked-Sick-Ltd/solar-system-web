@@ -7,12 +7,12 @@ declare(strict_types=1);
  * wordmark, palette and external links can move without touching Blade.
  */
 return [
-    'name' => env('APP_NAME', 'Solar'),
-    'tagline' => 'A field guide to the solar system',
-    'description' => 'A clean, public reference for the solar system — planets, '
-        .'moons, dwarf planets, asteroids, comets and trans-Neptunian objects. '
-        .'Sourced from NASA/JPL and the IAU Minor Planet Center. For astronomy, '
-        .'not astrology.',
+    // Public branding is independent of APP_NAME, which also namespaces sessions/cache.
+    'name' => env('SITE_NAME', 'Public Universe'),
+    'tagline' => 'Astronomy for everyone',
+    'description' => 'Explore our solar system, exoplanets and their place in the galaxy. '
+        .'Free astronomical data, interactive maps and observing tools for curious '
+        .'minds, classrooms and researchers.',
 
     // Accent palette (also mirrored in resources/css/app.css @theme).
     'accent' => '#E0B872', // amber — highlights

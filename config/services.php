@@ -51,6 +51,7 @@ return [
     'solar' => [
         'base_url' => rtrim((string) env('API_BASE_URL', 'http://127.0.0.1:8003/api/v1'), '/'),
         'timeout' => (int) env('SOLAR_API_TIMEOUT', 8),
+        'planner_timeout' => (int) env('SOLAR_PLANNER_TIMEOUT', 40),
 
         'cache' => [
             // Reference data that barely changes between nightly builds.

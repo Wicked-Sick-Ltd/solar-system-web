@@ -92,7 +92,7 @@ it('renders small orbital-period errors on the planet detail page', function () 
 
 it('loads map data separately from Livewire markup for a full catalogue', function () {
     Http::swap(new Factory);
-    $rows = array_fill(0, 5000, exoplanetHostPayload());
+    $rows = array_map(fn ($i) => array_replace(exoplanetHostPayload(), ['id' => 'host-'.$i]), range(1, 5000));
     Http::fake(['*/galaxy' => Http::response(['available' => true, 'results' => $rows])]);
     $this->get('/galaxy')->assertOk()->assertDontSee('data-galaxy-hosts', false);
     $this->get('/galaxy/data')->assertOk()->assertJsonCount(5000, 'hosts');

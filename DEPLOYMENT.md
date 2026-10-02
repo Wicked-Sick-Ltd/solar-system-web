@@ -1,125 +1,188 @@
 # Deployment
 
-This is a stateless Laravel front end with **no database**. It needs PHP and a
-web server, and it talks to the Solar System DB REST API over HTTP. It runs
-happily on a £5 VPS (Laravel Forge), a Cloudflare-fronted PHP host, or a
-container — no provider-specific assumptions.
+The website consumes the astronomy catalogue through the Solar System DB REST
+API and **has a persistent database of its own** for accounts, visibility
+alerts and published release history. Deploying application code must preserve that database, `APP_KEY`, and
+private storage. This runbook prepares a release; it does not authorize a live
+release or domain cutover.
 
 ## Requirements
 
-- PHP **8.4+** with the usual Laravel extensions (`mbstring`, `openssl`, `curl`, `dom`, …) plus **`imagick`** (renders the per-object OG share cards)
-- Composer
-- Node + npm — **build time only**, not at runtime
-- A reachable Solar System DB API (`API_BASE_URL`)
+- PHP **8.4+**, normal Laravel extensions (`mbstring`, `openssl`, `curl`, `dom`,
+  the PDO driver for your database), and `imagick` for OG cards.
+- Composer and Node **22** + npm at build time.
+- A reachable catalogue API (`API_BASE_URL`).
+- Persistent SQLite or a supported database server for accounts. SQLite must
+  use an absolute path outside disposable releases and a single writable host.
+- Redis for production cache, sessions and background cache-refresh jobs; all
+  application/scheduler hosts must share the same cache and cache prefix.
+- A transactional mail transport if visibility email alerts are enabled.
 
-## Environment
+## Environment and persistent data
 
-Copy `.env.example` to `.env` and set at least:
+Start from `.env.example`. Store secrets outside Git and retain the existing
+`APP_KEY` across releases; generating a new key invalidates encrypted data and
+sessions. On an existing installation, inspect configuration before editing it.
 
-| Var            | Required | Notes                                                                 |
-| -------------- | -------- | --------------------------------------------------------------------- |
-| `APP_KEY`      | yes      | `php artisan key:generate`                                            |
-| `APP_URL`      | yes      | **Canonical** public URL (`https://publicuniverse.net`) — drives canonical tags, OG URLs, sitemap, robots.txt and JSON-LD on every hostname the site answers to; see *Hostnames* |
-| `APP_ENV`      | yes      | `production`                                                          |
-| `APP_DEBUG`    | yes      | `false` in production                                                 |
-| `API_BASE_URL` | yes      | Backend REST root, e.g. `https://api.sol.wickedsick.com/api/v1`       |
-| `SOLAR_API_TIMEOUT` | no  | HTTP timeout in seconds (default 8)                                   |
-| `CACHE_STORE`  | no       | `file` is fine; `redis` recommended if available (better SWR)         |
-| `SESSION_DRIVER` | no     | `file`                                                                |
-| `QUEUE_CONNECTION` | no   | `sync` works; a real queue (`redis`/`database`) enables true background cache refresh |
-| `CONTACT_EMAIL` | no      | Surfaced on `/about`                                                  |
-| `OG_DISK`      | no       | Disk for cached OG cards — `local` (default) or `s3`                  |
-| `AWS_*`        | if `s3`  | Ceph RGW bucket + keys for OG storage — see [`docs/CEPH-S3.md`](docs/CEPH-S3.md) |
-| `API_DOCS_URL` | no       | Override the backend `/docs` link; otherwise derived from `API_BASE_URL` |
+| Variable | Production requirement |
+| --- | --- |
+| `APP_KEY` | Stable secret, generated once at first installation |
+| `APP_ENV`, `APP_DEBUG` | `production`, `false` |
+| `APP_URL` | Canonical origin (`https://publicuniverse.net`); mail links and SEO use it on every serving hostname |
+| `DB_CONNECTION`, `DB_DATABASE` | Existing account database; absolute path for SQLite |
+| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` | If using a database server |
+| `API_BASE_URL` | Catalogue REST root, e.g. `https://api.sol.wickedsick.com/api/v1` |
+| `SOLAR_API_TIMEOUT` | HTTP timeout, defaults to 8 seconds |
+| `CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION` | `redis` recommended |
+| `CACHE_PREFIX` | Stable, application-specific; retain during branding changes |
+| `SESSION_COOKIE` | Stable name; explicitly configure before changing `APP_NAME` |
+| `SESSION_SECURE_COOKIE` | `true` on HTTPS |
+| `SESSION_DOMAIN` | Prefer host-only (`null`) |
+| `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | Private Redis connection |
+| `MAIL_MAILER`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | Verified sender/transport; `log` does not deliver email |
+| `POSTMARK_API_KEY` | Required when `MAIL_MAILER=postmark` |
+| `OG_DISK` | `local` or `s3`; see [Ceph storage](docs/CEPH-S3.md) for `AWS_*` |
+| `CONTACT_EMAIL`, `API_DOCS_URL` | Optional public contact and backend docs overrides |
 
-## Build & release
+Keep `.env`, the account database and backups out of `public/`. For SQLite,
+create the parent directory and database file as the application user, with
+permissions restricted to that user. Do not point production at a checkout's
+throwaway development database. Preserve `storage/` (including private files)
+across releases; multi-host deployments also need shared session/cache storage.
+
+## First installation
+
+Provision the persistent database, environment, PHP extensions and storage
+permissions first. Keep the site inaccessible and the scheduler disabled until
+installation and smoke checks pass. From the repository root:
 
 ```bash
-composer install --no-dev --optimize-autoloader
-npm ci
+composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+# First installation only, if APP_KEY has not already been provisioned:
+php artisan key:generate
+npm ci --no-audit --no-fund
 npm run build
-php artisan optimize          # config + route + view cache
+php artisan migrate --force
+bash scripts/release-deploy.sh prepare
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
 ```
 
-If you change env or routes, re-run `php artisan optimize` (or
-`php artisan optimize:clear` then `optimize`).
+Set the web root to `public/` and configure HTTPS. The application forces HTTPS
+URLs in production. Configure the scheduler, supervised queue worker and tested
+backup procedure below before opening account registration.
 
-## Laravel Forge (production target)
+## Existing installation: backup and release
 
-This is the intended deploy path: a **site on an existing Forge server**, served
-at **`publicuniverse.net`** (canonical) with **`sol.wickedsick.com`** as an
-alias, talking to the FastAPI backend on its **own subdomain** (e.g.
-`https://api.sol.wickedsick.com/api/v1`), with **Redis** for cache + queue and
-**Ceph S3** for OG cards.
+The Forge [deploy script](deploy.sh) is an **in-place maintenance release**, not
+an atomic or zero-downtime deployment. Use it only for an installed application
+with working dependencies. It checks out an exact revision in detached HEAD
+state. Configure Forge's `FORGE_SITE_*`, `FORGE_PHP`,
+`FORGE_COMPOSER` and `FORGE_PHP_FPM` variables as usual.
 
-**1. Server prerequisites** (one-off, on the Forge box):
+Before invoking it:
 
-- PHP **8.4** with **`imagick`**: `sudo apt-get install -y php8.4-imagick && sudo service php8.4-fpm restart`
-- **Redis** (Forge: add it from the server's "Services", or it's already present)
-- Node (Forge ships it) — used by the deploy build only
+1. Verify the target host, branch, reviewed commit and pending migrations. Record
+   the currently deployed commit and backup location. Live deployment needs
+   authorization for that environment. Set `RELEASE_COMMIT` to that full,
+   lowercase 40-character SHA. The revision must be reachable from the fetched
+   configured branch; moving the branch later must not change the target.
+   Confirm that Forge supports the resulting detached checkout.
+   **The repository script does not replace Forge's saved deploy script.**
+   Install or invoke a reviewed copy of this script explicitly; the old
+   branch-pulling wrapper must not run first.
+2. Disable the site's scheduler and stop/drain its queue worker and any running
+   `alerts:send-visibility` processes. Maintenance alone cannot stop a command
+   that is already executing. Prevent deploy hooks from restarting them early.
+3. Export `ACCOUNT_BACKUP_HOOK` in the Forge deploy shell to an **absolute path
+   to an executable script**. It must back up this installation's account
+   database, verify the backup and return nonzero on any failure. It receives
+   no arguments and runs from the site root after maintenance begins, before
+   code or schema changes. Provision it outside the checkout; do not put
+   credentials in the deploy script or output account records into deploy logs.
 
-**2. Create the site**
+For SQLite, use its online backup facility (`sqlite3 … '.backup …'`) or an
+application-consistent snapshot including WAL state; do not copy just a live
+`.sqlite` file. Run `PRAGMA integrity_check` on the backup and periodically
+restore it into an isolated environment. For database servers, use the
+provider's consistent snapshot/dump procedure and test restoration. Back up
+`APP_KEY`/environment separately with restricted access. Encrypt off-site
+copies, apply a retention policy, and monitor backup failures.
 
-- New Site → `publicuniverse.net`, project type **PHP/Laravel**, web directory **`/public`**.
-- Repository: `Wicked-Sick-Ltd/solar-system-web`, branch `main`.
-- **Aliases** (site → Settings → *Aliases*): add `www.publicuniverse.net` and
-  `sol.wickedsick.com`. One site, one deploy, three hostnames.
-- **SSL**: Let's Encrypt covering **all three** hostnames (tick every alias
-  when requesting the certificate; re-issue it if an alias is added later).
-  Cloudflare runs *Full (strict)*, so the origin certificate must be valid for
-  whichever hostname is being proxied.
-- See *Hostnames: canonical and alias* below for the DNS / Cloudflare side.
+The script serializes releases and checks for a clean checkout, including
+untracked files. It fetches the configured branch and validates the target before
+maintenance begins. It then prerenders maintenance HTML, requires a successful
+backup, checks out `RELEASE_COMMIT`, installs locked dependencies, builds assets,
+clears stale configuration, migrates, writes the build identity, rebuilds
+framework caches, signals worker restart, reloads FPM, and brings the site up.
+It deliberately avoids `optimize:clear` because that also clears application
+cache/lock entries. A failure after maintenance starts and before reopening
+**leaves the site down** for investigation. Cache warming after reopening is
+best-effort. The final publication hook verifies the live HTTPS build and database
+before recording release notes. A failure at this final step means **code is
+already active**; investigate and retry publication instead of assuming the site
+is still protected by maintenance. See [release workflow](docs/releases.md).
+The standalone `errors/503` view
+has inline styles and no application layout, JavaScript or asset dependencies,
+so ordinary HTML requests stop before Composer autoloading while dependencies
+are replaced. On the first upgrade to this script, provision that view before
+the release (the previous version used the application layout). Laravel still
+bootstraps JSON requests and excluded paths such as `/up`; use a reverse-proxy
+503 gate if those must stay independent of PHP during an in-place release.
 
-**3. Deploy script** — paste [`deploy.sh`](deploy.sh) into the site's Deploy
-Script (it pulls, installs `--no-dev`, builds assets, caches config/routes/views,
-restarts the queue, and warms the cache). There is **no `artisan migrate`** —
-the app has no database.
+After successful smoke checks, resume the supervised worker and scheduler.
+Verify their logs and delivery failures. Do not run the alert command as a
+smoke check against real accounts: it can send mail.
 
-**4. Environment** — set in Forge's site **Environment** editor:
+## Scheduler, workers and alert delivery
 
-```dotenv
-APP_NAME=Solar
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://publicuniverse.net
+Install one cron entry per scheduler host (Forge's Scheduler supports this):
 
-API_BASE_URL=https://api.sol.wickedsick.com/api/v1   # the backend's subdomain
-SOLAR_API_TIMEOUT=8
-
-CACHE_STORE=redis
-QUEUE_CONNECTION=redis
-SESSION_DRIVER=redis
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-REDIS_PASSWORD=null
-
-# OG share cards on Ceph S3 (see docs/CEPH-S3.md to provision the bucket+keys)
-OG_DISK=s3
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-AWS_DEFAULT_REGION=us-east-1
-AWS_BUCKET=solar-system-web
-AWS_ENDPOINT=https://s3.wickedsick.com
-AWS_USE_PATH_STYLE_ENDPOINT=false
+```cron
+* * * * * cd /path/to/site && timeout 3300 /usr/bin/php artisan schedule:run >> /path/to/private-scheduler.log 2>&1
 ```
 
-Then `php artisan key:generate` (or set `APP_KEY`).
+Use the correct PHP 8.4+ executable. `timeout` is GNU coreutils on the Linux
+Forge host. It bounds a scheduler process to 55 minutes, shorter than the alert
+command's one-hour lock lease. Apply the same bound to manual alert runs.
+Monitor timeouts; a catalogue with enough alerts to exceed this limit needs
+bounded queued delivery before scaling. Do not silently raise the timeout
+beyond the lock lease.
 
-**5. Queue worker** — add a Forge **Daemon** (or Queue) so background
-stale-while-revalidate runs:
+The schedule warms catalogue caches at **04:30 and 12:30** and checks visibility
+alerts **every 15 minutes**, in the configured application timezone (UTC by
+default). `onOneServer()` and the command's lock need shared cache storage.
+Cache prefixes must match across scheduler hosts. Avoid flushing that cache
+while alerts are running.
 
-```
+Supervise background cache-refresh jobs, restarting stopped workers:
+
+```bash
 php artisan queue:work redis --sleep=3 --tries=1 --max-time=3600
 ```
 
-**6. Scheduler** — enable Forge's **Scheduler** for the site (it installs the
-`* * * * * php artisan schedule:run` cron). This drives `solar:warm-cache`
-(04:30 + 12:30). Nothing else to add.
+Visibility notifications are currently sent **synchronously by the scheduled
+command**, not queued; queue retry flags do not retry mail. Transport failures
+are reported, leave the alert pending, allow other alerts to proceed, and make
+the command exit nonzero. The next scheduled check retries if the object is
+still up after dark. Unknown observer data preserves the last known state.
+Concurrent command invocations skip while the delivery lock is held.
 
-**7. CDN** — front the site with Cloudflare and add the cache rule described in
-*Headers & edge caching* below so the cookie-less public pages are edge-cached.
+Delivery is not exactly-once: a process crash after the provider accepts mail
+but before the database records it can cause a duplicate on retry. Monitor
+mail-provider errors and scheduler exit status. A future durable outbox with
+provider idempotency would be required to close that ambiguity. `MAIL_MAILER=log`
+records mail bodies (including approximate locations) rather than sending them;
+restrict log access and retention, and never call that a delivery test.
 
 ## Hostnames: canonical and alias
+
+Configure one Forge site with `publicuniverse.net` as its canonical hostname,
+`www.publicuniverse.net` and `sol.wickedsick.com` as aliases, and a valid TLS
+certificate covering all three. Keep the document root at `public/`. The
+hostname policy below supplements the account-safe release procedure above.
 
 The site answers on more than one hostname. **`publicuniverse.net` is
 canonical**; **`sol.wickedsick.com` is an alias that stays live
@@ -157,7 +220,7 @@ What that means in practice:
    `concat("https://publicuniverse.net", http.request.uri.path)`, status
    **301**, *preserve query string* ticked. `www` is the one hostname that
    *does* redirect — nothing printed points at it.
-4. Cache rule for the cookie-less pages, as in *Headers & edge caching*.
+4. Cache rule for the cookie-less pages, as in *Headers and edge caching*.
 
 **Cloudflare (`wickedsick.com` zone)** — leave the existing proxied
 `sol.wickedsick.com` record and its *Full (strict)* setting exactly as they
@@ -178,67 +241,62 @@ is down or moves host again.
 > before launch — the front end is a pure consumer. If it's down the site still
 > renders (degradation panels), but it has no data to show.
 
-## Web server
+## Headers and edge caching
 
-Point the document root at `public/`. Standard Laravel rewrite to
-`public/index.php`. HTTPS should terminate at the proxy/load balancer; the app
-forces the `https` scheme for generated URLs in production.
+Baseline headers include `Permissions-Policy: geolocation=(self)`: same-origin
+pages may request a location with browser permission; camera and microphone
+remain disabled. Location access still requires HTTPS in browsers.
 
-## Caching & cache warming
+Anonymous, cookie-free GET responses on `/`, `/planets`, `/about`, `/api` and
+`/dwarf-planets` can use shared caching with `s-maxage=600` and
+`stale-while-revalidate=86400`. Browser `max-age=0` requires revalidation, and
+`Vary: Cookie` separates account-bearing requests. When the newsletter form is
+configured these HTML pages retain their private Livewire session response.
+Interactive routes need session/CSRF state and are never made public-cacheable.
+Authenticated, cookie-bearing and Authorization-bearing requests get
+`Cache-Control: private, no-store`. Sitemap and robots responses are public
+when requested anonymously without cookies.
 
-All API responses are cached (see `config/services.php` → `solar.cache`). With a
-real queue driver (Redis), stale entries refresh in the background so the cache
-never goes cold. The `solar:warm-cache` command pre-warms the hot paths and is
-**scheduled** (04:30 + 12:30 daily, see `routes/console.php`) — so as long as
-the Laravel scheduler runs, no cron of your own is needed. Run it by hand any
-time with `php artisan solar:warm-cache`.
+At the CDN, **bypass cache lookup and storage for any Cookie or Authorization
+header**. Respect origin cache headers and limit HTML caching to the explicit
+routes above. Do not rely on every CDN honoring `Vary: Cookie`, and do not use
+an unrestricted "cache everything" rule. Bypass `/login`, `/register`,
+`/logout`, `/alerts`, `/settings`, `/livewire/*` and all non-GET requests. Purge
+previous HTML cache entries when introducing accounts or changing these rules.
+Verify the CDN using separate anonymous and authenticated browser sessions.
 
-## Headers & edge caching
+## Recovery and rollback
 
-`SetResponseHeaders` middleware adds baseline security headers to every
-response (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
-`Permissions-Policy`, `Cross-Origin-Opener-Policy`).
+For failures before activation, keep maintenance enabled and scheduler/workers
+stopped. If the final publication hook fails, code is already active: inspect
+`/up/release`, correct the cause and retry `bash scripts/release-deploy.sh publish`
+from the active checkout. Do not restore a database just to retry publication.
+Record the
+failed step and inspect logs without exposing personal data. Prefer fixing the
+release forward. Never automatically run `migrate:rollback`: down migrations
+may delete account/alert data and older code may not support the new schema.
 
-For caching it splits pages in two:
+If reverting code, first verify the previous commit supports the **current**
+schema. Restore that reviewed commit and its lockfile dependencies/assets,
+rerun `bash scripts/release-deploy.sh prepare` before rebuilding
+config/routes/views/events, reload FPM and check locally before
+`php artisan up`. If a database restore is necessary, it must be a separately
+authorized recovery with an explicit data-loss window; new registrations and
+alert changes since the snapshot would be lost. Restore into an isolated target
+and verify integrity before replacing production. Preserve the failed database
+for investigation with the same privacy controls as backups.
 
-- **Non-interactive pages** (`/`, `/planets`, `/about`, `/educators`, `/api`,
-  `/dwarf-planets`) are served **cookie-less** with
-  `Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=86400`,
-  so a shared cache (Cloudflare) can store one copy for everyone. The sitemap
-  and `robots.txt` are public-cacheable too.
-- **Interactive pages** (filters, search, sort, pagination) keep Livewire's
-  `no-store` — they need the per-request session for CSRF on `wire:*` updates.
+## Post-release checks
 
-To turn this on at the edge, add a Cloudflare **Cache Rule**: *Eligible for
-cache* + *Respect origin* TTL for the paths above (or simply "cache everything"
-scoped to those routes). Because the app already strips the session cookie on
-them, Cloudflare will cache without cookie contamination. Leave everything else
-(and `/livewire/*`) on the default bypass.
-
-## Health & resilience
-
-- If the backend is unreachable the site still serves every page (with a calm
-  inline panel on the affected section) — it will not 500.
-- `robots.txt` and `sitemap.xml` are generated dynamically; the sitemap is
-  cached 24h.
-
-## Post-deploy smoke check
-
-```bash
-curl -sI https://YOUR_DOMAIN/ | head -1                 # 200
-curl -s  https://YOUR_DOMAIN/objects/planet-saturn | grep -o '<title>[^<]*'
-curl -s  https://YOUR_DOMAIN/robots.txt | head -1
-```
-
-And for the hostnames (both must be 200 — no redirect on the alias — and both
-must name the canonical host in SEO surfaces):
-
-```bash
-for h in publicuniverse.net sol.wickedsick.com; do
-  curl -sI "https://$h/educators" | head -1                                   # 200
-  curl -s  "https://$h/educators" | grep -o '<link rel="canonical" href="[^"]*'   # …publicuniverse.net/educators
-  curl -s  "https://$h/robots.txt" | grep Sitemap                              # https://publicuniverse.net/sitemap.xml
-  curl -sI "https://$h/handouts/solar-handout-primary-y1-6.pdf" | grep -i '^content-type'   # application/pdf
-done
-curl -sI https://www.publicuniverse.net/ | grep -i '^location'              # https://publicuniverse.net/
-```
+Confirm `/up`, `/up/release`, `/whats-new`, the homepage, an object page,
+`/login`, `robots.txt` and
+`sitemap.xml` respond correctly and use the intended public origin. Check that
+`/up/release` matches the reviewed SHA and version, reports database readiness,
+and returns `Cache-Control: no-store` through the public HTTPS edge. Bypass
+edge caching for this endpoint. At version `0.0.0`, release history stays empty;
+a stable release must display its reviewed notes only after publication. Confirm
+`php artisan migrate:status` shows the expected schema and
+`php artisan schedule:list` shows warming and alerts. Inspect scheduler and
+worker logs after resuming them. Validate registration, login/logout, alert
+ownership/deletion, and notification content in an isolated staging database
+with a mail sink; use no real account data or outbound mail during development.

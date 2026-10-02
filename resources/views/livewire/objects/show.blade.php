@@ -43,6 +43,7 @@
                     @endif
                 </div>
                 <h1 class="mt-2 text-4xl font-medium">{{ $object->name }}</h1>
+                <x-save-observing-target catalogue="solar" :target-id="$object->id" :target-label="$object->name" />
                 @if ($object->designation && $object->designation !== $object->name)
                     <p class="mt-1 text-base" style="color: var(--color-faint);">{{ $object->designation }}</p>
                 @endif

@@ -1,0 +1,55 @@
+name: Local release rehearsal
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'app/**/Release*.php'
+      - 'app/**/CommunityRelease.php'
+      - 'app/Console/Commands/*CommunityRelease.php'
+      - 'version.txt'
+      - '.release-please-manifest.json'
+      - 'release-please-config.json'
+      - 'config/releases.php'
+      - 'config/app.php'
+      - 'config/database.php'
+      - 'database/migrations/*community_releases*'
+      - 'resources/releases/**'
+      - 'resources/views/releases/**'
+      - 'routes/web.php'
+      - 'bootstrap/app.php'
+      - 'app/Http/Middleware/**'
+      - 'scripts/release-deploy.sh'
+      - 'tools/rehearse_release.py'
+      - 'composer.lock'
+      - '.github/workflows/release-rehearsal.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-rehearsal-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, curl, dom, fileinfo, intl, pdo_sqlite
+          coverage: none
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - name: Verify publication and rollback over loopback HTTPS
+        run: python3 -B tools/rehearse_release.py

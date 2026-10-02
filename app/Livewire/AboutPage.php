@@ -27,6 +27,6 @@ final class AboutPage extends Component
             // The page is editorial; a missing live source list is fine.
         }
 
-        return view('livewire.about-page', ['sources' => $sources]);
+        return view('livewire.about-page', ['sources' => $sources, 'catalogueIdentity' => $api->catalogueIdentity(), 'downloadManifest' => $api->downloadManifest()]);
     }
 }

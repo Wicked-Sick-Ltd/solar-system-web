@@ -92,5 +92,5 @@ it('is linked from the footer and listed in the sitemap', function () {
 it('is served cookie-less and edge-cacheable like the other editorial pages', function () {
     $this->get('/educators')
         ->assertOk()
-        ->assertHeader('Cache-Control', 'max-age=120, public, s-maxage=600, stale-while-revalidate=86400');
+        ->assertHeader('Cache-Control', 'max-age=0, public, s-maxage=600, stale-while-revalidate=86400');
 });

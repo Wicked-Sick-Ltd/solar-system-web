@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Disposable map render metrics</title>
+<style>body{font:16px system-ui;background:#101522;color:#eee;margin:20px}button,select{font:inherit;padding:8px;margin:4px}pre{white-space:pre-wrap;overflow-wrap:anywhere} [data-viewport]{position:relative;width:100%;height:420px} [data-sun-label],[data-centre-label]{position:absolute;pointer-events:none}canvas{max-width:100%}</style>
+<h1>Disposable map render metrics</h1>
+<p>Synthetic 5,000-host rendering workload; not scientific catalogue data. CPU call duration is synchronous JavaScript/WebGL submission, not GPU execution or frame presentation. Three counters are resource counts, not bytes or confirmed driver memory reclamation.</p>
+<button id="mount">Mount renderer</button><button id="phase">Mark interaction phase</button><button id="dispose">Dispose renderer</button><button id="export">Download visible measurements</button>
+<div id="map"><label>View<select data-view><option value="nearby">Nearby</option><option value="galaxy">Galaxy</option></select></label>
+<label>Radius<select data-radius><option value="25">25 pc</option><option value="100">100 pc</option><option value="all">All</option></select></label>
+<label>Host<select data-system></select></label><button data-reset>Reset camera</button>
+<p data-map-status>Not mounted</p><div data-viewport><span data-sun-label>Sun</span><span data-centre-label>Galactic centre</span></div><div data-selection></div></div>
+<h2>Bounded measurements</h2><pre id="measurements" aria-live="off">Waiting</pre>
+<script type="module" src="./main.js"></script></html>

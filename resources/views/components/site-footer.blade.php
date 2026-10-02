@@ -14,12 +14,16 @@
         <nav aria-label="{{ __('Browse') }}">
             <h2 class="text-xs font-semibold uppercase tracking-wider" style="color: var(--muted);">{{ __('Browse') }}</h2>
             <ul class="mt-3 space-y-2 text-sm">
+                <li><a class="link-quiet" href="{{ route('explore') }}">{{ __('Explore') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('exoplanets.index') }}">{{ __('Exoplanets') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('systems.index') }}">{{ __('Measured systems') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('planets.index') }}">{{ __('Planets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('dwarf-planets') }}">{{ __('Dwarf planets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('asteroids') }}">{{ __('Asteroids') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('comets') }}">{{ __('Comets') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('tnos') }}">{{ __('Trans-Neptunian objects') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('close-approaches') }}">{{ __('Close approaches') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('meteor-showers.index') }}">{{ __('Meteor showers') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('objects.index') }}">{{ __('All objects') }}</a></li>
             </ul>
         </nav>
@@ -27,9 +31,13 @@
         <nav aria-label="{{ __('This site') }}">
             <h2 class="text-xs font-semibold uppercase tracking-wider" style="color: var(--muted);">{{ __('This site') }}</h2>
             <ul class="mt-3 space-y-2 text-sm">
+                <li><a class="link-quiet" href="{{ route('observe') }}">{{ __('Observe') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('learn') }}">{{ __('Learn') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('galaxy') }}">{{ __('Galaxy explorer') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('orrery') }}">{{ __('Orrery') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('about') }}">{{ __('About & data sources') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('search') }}">{{ __('Search the catalogue') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('releases.index') }}">{{ __('What’s new') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('educators') }}">{{ __('For educators') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('api') }}">{{ __('Use the API') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('random') }}">{{ __('Random object') }}</a></li>
@@ -60,7 +68,7 @@
         <div class="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"
              style="color: var(--muted);">
             <p>
-                {{ __('Data in the public domain / freely usable. This is an astronomy reference — not astrology.') }}
+                {{ __('Free to explore. See About & data sources for attribution and reuse terms. Astronomy, not astrology.') }}
             </p>
             <p>&copy; {{ now()->year }} {{ config('site.name') }}.</p>
         </div>

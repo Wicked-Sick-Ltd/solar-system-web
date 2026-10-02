@@ -1,18 +1,25 @@
-# Solar — solar-system-db front end
+# Public Universe — astronomy for everyone
 
 [![CI](https://github.com/Wicked-Sick-Ltd/solar-system-web/actions/workflows/ci.yml/badge.svg)](https://github.com/Wicked-Sick-Ltd/solar-system-web/actions/workflows/ci.yml)
 
-A clean, public, server-rendered astronomy reference for the solar system:
-planets, moons, dwarf planets, asteroids, comets, trans-Neptunian objects and
-planetary rings. It is a **front end only** — all data comes from the read-only
-[`Wicked-Sick-Ltd/solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db) REST
-API. It includes lightweight user accounts and email visibility alerts; all
-astronomical data still comes from the backend API.
+A free, server-rendered astronomy platform for curious minds, classrooms and
+researchers: our solar system, exoplanets, interactive galaxy exploration and
+observing tools. Public browsing and learning require no account.
 
-This is an **astronomy** site, not astrology.
+Astronomical data comes from the read-only
+[`Wicked-Sick-Ltd/solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db)
+REST API, which brings together NASA, JPL and other astronomical sources. This
+front end stores lightweight user accounts, email visibility alerts and public release history in its
+own database. Consult individual source references and reuse terms when using
+the data; the repository's MIT licence applies to the code.
 
-The full product brief lives in [`BRIEF.md`](BRIEF.md). Deployment notes are in
-[`DEPLOYMENT.md`](DEPLOYMENT.md).
+The project is preparing to move to **publicuniverse.net**. Existing website,
+API, MCP and download addresses remain in use until a separately authorized
+cutover. See the [migration runbook](docs/PUBLIC-UNIVERSE-MIGRATION.md).
+
+This is an **astronomy** site, not astrology. The original solar-system-only
+product brief in [`BRIEF.md`](BRIEF.md) is historical. Deployment instructions
+are in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ## Stack
 
@@ -49,12 +56,22 @@ The in-app `/api` page includes curl examples plus a Claude MCP config snippet.
 
 ### Pointing at the backend
 
-Everything keys off two env vars — nothing about the backend is hard-coded:
+Website branding, website URLs and backend endpoints are configured separately:
 
 | Var            | Purpose                                              | Example                                  |
 | -------------- | ---------------------------------------------------- | ---------------------------------------- |
+| `SITE_NAME` | Visitor-facing name; independent of operational `APP_NAME` | `Public Universe` |
+| `API_DOCS_URL` | Optional documentation URL override | `https://api.sol.wickedsick.com/docs` |
+| `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://s3.wickedsick.com/solar-system-db/latest.json` |
+| `CONTACT_EMAIL` | Public contact address | `hello@wickedsick.com` |
 | `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
 | `APP_URL`      | Canonical public URL (canonical/OG/sitemap/JSON-LD)  | `https://publicuniverse.net`             |
+
+`APP_NAME` also influences default session-cookie and cache names. Keep its
+existing value during a branding-only release and change `SITE_NAME` instead.
+MCP and OpenAPI URLs are derived from `API_BASE_URL`; the download manifest is
+independent. Set `APP_URL` to the actual serving origin. During a domain move,
+configure the web server/proxy's canonical host and verify generated links too.
 
 **Running the backend locally for development.** The backend repo can be cloned
 and run alongside this one. It ships a committed SQLite database and a FastAPI
@@ -80,7 +97,12 @@ backend's live `/openapi.json` is the source of truth.
   endpoint (`objects()`, `object()`, `moons()`, `rings()`, `search()`,
   `position()`, `stats()`, …), each returning typed, immutable DTOs from
   `app/Services/SolarApi/Data/`.
-- **Caching** is aggressive and config-driven (`config/services.php` → `solar.cache`):
+- **Catalogue identity** is observed through a short shared lease. Cache generations
+  change with the reported build; legacy/unavailable identities use short fresh-only
+  caching. About shows API and download identities separately. See
+  [catalogue versions and cache rollout](docs/CATALOGUE-CACHE-IDENTITY.md), including
+  the existing CDN-entry purge/wait requirement and snapshot-certification limits.
+- **Caching for known builds** is config-driven (`config/services.php` → `solar.cache`):
   reference data 24h, catalogue listings 6h, positions 5m, a health probe 30s.
   Reads use **stale-while-revalidate** — a soft-stale entry is served instantly
   and refreshed out of band by the `RefreshSolarCache` queue job (runs inline on
@@ -136,6 +158,24 @@ php artisan cache:clear      # clears all API response caches + the sitemap
 
 Cache TTLs are tunable via `SOLAR_CACHE_*` env vars (see `config/services.php`).
 
+## Share images
+
+Object share cards are rendered with Imagick and cached with a bounded hash of
+`SITE_NAME`, the site tagline and `OG_VERSION`. Their public URLs carry the same
+version in `?v=...`; configure CDN cache keys to retain that parameter. Name or
+tagline changes invalidate object cards automatically. Bump `OG_VERSION` after
+renderer/font changes.
+
+The default/fallback card is committed at `public/images/og-public-universe.png`.
+Regenerate it after a brand or design change, then inspect the PNG before committing:
+
+```bash
+php artisan og:generate-default
+```
+
+This uses local configuration and bundled fonts. It does not deploy or purge
+remote caches. The legacy default image remains available for existing links.
+
 ## Tests
 
 ```bash
@@ -190,3 +230,24 @@ NASA directly. Map distances use parsecs internally and light-years in labels.
 Markers represent host systems; their sizes and the galaxy outline are illustrative.
 
 Additional JavaScript checks: `node --test tests/js/*.test.js`.
+
+Offline REST/MCP-function/website contract validation and fixture refresh:
+[Catalogue contracts](docs/catalogue-contract.md). Scientific page downloads:
+[Exoplanet exports](docs/exoplanet-exports.md).
+
+Deployment-order regressions use fake commands and never deploy:
+`python3 -m unittest discover -s tests/deployment -v` (also run in CI).
+
+Handout branding/links are verified offline with
+`python3 -B tools/handout/test_generate.py` (also in CI). PDF release checks are
+listed in [the handout guide](tools/handout/README.md).
+
+The [measured-system directory](docs/measured-systems.md) provides a searchable,
+paginated alternative to the 3D map that works without JavaScript.
+
+## Community releases
+
+[Release workflow](docs/releases.md) covers reviewed community notes, the public
+`/whats-new` history, versioning, CI metadata checks and deployment verification.
+Start with `php artisan universe:releases:render 1.0.0` to preview the first draft
+locally. This does not publish or send an announcement.

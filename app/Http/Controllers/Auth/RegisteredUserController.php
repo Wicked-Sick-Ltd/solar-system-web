@@ -29,6 +29,7 @@ final class RegisteredUserController extends Controller
 
         $user = User::query()->create($validated);
         Auth::login($user);
+        $request->session()->regenerate();
 
         return redirect()->intended(route('home'));
     }

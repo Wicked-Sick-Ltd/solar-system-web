@@ -1,0 +1,87 @@
+{
+  "recorded_utc": "2026-10-02T06:58:05.819154+00:00",
+  "code_revision": "a4ef9bb43716cc6e0137a600dd48927e0c178d1c",
+  "scope": "Retained mixed catalogue with a small solar-system population (2431 objects), 6366 exoplanets and4775 hosts; not a full solar-system catalogue or production acceptance. No full minor-planet dataset was found in the checked local data locations.",
+  "source_bytes": 35713024,
+  "source_sha256": "c9d2e45061214d739927c40418c1d7a23d1d3b3783fcdf0706f88bf635aa46ea",
+  "source_unchanged": true,
+  "objects": 2431,
+  "python": "3.12.14",
+  "platform": "Darwin",
+  "machine": "arm64",
+  "method": "One SQLite mode=ro backup, then three independent disposable file copies and fresh interpreter finalization runs; elapsed finalization excludes copy/import, peak RSS covers whole child including imports; OS caches not flushed. No downloads/source writes.",
+  "runs": [
+    {
+      "seconds": 0.7100525409914553,
+      "process_peak_rss_bytes": 33898496,
+      "catalogue_id": "sha256:1cd6ac0182b24d5eccc58f346c6eca250d257c1e73a193430bfd88ef91fba85b",
+      "logical_rows": {
+        "atmospheres": 9,
+        "classifications": 3399,
+        "close_approaches": 11,
+        "designations": 7865,
+        "discoveries": 1527,
+        "exoplanet_hosts": 4775,
+        "exoplanets": 6366,
+        "impact_monitoring": 0,
+        "meteor_showers": 44,
+        "objects": 2431,
+        "orbital_elements": 2429,
+        "physical_properties": 2431,
+        "radar_observations": 0,
+        "rings": 32,
+        "sources": 2599,
+        "visual_properties": 2424
+      },
+      "output_bytes": 35725312
+    },
+    {
+      "seconds": 0.6365095000073779,
+      "process_peak_rss_bytes": 31801344,
+      "catalogue_id": "sha256:1cd6ac0182b24d5eccc58f346c6eca250d257c1e73a193430bfd88ef91fba85b",
+      "logical_rows": {
+        "atmospheres": 9,
+        "classifications": 3399,
+        "close_approaches": 11,
+        "designations": 7865,
+        "discoveries": 1527,
+        "exoplanet_hosts": 4775,
+        "exoplanets": 6366,
+        "impact_monitoring": 0,
+        "meteor_showers": 44,
+        "objects": 2431,
+        "orbital_elements": 2429,
+        "physical_properties": 2431,
+        "radar_observations": 0,
+        "rings": 32,
+        "sources": 2599,
+        "visual_properties": 2424
+      },
+      "output_bytes": 35725312
+    },
+    {
+      "seconds": 0.6417007920099422,
+      "process_peak_rss_bytes": 33898496,
+      "catalogue_id": "sha256:1cd6ac0182b24d5eccc58f346c6eca250d257c1e73a193430bfd88ef91fba85b",
+      "logical_rows": {
+        "atmospheres": 9,
+        "classifications": 3399,
+        "close_approaches": 11,
+        "designations": 7865,
+        "discoveries": 1527,
+        "exoplanet_hosts": 4775,
+        "exoplanets": 6366,
+        "impact_monitoring": 0,
+        "meteor_showers": 44,
+        "objects": 2431,
+        "orbital_elements": 2429,
+        "physical_properties": 2431,
+        "radar_observations": 0,
+        "rings": 32,
+        "sources": 2599,
+        "visual_properties": 2424
+      },
+      "output_bytes": 35725312
+    }
+  ]
+}

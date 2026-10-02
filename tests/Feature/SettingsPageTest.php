@@ -13,7 +13,9 @@ it('lists everything the site remembers, with a clear-all and a share link', fun
         ->assertSee('observer_location')
         ->assertSee('preferences')
         ->assertSee('theme')
-        ->assertSee('Clear everything this site remembers')
+        ->assertSee('Clear theme, location and display preferences')
+        ->assertSee(route('observatory'), false)
+        ->assertSee('It is not included in settings links')
         ->assertSee('Use these settings on another device')
         ->assertSee('Account and alert data are managed separately')
         ->assertSee('after the #');
@@ -72,4 +74,20 @@ it('is linked from the footer, the observer panel and the privacy page', functio
         ->assertSee('Open-Meteo')
         ->assertSee(route('settings'))
         ->assertSee('fragment of the URL');
+});
+
+it('uses labelled native radios for keyboard selection of local preferences', function () {
+    $response = $this->get('/settings')->assertOk();
+    $document = new DOMDocument;
+    $document->loadHTML($response->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+    $xpath = new DOMXPath($document);
+    foreach (['settings-theme' => ['dark', 'light'], 'settings-time-format' => ['auto', '12', '24']] as $name => $values) {
+        $inputs = $xpath->query('//div[@role="radiogroup"]/label/input[@type="radio"][@name="'.$name.'"]');
+        expect($inputs->length)->toBe(count($values));
+        foreach ($inputs as $index => $input) {
+            expect($input->getAttribute('value'))->toBe($values[$index])
+                ->and(trim($input->parentNode->textContent))->not->toBe('');
+        }
+    }
+    expect($xpath->query('//button[@role="radio"]')->length)->toBe(0);
 });

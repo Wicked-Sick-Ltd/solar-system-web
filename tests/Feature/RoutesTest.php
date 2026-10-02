@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Services\SolarApi\CatalogueContext;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(fn () => fakeSolar());
 
@@ -12,6 +15,10 @@ it('renders every public P0 route', function (string $uri) {
         ->assertSee(config('site.name'), escape: false);
 })->with([
     'home' => '/',
+    'explore' => '/explore',
+    'observe' => '/observe',
+    'observing shortlist' => '/observe/shortlist',
+    'learn' => '/learn',
     'objects index' => '/objects',
     'objects filtered' => '/objects?type=asteroid&named=1&page=1',
     'object detail' => '/objects/planet-saturn',
@@ -27,6 +34,8 @@ it('renders every public P0 route', function (string $uri) {
     'exoplanet detail' => '/exoplanets/exo-proxima-b',
     'exoplanet system' => '/systems/host-proxima',
     'galaxy' => '/galaxy',
+    'systems directory' => '/systems',
+    'meteor showers' => '/meteor-showers',
     'close approaches' => '/close-approaches',
     'about' => '/about',
     'educators' => '/educators',
@@ -52,11 +61,11 @@ it('keeps the orrery up when positions fail after the health probe passed', func
     fakeSolarDown();
     // The probe is cached for a health window, so the backend can fall over
     // between it and the position batch. The page degrades; it does not 500.
-    Cache::put('solar:health', true, 60);
+    Cache::put(CatalogueContext::storageKey().':health', true, 60);
 
     $this->get('/orrery?date=2026-06-01')
         ->assertOk()
-        ->assertSee('No positions for that date');
+        ->assertSee('Positions unavailable for this date');
 });
 
 it('puts the object name and structured data on a detail page', function () {
@@ -73,7 +82,7 @@ it('advertises a favicon and a default share image', function () {
         ->assertOk()
         ->assertSee('favicon.svg', escape: false)
         ->assertSee('og:image', escape: false)
-        ->assertSee('images/og-default.png', escape: false)
+        ->assertSee('images/og-public-universe.png', escape: false)
         ->assertSee('twitter:card', escape: false);
 });
 
@@ -120,3 +129,20 @@ it('does not 404 a detail page when the backend is down', function () {
         ->assertOk()
         ->assertSee('unavailable');
 });
+
+it('ignores array search parameters in the shared header', function () {
+    $this->get('/learn?q%5B%5D=Proxima')->assertOk();
+});
+
+it('renders the observing starter catalogue and exact source detail routes', function (string $uri) {
+    $fixture = json_decode(file_get_contents(base_path('tests/fixtures/starter-catalogue.json')), true, flags: JSON_THROW_ON_ERROR);
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    $target = $fixture['results'][0];
+    Http::fake([
+        '*starter-targets/*' => Http::response($target + ['provenance' => $fixture['sources'][$target['source']]]),
+        '*starter-targets*' => Http::response($fixture),
+        '*' => Http::response([], 503),
+    ]);
+    $this->get($uri)->assertOk()->assertSee(config('site.name'))->assertSee('Source and reuse');
+})->with(['/observing-targets', '/observing-targets/bsc5p:hr1708']);

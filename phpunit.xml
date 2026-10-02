@@ -18,7 +18,12 @@
         </include>
     </source>
     <php>
+        <!-- Full-suite framework/compiled-view accumulation exceeds the CLI 128 MiB default. -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
+        <!-- Livewire chooses its runtime route during provider boot, before per-test config. -->
+        <env name="APP_DEBUG" value="false" force="true"/>
+        <server name="APP_DEBUG" value="false" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>

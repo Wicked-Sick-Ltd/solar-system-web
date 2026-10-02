@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 
 beforeEach(function () {
+    $this->travelTo('2026-09-16 00:00:00');
     RateLimiter::clear('w3w:127.0.0.1');
     fakeSolar();
 });
 
 it('starts idle with a call to action', function () {
     Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
-        ->assertSee('Get precise data for my location')
+        ->assertSee('Calculate sky positions for my location')
         ->assertDontSee('Altitude');
 });
 
@@ -26,11 +27,11 @@ it('renders the observer view for a location', function () {
         ->assertSee('Altitude')
         ->assertSee('Up now')
         ->assertSee('WNW')
-        ->assertSee('Tonight\'s outlook')
+        ->assertSee('Hourly weather forecast')
         ->assertSee('18%')
         ->assertSee('Clear')
         ->assertSee('High dew risk')
-        ->assertSee('Kit-ready nudge:')
+        ->assertDontSee('Get the kit out')->assertDontSee('Kit-ready nudge:')
         ->assertSee('Forget my location');
 });
 
@@ -43,9 +44,9 @@ it('rejects impossible coordinates', function () {
 it('forgets the location', function () {
     Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
         ->call('setLocation', 51.5, -0.12)
-        ->call('forget')
-        ->assertSet('lat', null)
-        ->assertSee('Get precise data for my location');
+        ->set('text', '51.5, -0.12')->call('forget')
+        ->assertSet('lat', null)->assertSet('text', '')
+        ->assertSee('Calculate sky positions for my location');
 });
 
 it('accepts pasted coordinates in any common form', function () {
@@ -62,6 +63,22 @@ it('explains when pasted text is not a location', function () {
         ->assertHasErrors(['text'])
         ->assertSee('couldn\'t read that');
 });
+
+it('only suggests an available location format after invalid input', function (?string $key) {
+    config(['services.what3words.key' => $key]);
+    $component = Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->call('setFromText', '99, 300')
+        ->assertHasErrors(['text'])
+        ->assertSet('lat', null)
+        ->assertSee('Google Maps link');
+
+    if ($key === null) {
+        $component->assertDontSee('///three.word.address');
+    } else {
+        $component->assertSee('///three.word.address');
+    }
+    Http::assertNothingSent();
+})->with([null, 'TESTKEY1']);
 
 it('resolves a what3words address when a key is configured', function () {
     config(['services.what3words.key' => 'TESTKEY1']);
@@ -131,5 +148,53 @@ it('degrades gracefully when weather is unavailable', function () {
     Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
         ->call('setLocation', 51.5, -0.12)
         ->assertSee('Altitude')
-        ->assertDontSee('Tonight\'s outlook');
+        ->assertSee('Hourly weather forecast unavailable');
+});
+
+it('does not query sky or weather for malformed public coordinate state', function (mixed $lat, mixed $lon) {
+    Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->set(['lat' => $lat, 'lon' => $lon])
+        ->assertSee('No sky or weather request was made')
+        ->assertDontSee('Altitude');
+    Http::assertNothingSent();
+})->with([
+    'latitude range' => [91, 0], 'longitude range' => [0, -181],
+    'nonfinite' => ['1e309', 0], 'array' => [[51.5], 0],
+    'boolean' => [true, 0], 'nonnumeric' => ['north', 0], 'partial' => [null, 0],
+]);
+
+it('recovers a failed calculation on refresh without changing location', function () {
+    Http::swap(new Factory);
+    Http::fake([
+        '*/sky/*' => Http::sequence()->push([], 503)->push(skyPayload(observer: true)),
+        '*' => Http::response(openMeteoPayload()),
+    ]);
+    Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->call('setLocation', 51.5, -0.12)->assertSet('failed', true)->assertDontSee('Altitude')
+        ->call('$refresh')->assertSet('failed', false)->assertSee('Altitude')->assertSee('Hourly weather forecast');
+});
+
+it('never turns clear weather into a claim of observability or a best observing hour', function (array $observer) {
+    Http::swap(new Factory);
+    $sky = skyPayload(observer: true);
+    $sky['observer'] = array_replace($sky['observer'], $observer);
+    Http::fake(['*/sky/*' => Http::response($sky), '*' => Http::response(openMeteoPayload())]);
+    Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->call('setLocation', 51.5, -0.12)->assertSee('Clear')->assertSee('Forecast time')
+        ->assertSee('Clear skies alone do not establish')
+        ->assertDontSee('Get the kit out')->assertDontSee('is observable')->assertDontSee('Best hour')->assertDontSee("Tonight's outlook");
+})->with([
+    'never rises' => [['never_rises' => true, 'is_up' => false, 'rise_utc' => null, 'transit_utc' => null, 'set_utc' => null]],
+    'daylight' => [['is_dark' => false, 'sun_altitude_deg' => 20]],
+    'civil twilight' => [['is_dark' => false, 'sun_altitude_deg' => -4.6]],
+    'circumpolar' => [['circumpolar' => true, 'rise_utc' => null, 'set_utc' => null]],
+]);
+
+it('returns only accepted rounded coordinates and no stale location after a bad paste', function () {
+    Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
+        ->call('setLocation', 51.514, -0.124)->assertReturned(['lat' => 51.51, 'lon' => -0.12])
+        ->call('setFromText', 'not a location')->assertReturned(null)->assertHasErrors(['text'])
+        ->assertSee('aria-describedby="observer-text-error', escape: false)
+        ->call('setLocation', 51.5, -0.12)->assertHasNoErrors()->assertSee('Altitude')
+        ->call('setFromText', '51.5, -0.12')->assertReturned(['lat' => 51.5, 'lon' => -0.12]);
 });

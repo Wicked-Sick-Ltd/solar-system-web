@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the two-page A4 Solar handout as a PDF.
+"""Build the two-page A4 Public Universe handout as a PDF.
 
 Page 1 is an overview of the site, the free API, the MCP server and the
 nightly database download. Page 2 is a dated snapshot of where the eight
@@ -27,25 +27,27 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import html
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
-DEFAULT_API = os.environ.get("API_BASE_URL", "https://api.sol.wickedsick.com/api/v1")
-# The public site the sheet points readers at. Follows APP_URL so the printed
-# hostname tracks the canonical one without editing the template.
-DEFAULT_SITE = os.environ.get("SITE_URL") or os.environ.get("APP_URL") \
-    or "https://publicuniverse.net"
+DEFAULT_API = "https://api.sol.wickedsick.com/api/v1"
+DEFAULT_SITE_NAME = "Public Universe"
+DEFAULT_SITE_URL = "https://publicuniverse.net"
+DEFAULT_DOWNLOAD_URL = "https://download.sol.wickedsick.com/latest.json"
 J2000_JD = 2451545.0
 AU_KM = 149_597_870.7
 HTTP_TIMEOUT = 30
-USER_AGENT = "solar-handout-generator/1.0 (+{site})"
+USER_AGENT = "public-universe-handout/1.0 (+{site})"
 
 PLANETS = ("mercury", "venus", "earth", "mars",
            "jupiter", "saturn", "uranus", "neptune")
@@ -76,7 +78,7 @@ COLOUR = {"mercury": "#8c8378", "venus": "#c8922f", "earth": "#2f6f8f",
 # --------------------------------------------------------------------------
 
 def fetch_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT.format(site=DEFAULT_SITE),
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT.format(site=DEFAULT_SITE_URL),
                                                "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
@@ -92,9 +94,15 @@ def fetch_json(url: str) -> dict:
 def fetch_stats(api_base: str) -> dict:
     """Catalogue counts for the page-1 stats strip."""
     data = fetch_json(f"{api_base}/stats")
-    by_type = data.get("by_object_type", {})
+    if (not isinstance(data, dict) or type(data.get("total_objects")) is not int
+            or data["total_objects"] < 0 or not isinstance(data.get("by_object_type"), dict)
+            or any(not isinstance(key, str) or type(value) is not int or value < 0
+                   for key, value in data["by_object_type"].items())):
+        raise SystemExit("Malformed /stats response; refusing to print invented catalogue counts")
+    by_type = data["by_object_type"]
     tnos = by_type.get("tno", 0) + by_type.get("centaur", 0)
     return {
+        "N_TOTAL": f"{data.get('total_objects', 0):,}",
         "N_PLANETS": f"{by_type.get('planet', 0):,}",
         "N_DWARF": f"{by_type.get('dwarf_planet', 0):,}",
         "N_MOONS": f"{by_type.get('moon', 0):,}",
@@ -111,13 +119,21 @@ def fetch_moon_counts(api_base: str) -> dict:
     Returns {parent_id: count}, e.g. {"planet-saturn": 316, "dwarf-pluto": 5}.
     """
     counts: dict[str, int] = {}
+    seen_ids: set[str] = set()
     offset = 0
     limit = 500
     while True:
         url = f"{api_base}/objects?type=moon&limit={limit}&offset={offset}"
         page = fetch_json(url)
-        results = page.get("results", [])
+        if not isinstance(page, dict) or not isinstance(page.get("results"), list):
+            raise SystemExit("Malformed moon catalogue page; refusing to print partial counts")
+        results = page["results"]
         for moon in results:
+            if (not isinstance(moon, dict) or not isinstance(moon.get("id"), str) or not moon["id"]
+                    or moon["id"] in seen_ids
+                    or (moon.get("parent_id") is not None and not isinstance(moon["parent_id"], str))):
+                raise SystemExit("Malformed or repeated moon record; refusing to print unreliable counts")
+            seen_ids.add(moon["id"])
             parent = moon.get("parent_id") or "unknown"
             counts[parent] = counts.get(parent, 0) + 1
         if len(results) < limit:
@@ -298,7 +314,7 @@ def panel_html(name: str, slug: str, pos: dict) -> str:
     return (
         '<td class="panel">'
         f'<div class="pname"><span class="sym" style="color:{colour}">'
-        f'{SYMBOL[slug]}</span>{name}</div>'
+        f'{SYMBOL[slug]}</span>{html.escape(name)}</div>'
         '<table class="pin"><tr>'
         f'<td class="dia">{dial_svg(pos, colour)}</td>'
         f'<td class="dat">{body}</td>'
@@ -322,27 +338,42 @@ def moons_page_values(counts: dict) -> dict:
             f'<td class="n"><span class="sym" style="color:{COLOUR[slug]}">'
             f"{SYMBOL[slug]}</span>{slug.title()}</td>"
             f"<td>{then}</td><td>{now:,}</td>"
-            f'<td class="add">{"&mdash;" if added == 0 else f"+{added:,}"}</td>'
+            f'<td class="add">{"-" if added == 0 else f"{added:+,}"}</td>'
             "</tr>"
         )
     rows.append(
         '<tr class="tot"><td class="n">All eight planets</td>'
         f"<td>{total_then}</td><td>{total_now:,}</td>"
-        f'<td class="add">+{total_now - total_then:,}</td></tr>'
+        f'<td class="add">{total_now - total_then:+,}</td></tr>'
     )
 
     dwarf = sum(n for parent, n in counts.items() if parent.startswith("dwarf-"))
     return {
         "MOON_ROWS": "".join(rows),
-        "FACT_SATURN": f"+{counts.get('planet-saturn', 0) - MOONS_1991['saturn']:,}",
+        "FACT_SATURN": f"{counts.get('planet-saturn', 0) - MOONS_1991['saturn']:+,}",
         "FACT_DWARF": f"{dwarf:,}",
+        "FACT_INNER": f"{sum(counts.get(f'planet-{slug}', 0) - MOONS_1991[slug] for slug in PLANETS[:4]):+,}",
     }
+
+
+def public_http_url(value: str) -> str:
+    """Public printable endpoints only; never embed credentials in a handout."""
+    try:
+        parsed = urllib.parse.urlsplit(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("use a valid HTTP(S) URL") from exc
+    if (parsed.scheme not in ("http", "https") or not parsed.hostname
+            or parsed.username is not None or parsed.password is not None
+            or parsed.query or parsed.fragment or any(ord(c) < 32 for c in value)):
+        raise argparse.ArgumentTypeError("use an HTTP(S) URL without credentials, query or fragment")
+    return value.rstrip("/")
 
 
 def build_html(template: str, stats: dict, panels: list[str],
                when: dt.datetime, api_base: str,
-               moons: dict | None = None,
-               site_url: str = DEFAULT_SITE) -> str:
+               moons: dict | None = None, *, site_name: str = DEFAULT_SITE_NAME,
+               site_url: str = DEFAULT_SITE_URL,
+               download_url: str = DEFAULT_DOWNLOAD_URL) -> str:
     start, end = "<!--PAGE3_START-->", "<!--PAGE3_END-->"
     if moons is None:
         head, _, rest = template.partition(start)
@@ -356,8 +387,18 @@ def build_html(template: str, stats: dict, panels: list[str],
     values = dict(stats)
     values["PANELS"] = grid
     values["DATE_HUMAN"] = f"{day}, {when:%H:%M} UTC"
-    values["API_HOST"] = api_base.split("//", 1)[-1].split("/", 1)[0]
-    values["SITE_HOST"] = site_url.split("//", 1)[-1].split("/", 1)[0]
+    api_base = public_http_url(api_base)
+    site_url = public_http_url(site_url)
+    download_url = public_http_url(download_url)
+    origin = urllib.parse.urlsplit(api_base)
+    api_origin = urllib.parse.urlunsplit((origin.scheme, origin.netloc, "", "", ""))
+    values["SITE_NAME"] = html.escape(site_name)
+    values["API_HOST"] = html.escape(origin.netloc)
+    for key, url in {"SITE_URL": site_url, "API_BASE": api_base,
+                     "DOWNLOAD_URL": download_url, "MCP_URL": api_origin + "/mcp",
+                     "API_DOCS_URL": api_origin + "/docs"}.items():
+        values[key] = html.escape(url, quote=True)
+        values[key + "_LABEL"] = html.escape(url.split("//", 1)[-1])
     values["N_PAGES"] = "3" if moons else "2"
     if moons:
         values.update(moons_page_values(moons))
@@ -365,8 +406,7 @@ def build_html(template: str, stats: dict, panels: list[str],
     for key, value in values.items():
         template = template.replace("{{" + key + "}}", value)
 
-    leftover = [t for t in ("{{PANELS}}", "{{DATE_HUMAN}}", "{{SITE_HOST}}")
-                if t in template]
+    leftover = re.findall(r"\{\{[A-Z_]+\}\}", template)
     if leftover:
         raise SystemExit(f"template placeholders left unfilled: {leftover}")
     return template
@@ -383,7 +423,7 @@ def render_pdf(html_path: Path, pdf_path: Path, binary: str) -> None:
             "  Or pass --keep-html and print the HTML from a browser."
         )
     result = subprocess.run(
-        [binary, "--page-size", "A4", "--enable-local-file-access",
+        [binary, "--page-size", "A4", "--disable-local-file-access", "--disable-javascript",
          "--margin-top", "0", "--margin-bottom", "0",
          "--margin-left", "0", "--margin-right", "0",
          str(html_path), str(pdf_path)],
@@ -412,12 +452,18 @@ def parse_when(raw: str | None) -> dt.datetime:
 def main() -> None:
     here = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(
-        description="Build the two-page A4 Solar handout as a PDF.")
-    parser.add_argument("--api-base", default=DEFAULT_API,
-                        help=f"REST API root (default: {DEFAULT_API})")
-    parser.add_argument("--site-url", default=DEFAULT_SITE,
-                        help="public site URL printed on the sheet "
-                             f"(default: $SITE_URL / $APP_URL, else {DEFAULT_SITE})")
+        description="Build the two-page A4 Public Universe handout as a PDF.")
+    parser.add_argument("--api-base", type=public_http_url,
+                        default=os.environ.get("API_BASE_URL", DEFAULT_API),
+                        help="REST API root (API_BASE_URL, otherwise the existing public API)")
+    parser.add_argument("--site-name", default=os.environ.get("SITE_NAME", DEFAULT_SITE_NAME),
+                        help="printed name (SITE_NAME, otherwise Public Universe)")
+    parser.add_argument("--site-url", type=public_http_url,
+                        default=os.environ.get("SITE_URL") or os.environ.get("APP_URL") or DEFAULT_SITE_URL,
+                        help="website URL (SITE_URL / APP_URL, otherwise publicuniverse.net)")
+    parser.add_argument("--download-url", type=public_http_url,
+                        default=os.environ.get("SOLAR_DOWNLOAD_URL", DEFAULT_DOWNLOAD_URL),
+                        help="manifest URL (SOLAR_DOWNLOAD_URL, otherwise the existing download manifest)")
     parser.add_argument("--date", default=None,
                         help="UTC instant for the planet positions, ISO 8601 "
                              "(default: now, rounded down to the hour)")
@@ -469,7 +515,8 @@ def main() -> None:
 
     html_path.write_text(
         build_html(template, stats, panels, when, api_base, moons,
-                   site_url=args.site_url.rstrip("/")),
+                   site_name=args.site_name, site_url=args.site_url,
+                   download_url=args.download_url),
         encoding="utf-8")
 
     if args.html_only:

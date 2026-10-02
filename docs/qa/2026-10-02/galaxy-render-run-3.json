@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "expectedRendererRevision": "44b66f4",
+  "hashes": {
+    "resources/js/galaxy-renderer.js": "90f61fef39dc403d026e7689a2902b9d1e385ffc4790bc6b4e9c62c22eadfcf9",
+    "resources/js/galaxy-data.js": "8965feaf097957607d51c3a27483893f99ee882a830612511bc7a6062f38e245",
+    "package-lock.json": "358a9bc22bd2d8bbae7a4dbf4a7f175857fb48af9f3c9a8d40de62b898cdf8e5",
+    "tools/performance/render-harness/metrics.js": "e76712d69b09a3591e8c070f3841de79fb9af168cf0b070def26e0372903e09e",
+    "tools/performance/render-harness/main.js": "5813451ba0f62a7143dffb5f7face2ac7eef3bd8b2bf767bfb89214d9bc16f21",
+    "tools/performance/render-harness/vite.config.js": "03fc2c401d48f2bccbd0930c4867a0c51fca42fa14280c0df99e12fdf83d901b"
+  },
+  "fixtureSha256": "1bc19c39d9a21da392eae3b3b60734f602e49c4fb49a3c06c6a7c9ee9522105f",
+  "fixtureRows": 5000,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "devicePixelRatio": 2,
+  "mapCssPixels": {
+    "width": 1673,
+    "height": 420
+  },
+  "definitions": {
+    "cpuCallMs": "Synchronous renderer.render call only; excludes timer-query setup and report update; not frame presentation.",
+    "gpuMs": "TIME_ELAPSED_EXT nanoseconds / 1e6 only when non-disjoint available query; unknown is null.",
+    "memory": "Three renderer.info counts, not bytes, heap/GPU allocation or physical reclaim proof."
+  },
+  "phase": "interaction",
+  "totalRenderCalls": 7,
+  "retainedLimit": 200,
+  "draws": [
+    {
+      "call": 1,
+      "phase": "initial",
+      "cpuCallMs": 2.5,
+      "gpuMs": 0.042125,
+      "gpuStatus": "measured",
+      "geometries": 2,
+      "textures": 0,
+      "programs": 1,
+      "draw": {
+        "calls": 2,
+        "points": 242,
+        "triangles": 0,
+        "lines": 0,
+        "bufferWidth": 600,
+        "bufferHeight": 300
+      }
+    },
+    {
+      "call": 2,
+      "phase": "initial",
+      "cpuCallMs": 0,
+      "gpuMs": 0.277416,
+      "gpuStatus": "measured",
+      "geometries": 2,
+      "textures": 0,
+      "programs": 1,
+      "draw": {
+        "calls": 2,
+        "points": 242,
+        "triangles": 0,
+        "lines": 0,
+        "bufferWidth": 3346,
+        "bufferHeight": 840
+      }
+    },
+    {
+      "call": 3,
+      "phase": "interaction",
+      "cpuCallMs": 3.199999988079071,
+      "gpuMs": 3.32225,
+      "gpuStatus": "measured",
+      "geometries": 2,
+      "textures": 0,
+      "programs": 1,
+      "draw": {
+        "calls": 2,
+        "points": 5001,
+        "triangles": 0,
+        "lines": 0,
+        "bufferWidth": 3346,
+        "bufferHeight": 840
+      }
+    },
+    {
+      "call": 4,
+      "phase": "interaction",
+      "cpuCallMs": 0.4000000059604645,
+      "gpuMs": 0.368208,
+      "gpuStatus": "measured",
+      "geometries": 3,
+      "textures": 0,
+      "programs": 1,
+      "draw": {
+        "calls": 2,
+        "points": 5001,
+        "triangles": 0,
+        "lines": 0,
+        "bufferWidth": 3346,
+        "bufferHeight": 840
+      }
+    },
+    {
+      "call": 5,
+      "phase": "interaction",
+      "cpuCallMs": 4.800000011920929,
+      "gpuMs": 0.412624,
+      "gpuStatus": "measured",
+      "geometries": 4,
+      "textures": 0,
+      "programs": 2,
+      "draw": {
+        "calls": 4,
+        "points": 5002,
+        "triangles": 0,
+        "lines": 129,
+        "bufferWidth": 3346,
+        "bufferHeight": 840
+      }
+    },
+    {
+      "call": 6,
+      "phase": "interaction",
+      "cpuCallMs": 0.5,
+      "gpuMs": 0.417749,
+      "gpuStatus": "measured",
+      "geometries": 4,
+      "textures": 0,
+      "programs": 2,
+      "draw": {
+        "calls": 4,
+        "points": 5002,
+        "triangles": 0,
+        "lines": 129,
+        "bufferWidth": 3346,
+        "bufferHeight": 840
+      }
+    },
+    {
+      "call": 7,
+      "phase": "interaction",
+      "cpuCallMs": 0.29999999701976776,
+      "gpuMs": 3.376249,
+      "gpuStatus": "measured",
+      "geometries": 4,
+      "textures": 0,
+      "programs": 2,
+      "draw": {
+        "calls": 4,
+        "points": 5002,
+        "triangles": 0,
+        "lines": 129,
+        "bufferWidth": 3346,
+        "bufferHeight": 840
+      }
+    }
+  ],
+  "lifecycle": [
+    {
+      "stage": "dispose-start",
+      "phase": "interaction",
+      "atMs": 39021.70000000298,
+      "geometries": 4,
+      "textures": 0,
+      "programs": 2
+    },
+    {
+      "stage": "renderer-disposed",
+      "phase": "interaction",
+      "atMs": 39022.29999999702,
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0
+    }
+  ],
+  "pendingGpuQueries": 0
+}

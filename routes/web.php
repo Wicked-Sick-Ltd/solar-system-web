@@ -2,11 +2,21 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\ExoplanetExportController;
 use App\Http\Controllers\GalaxyDataController;
+use App\Http\Controllers\NightPlannerController;
+use App\Http\Controllers\NightWeatherController;
+use App\Http\Controllers\ObservingShortlistController;
+use App\Http\Controllers\ObservingSyncController;
+use App\Http\Controllers\ObservingSyncPageController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
+use App\Http\Controllers\ReleaseController;
+use App\Http\Controllers\ReleaseHealthController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\StarterCatalogueController;
+use App\Http\Controllers\SystemsDirectoryController;
 use App\Http\Controllers\VisibilityAlertController;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
@@ -16,10 +26,17 @@ use App\Livewire\EducatorsPage;
 use App\Livewire\ExoplanetDetail;
 use App\Livewire\Exoplanets;
 use App\Livewire\ExoplanetSystem;
+use App\Livewire\ExplorePage;
 use App\Livewire\Galaxy;
 use App\Livewire\Home;
+use App\Livewire\LearnPage;
+use App\Livewire\MeteorShowerDetail;
+use App\Livewire\MeteorShowers;
 use App\Livewire\Objects\Index as ObjectsIndex;
 use App\Livewire\Objects\Show as ObjectsShow;
+use App\Livewire\ObservePage;
+use App\Livewire\ObservingJournal;
+use App\Livewire\ObservingWorkspace;
 use App\Livewire\Orrery;
 use App\Livewire\Planets\Index as PlanetsIndex;
 use App\Livewire\PrivacyPage;
@@ -28,6 +45,19 @@ use App\Livewire\SettingsPage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
+Route::get('/up/release', ReleaseHealthController::class)->name('releases.health');
+Route::get('/whats-new', ReleaseController::class)->name('releases.index');
+Route::get('/whats-new/{version}', ReleaseController::class)->name('releases.show');
+Route::get('/explore', ExplorePage::class)->name('explore');
+Route::get('/observe', ObservePage::class)->name('observe');
+Route::get('/observatory', ObservingWorkspace::class)->name('observatory');
+Route::get('/observing-journal', ObservingJournal::class)->name('observing.journal');
+Route::get('/observe/shortlist', ObservingShortlistController::class)->name('observe.shortlist');
+Route::post('/observe/shortlist', ObservingShortlistController::class)->middleware('throttle:6,1')->name('observe.shortlist.calculate');
+Route::get('/observe/night', NightPlannerController::class)->name('observe.night');
+Route::post('/observe/night', NightPlannerController::class)->middleware('throttle:6,1')->name('observe.night.calculate');
+Route::post('/observe/night/weather', NightWeatherController::class)->middleware('throttle:12,1')->name('observe.night.weather');
+Route::get('/learn', LearnPage::class)->name('learn');
 
 Route::get('/objects', ObjectsIndex::class)->name('objects.index');
 Route::get('/objects/{slug}', ObjectsShow::class)->name('objects.show');
@@ -49,11 +79,18 @@ Route::get('/search', SearchPage::class)->name('search');
 Route::get('/orrery', Orrery::class)->name('orrery');
 
 Route::get('/exoplanets', Exoplanets::class)->name('exoplanets.index');
+Route::get('/exoplanets/export/{format}', ExoplanetExportController::class)->whereIn('format', ['csv', 'json'])->middleware('throttle:30,1')->name('exoplanets.export');
 Route::get('/exoplanets/{id}', ExoplanetDetail::class)->name('exoplanets.show');
+Route::get('/observing-targets', [StarterCatalogueController::class, 'index'])->name('observing-targets.index');
+Route::get('/observing-targets/{id}', [StarterCatalogueController::class, 'show'])->name('observing-targets.show');
+Route::get('/systems', SystemsDirectoryController::class)->name('systems.index');
 Route::get('/systems/{id}', ExoplanetSystem::class)->name('systems.show');
 Route::get('/galaxy/data', GalaxyDataController::class)->name('galaxy.data');
 Route::get('/galaxy', Galaxy::class)->name('galaxy');
 Route::get('/close-approaches', CloseApproaches::class)->name('close-approaches');
+
+Route::get('/meteor-showers', MeteorShowers::class)->name('meteor-showers.index');
+Route::get('/meteor-showers/{code}', MeteorShowerDetail::class)->name('meteor-showers.show');
 
 Route::get('/random', RandomObjectController::class)->name('random');
 
@@ -80,6 +117,10 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
+    Route::get('/account/observing-workspace', [ObservingSyncController::class, 'show'])->middleware('throttle:30,1')->name('observing.sync.show');
+    Route::put('/account/observing-workspace', [ObservingSyncController::class, 'update'])->middleware('throttle:10,1')->name('observing.sync.update');
+    Route::delete('/account/observing-workspace', [ObservingSyncController::class, 'destroy'])->middleware('throttle:10,1')->name('observing.sync.destroy');
+    Route::get('/account/observing-backup', ObservingSyncPageController::class)->name('observing.sync.page');
     Route::get('/alerts', [VisibilityAlertController::class, 'index'])->name('alerts.index');
     Route::delete('/alerts/{alert}', [VisibilityAlertController::class, 'destroy'])->name('alerts.destroy');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');

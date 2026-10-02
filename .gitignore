@@ -32,3 +32,17 @@ Thumbs.db
 
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# Python helper and verification bytecode
+__pycache__/
+*.py[cod]
+
+# Written per deployment before config caching
+/bootstrap/build-commit.txt
+
+# Local PDF QA artifacts
+/output/pdf/
+/tmp/pdfs/
+
+# Disposable local actual-renderer measurement bundles and reports
+/tmp/map-render-harness/

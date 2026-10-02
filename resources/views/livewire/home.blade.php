@@ -6,16 +6,16 @@
             {{ config('site.tagline') }}
         </p>
         <h1 class="text-4xl font-medium leading-tight sm:text-5xl" style="max-width: 18ch;">
-            {{ __('The solar system, catalogued and freely browseable.') }}
+            {{ __('A universe of discovery, open to everyone.') }}
         </h1>
         <p class="mt-5 text-lg leading-relaxed" style="color: var(--muted); max-width: var(--container-prose);">
-            {{ __('Planets, moons, dwarf planets, asteroids, comets and the icy worlds beyond Neptune — drawn from NASA/JPL and the IAU Minor Planet Center, refreshed nightly. The underlying data is public domain and free for you to use.') }}
+            {{ __('Explore our solar system, discover planets around other stars, and place known planetary systems on an interactive galaxy map. Data from NASA, JPL and other astronomical organisations, brought together for curious minds, classrooms and researchers. Free to browse, with no account required.') }}
         </p>
         <div class="mt-6 flex flex-wrap items-center gap-3">
-            <a href="{{ route('objects.index') }}"
+            <a href="{{ route('explore') }}"
                class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
                style="background-color: var(--accent); color: #07090f;">
-                {{ __('Browse the catalogue') }}
+                {{ __('Start exploring') }}
             </a>
             <a href="{{ route('api') }}"
                class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium"
@@ -24,6 +24,12 @@
             </a>
         </div>
     </section>
+
+    <nav class="mt-8 grid gap-3 sm:grid-cols-3" aria-label="{{ __('Ways to discover') }}">
+        <a class="surface p-5" href="{{ route('observe') }}"><strong class="block">{{ __('Observe') }}</strong><span class="mt-2 block text-sm" style="color: var(--muted)">{{ __('Find a target and check your sky.') }}</span></a>
+        <a class="surface p-5" href="{{ route('learn') }}"><strong class="block">{{ __('Learn') }}</strong><span class="mt-2 block text-sm" style="color: var(--muted)">{{ __('Ask questions and investigate real data.') }}</span></a>
+        <a class="surface p-5" href="{{ route('api') }}"><strong class="block">{{ __('Use the data') }}</strong><span class="mt-2 block text-sm" style="color: var(--muted)">{{ __('Follow sources or build something new.') }}</span></a>
+    </nav>
 
     {{-- Stats strip --}}
     <section class="mt-12" aria-label="{{ __('Catalogue statistics') }}">
@@ -34,7 +40,7 @@
                  style="--tw-divide-opacity: 1; border-color: var(--border);">
                 @php
                     $strip = [
-                        ['n' => $stats->totalObjects, 'label' => __('objects')],
+                        ['n' => $stats->totalObjects, 'label' => __('solar-system objects')],
                         ['n' => $stats->planets(), 'label' => __('planets')],
                         ['n' => $stats->moons(), 'label' => __('moons')],
                         ['n' => $stats->asteroids(), 'label' => __('asteroids')],

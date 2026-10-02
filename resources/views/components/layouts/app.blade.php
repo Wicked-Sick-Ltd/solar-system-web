@@ -38,14 +38,14 @@
 </head>
 <body class="min-h-screen antialiased" style="background-color: var(--bg); color: var(--text);">
     <a href="#main"
-       class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-lg focus:px-4 focus:py-2 focus:font-medium"
+       class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:m-3 focus:rounded-lg focus:px-4 focus:py-2 focus:font-medium"
        style="background-color: var(--accent); color: #07090f;">
         {{ __('Skip to content') }}
     </a>
 
     <x-site-header />
 
-    <main id="main" class="mx-auto w-full max-w-6xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
+    <main id="main" tabindex="-1" class="mx-auto w-full max-w-6xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
         {{ $slot }}
     </main>
 

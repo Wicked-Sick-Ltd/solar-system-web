@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Support\Links;
+use App\Support\ShareImage;
 
 /*
  * The site answers on more than one hostname (publicuniverse.net is canonical;
@@ -22,7 +23,7 @@ it('emits the canonical host in <link rel=canonical> and OG tags when served fro
         ->assertOk()
         ->assertSee('<link rel="canonical" href="https://publicuniverse.net/educators">', escape: false)
         ->assertSee('<meta property="og:url" content="https://publicuniverse.net/educators">', escape: false)
-        ->assertSee('<meta property="og:image" content="https://publicuniverse.net/images/og-default.png">', escape: false);
+        ->assertSee('<meta property="og:image" content="https://publicuniverse.net/images/og-public-universe.png?v='.ShareImage::version().'">', escape: false);
 });
 
 it('keeps internal navigation on the host that served the request', function () {
@@ -38,7 +39,7 @@ it('puts the canonical host in a detail page canonical, share card and JSON-LD',
     $this->get('https://sol.wickedsick.com/objects/planet-saturn')
         ->assertOk()
         ->assertSee('<link rel="canonical" href="https://publicuniverse.net/objects/planet-saturn">', escape: false)
-        ->assertSee('content="https://publicuniverse.net/og/objects/planet-saturn.png"', escape: false)
+        ->assertSee('content="https://publicuniverse.net/og/objects/planet-saturn.png?v='.ShareImage::version().'"', escape: false)
         ->assertSee('"url":"https://publicuniverse.net/objects/planet-saturn"', escape: false);
 });
 
@@ -53,6 +54,8 @@ it('writes every sitemap <loc> on the canonical host whichever alias asked', fun
         ->assertOk()
         ->assertSee('<loc>https://publicuniverse.net</loc>', escape: false)
         ->assertSee('<loc>https://publicuniverse.net/educators</loc>', escape: false)
+        ->assertSee('<loc>https://publicuniverse.net/explore</loc>', escape: false)
+        ->assertSee('<loc>https://publicuniverse.net/observe</loc>', escape: false)
         ->assertSee('<loc>https://publicuniverse.net/objects/', escape: false)
         ->assertDontSee('sol.wickedsick.com');
 });

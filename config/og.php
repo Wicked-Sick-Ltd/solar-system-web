@@ -11,7 +11,8 @@ return [
     // Storage disk used to cache rendered cards. Set OG_DISK=s3 in production.
     'disk' => env('OG_DISK', 'local'),
 
-    // Bump to invalidate every cached card (e.g. after a design change).
+    // Bump after a design change; name/tagline changes also invalidate automatically.
+    // Hashed with public branding for both disk paths and public URL versions.
     'version' => env('OG_VERSION', 'v1'),
 
     // How long browsers/CDNs may cache a served card, in seconds.

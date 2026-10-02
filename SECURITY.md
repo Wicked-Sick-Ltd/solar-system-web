@@ -23,8 +23,20 @@ There is no bug bounty programme.
 - Please don't run load, fuzzing or scanning tools against the live site or
   its API. Run this repository locally instead — it takes a few minutes to set
   up (see [CONTRIBUTING.md](CONTRIBUTING.md)).
-- This site has no accounts, no database and stores no user content, so most
-  classic web vulnerabilities don't apply. Things we *do* care about: anything
-  that lets the backend API be abused through this front end, cache poisoning,
-  SSRF via the API client, XSS through catalogue data, and anything in the
-  Open Graph image renderer.
+- The website stores account names, email addresses, password hashes and saved
+  visibility alerts (including approximate observer coordinates) in its own
+  database. Optional explicit observing backups also store encrypted equipment,
+  sites, lists and journals, including any uploaded coordinates and notes. The
+  application can decrypt these copies; this is not end-to-end encryption.
+  Deletion removes the payload but retains an owner/revision tombstone until
+  account deletion. See [observing-sync.md](docs/observing-sync.md) for consent,
+  key recovery and revision boundaries. Treat account/session compromise, access
+  to another user's alerts or observing backup,
+  location disclosure and accidental caching of private responses as security
+  issues. Do not include real account records or credentials in reports.
+- We also care about backend API abuse through this front end, cache poisoning,
+  SSRF via the API client, XSS through catalogue data, and the Open Graph image
+  renderer. Astronomical catalogue data comes from a separate read-only API.
+- Backups contain personal data. Keep them outside the public directory and
+  repository, restrict access, encrypt off-site copies, and test restoration.
+  See [DEPLOYMENT.md](DEPLOYMENT.md) for release and recovery requirements.

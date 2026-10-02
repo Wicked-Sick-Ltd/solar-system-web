@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace App\Services\SolarApi;
 
 use App\Jobs\RefreshSolarCache;
+use App\Services\SolarApi\Data\CatalogueIdentity;
+use App\Services\SolarApi\Data\CatalogueSnapshot;
 use App\Services\SolarApi\Data\CloseApproach;
+use App\Services\SolarApi\Data\DownloadManifest;
 use App\Services\SolarApi\Data\Exoplanet;
 use App\Services\SolarApi\Data\ExoplanetHost;
 use App\Services\SolarApi\Data\GalaxyMap;
+use App\Services\SolarApi\Data\MeteorCatalogue;
+use App\Services\SolarApi\Data\MeteorShower;
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Data\ObjectSummary;
 use App\Services\SolarApi\Data\Paginated;
@@ -40,8 +45,6 @@ use Throwable;
  */
 class SolarApiClient
 {
-    private string $baseUrl;
-
     private int $timeout;
 
     /** @var array<string,int> */
@@ -50,7 +53,6 @@ class SolarApiClient
     public function __construct()
     {
         $config = config('services.solar');
-        $this->baseUrl = $config['base_url'];
         $this->timeout = (int) $config['timeout'];
         $this->ttl = $config['cache'];
     }
@@ -58,6 +60,90 @@ class SolarApiClient
     // ------------------------------------------------------------------
     // Catalogue
     // ------------------------------------------------------------------
+
+    public function meteorShowers(bool $establishedOnly = false, ?string $activeOn = null): MeteorCatalogue
+    {
+        $query = ['established_only' => $establishedOnly ? 'true' : 'false', 'limit' => MeteorCatalogue::LIMIT];
+        if ($activeOn !== null && $activeOn !== '') {
+            $query['active_on'] = $activeOn;
+        }
+        $data = $this->cachedGet('/meteor-showers', $query, $this->ttl['catalog']);
+        if (! is_array($data) || ! isset($data['items'], $data['count']) || ! is_array($data['items'])
+            || ! array_is_list($data['items']) || ! is_int($data['count']) || $data['count'] !== count($data['items'])) {
+            throw new SolarApiException('Meteor shower catalogue is unavailable on this backend.');
+        }
+
+        return MeteorCatalogue::fromRows($this->validatedMeteorRows($data['items']));
+    }
+
+    public function meteorShower(string $code): ?MeteorShower
+    {
+        $data = $this->cachedGet('/meteor-showers/'.rawurlencode($code), [], $this->ttl['catalog']);
+        if ($data === null) {
+            return null;
+        }
+        if (! is_int($data['iau_no'] ?? null) || $data['iau_no'] < 0
+            || ! is_string($data['code'] ?? null) || trim($data['code']) === ''
+            || ! is_string($data['name'] ?? null) || trim($data['name']) === ''
+            || ! is_array($data['parameter_sets'] ?? null) || ! array_is_list($data['parameter_sets'])) {
+            throw new SolarApiException('Meteor shower detail is unavailable on this backend.');
+        }
+
+        $data['parameter_sets'] = $this->validatedMeteorRows($data['parameter_sets']);
+        foreach ($data['parameter_sets'] as $set) {
+            if ($set['iau_no'] !== $data['iau_no']) {
+                throw new SolarApiException('Meteor shower parameter sets have inconsistent identities.');
+            }
+        }
+
+        return MeteorShower::fromArray($data);
+    }
+
+    /**
+     * Validate the REST boundary before typed DTO construction. Never drop a
+     * malformed campaign silently or let an upstream shape error crash a page.
+     *
+     * @param  list<mixed>  $rows
+     * @return list<array<string,mixed>>
+     */
+    private function validatedMeteorRows(array $rows): array
+    {
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                throw new SolarApiException('Malformed meteor shower parameter set.');
+            }
+            foreach (['iau_no', 'ad_no'] as $field) {
+                if (! is_int($row[$field] ?? null) || $row[$field] < 0) {
+                    throw new SolarApiException('Malformed meteor shower identifier.');
+                }
+            }
+            foreach (['code', 'name'] as $field) {
+                if (! is_string($row[$field] ?? null) || trim($row[$field]) === '') {
+                    throw new SolarApiException('Malformed meteor shower name or code.');
+                }
+            }
+            foreach (['status_label', 'activity', 'parent_body', 'parent_object_id', 'shower_group',
+                'technique', 'reference', 'submitted_on', 'source'] as $field) {
+                if (isset($row[$field]) && ! is_string($row[$field])) {
+                    throw new SolarApiException('Malformed meteor shower text field.');
+                }
+            }
+            foreach (['status_code', 'n_members'] as $field) {
+                if (isset($row[$field]) && ! is_int($row[$field])) {
+                    throw new SolarApiException('Malformed meteor shower integer field.');
+                }
+            }
+            foreach (['solar_longitude_deg', 'ra_deg', 'dec_deg', 'dra_deg_per_day', 'ddec_deg_per_day',
+                'vg_km_s', 'a_au', 'q_au', 'e', 'peri_deg', 'node_deg', 'incl_deg'] as $field) {
+                $value = $row[$field] ?? null;
+                if ($value !== null && ((! is_int($value) && ! is_float($value)) || ! is_finite($value))) {
+                    throw new SolarApiException('Malformed meteor shower measurement.');
+                }
+            }
+        }
+
+        return $rows;
+    }
 
     /** @param array<string,mixed> $filters
      * @return Paginated<Exoplanet>
@@ -68,11 +154,42 @@ class SolarApiClient
         $offset = max(0, min(100000, $offset));
         $filters = array_filter(array_intersect_key($filters, array_flip(['q', 'discovery_method', 'max_distance_pc'])), static fn ($value) => $value !== null && $value !== '');
         $data = $this->cachedGet('/exoplanets', $filters + ['limit' => $limit + 1, 'offset' => $offset], $this->ttl['catalog']);
-        if (! is_array($data) || ! ($data['available'] ?? false)) {
+        if (! is_array($data) || ($data['available'] ?? null) !== true) {
             throw new SolarApiException('Exoplanet catalogue is not available yet.');
         }
 
-        return $this->paginate(array_values($data['results'] ?? []), $limit, $offset, Exoplanet::fromArray(...));
+        $rows = $data['results'] ?? null;
+        if (! is_array($rows) || ! array_is_list($rows)) {
+            throw new SolarApiException('Exoplanet catalogue returned an invalid result envelope.');
+        }
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                throw new SolarApiException('Exoplanet catalogue returned an invalid record.');
+            }
+            foreach (['id', 'name', 'host_id'] as $field) {
+                if (! isset($row[$field]) || ! is_string($row[$field]) || trim($row[$field]) === '') {
+                    throw new SolarApiException('Exoplanet catalogue returned an invalid identity.');
+                }
+            }
+            // Optional scientific values may be absent or null in older data.
+            // Validate text before DTO casting so malformed values cannot turn
+            // one catalogue failure into a page-level PHP error.
+            foreach (['host_name', 'discovery_method', 'mass_provenance', 'retrieved_at'] as $field) {
+                if (isset($row[$field]) && ! is_string($row[$field])) {
+                    throw new SolarApiException('Exoplanet catalogue returned invalid text metadata.');
+                }
+            }
+            if (isset($row['source_data']) && ! is_array($row['source_data'])) {
+                throw new SolarApiException('Exoplanet catalogue returned invalid measurements.');
+            }
+        }
+
+        $snapshot = array_key_exists('catalogue_snapshot', $data)
+            ? CatalogueSnapshot::fromArray($data['catalogue_snapshot']) : null;
+        $page = $this->paginate($rows, $limit, $offset, Exoplanet::fromArray(...));
+
+        return new Paginated($page->items, $page->limit, $page->offset, $page->hasMore, catalogueSnapshot: $snapshot);
     }
 
     public function exoplanet(string $id): ?Exoplanet
@@ -92,20 +209,55 @@ class SolarApiClient
     public function galaxyMap(): GalaxyMap
     {
         $d = $this->cachedGet('/galaxy', [], $this->ttl['catalog']);
-        if (! is_array($d) || ! ($d['available'] ?? false)) {
+        if (! is_array($d) || ($d['available'] ?? null) !== true
+            || ! is_array($d['results'] ?? null) || ! array_is_list($d['results'])
+            || count($d['results']) > 10000) {
             throw new SolarApiException('Galaxy map is not available yet.');
+        }
+        if ((isset($d['unmapped_hosts']) && (! is_int($d['unmapped_hosts']) || $d['unmapped_hosts'] < 0))
+            || (isset($d['truncated']) && ! is_bool($d['truncated']))) {
+            throw new SolarApiException('Invalid galaxy coverage metadata.');
+        }
+        $ids = [];
+        foreach ($d['results'] as $host) {
+            if (! is_array($host) || ! is_string($host['id'] ?? null) || trim($host['id']) === ''
+                || ! is_string($host['name'] ?? null) || trim($host['name']) === ''
+                || isset($ids[$host['id']]) || ! is_int($host['planet_count'] ?? null) || $host['planet_count'] < 0) {
+                throw new SolarApiException('Invalid galaxy host identity.');
+            }
+            $ids[$host['id']] = true;
+            foreach (['distance_pc', 'x_pc', 'y_pc', 'z_pc', 'galactocentric_x_pc', 'galactocentric_y_pc', 'galactocentric_z_pc'] as $field) {
+                $value = $host[$field] ?? null;
+                if ((! is_float($value) && ! is_int($value)) || ! is_finite((float) $value)
+                    || ($field === 'distance_pc' && $value <= 0)) {
+                    throw new SolarApiException('Invalid galaxy host measurement.');
+                }
+            }
+            foreach (['distance_error_plus_pc', 'distance_error_minus_pc'] as $field) {
+                $value = $host[$field] ?? null;
+                if ($value !== null && ((! is_float($value) && ! is_int($value)) || ! is_finite((float) $value))) {
+                    throw new SolarApiException('Invalid galaxy distance uncertainty.');
+                }
+            }
         }
 
         return GalaxyMap::fromArray($d);
     }
 
     /**
-     * Filterable, cursor-paginated list of objects.
+     * Filterable list of objects.
+     *
+     * `GET /objects` supports two paging modes. The default is offset paging
+     * in the backend's orbital order. Passing `$after` (an empty string for the
+     * first page) selects keyset paging: the backend applies `id > after`,
+     * orders by `id`, ignores `offset` and answers with a `next_after` field
+     * (null on the last page). The ID order is what makes a walk over the full
+     * catalogue stable, so the two modes are never mixed.
      *
      * @param  array<string,mixed>  $filters  type, parent, min/max_radius_km, neo, pha, named_only
      * @return Paginated<ObjectSummary>
      */
-    public function objects(array $filters = [], int $limit = 24, int $offset = 0): Paginated
+    public function objects(array $filters = [], int $limit = 24, int $offset = 0, ?string $after = null): Paginated
     {
         $limit = max(1, min($limit, 100));
         $offset = max(0, $offset);
@@ -116,10 +268,28 @@ class SolarApiClient
             'offset' => $offset,
         ];
 
-        $data = $this->cachedGet('/objects', $query, $this->ttl['catalog']) ?? [];
-        $rows = array_values((array) ($data['results'] ?? []));
+        if ($after !== null) {
+            $query['after'] = $after;
+            $query['offset'] = 0;
+        }
 
-        return $this->paginate($rows, $limit, $offset, ObjectSummary::fromArray(...));
+        $data = $this->cachedGet('/objects', $query, $this->ttl['catalog']);
+        if (! is_array($data) || ! isset($data['results']) || ! is_array($data['results'])
+            || ($after !== null && ! array_key_exists('next_after', $data))) {
+            throw new SolarApiException('Object catalogue is not available in this browsing mode.');
+        }
+        $rows = array_values($data['results']);
+        if ($after !== null) {
+            $this->assertCursorHonoured($rows, $after);
+        }
+
+        $page = $this->paginate($rows, $limit, $after !== null ? 0 : $offset, ObjectSummary::fromArray(...));
+        // The API cursor points to its last returned (overfetched) row. Use our
+        // last displayed row instead, or the next page would skip one object.
+        $last = $page->items[count($page->items) - 1] ?? null;
+
+        return new Paginated($page->items, $page->limit, $page->offset, $page->hasMore,
+            $after !== null && $page->hasMore ? $last?->id : null);
     }
 
     /** Full record for one object by id, name or designation. Null when not found. */
@@ -222,13 +392,59 @@ class SolarApiClient
      */
     public function closeApproaches(string $from, string $to, float $maxDistAu = 0.05, int $limit = 200): array
     {
-        return $this->mapResults(
-            $this->cachedGet('/close-approaches', [
-                'from' => $from, 'to' => $to, 'body' => 'Earth',
-                'max_dist_au' => $maxDistAu, 'limit' => max(1, min($limit, 1000)),
-            ], $this->ttl['catalog']),
-            CloseApproach::fromArray(...),
-        );
+        $data = $this->cachedGet('/close-approaches', [
+            'from' => $from, 'to' => $to, 'body' => 'Earth',
+            'max_dist_au' => $maxDistAu, 'limit' => max(1, min($limit, 1000)),
+        ], $this->ttl['catalog']);
+        if (! is_array($data) || ! is_array($data['results'] ?? null) || ! array_is_list($data['results'])) {
+            throw new SolarApiException('Close-approach catalogue is unavailable.');
+        }
+        foreach ($data['results'] as $row) {
+            if (! is_array($row)) {
+                throw new SolarApiException('Invalid close-approach record.');
+            }
+            foreach (['object_id', 'body', 'cd_iso'] as $field) {
+                if (! is_string($row[$field] ?? null) || trim($row[$field]) === '') {
+                    throw new SolarApiException('Invalid close-approach identity or date.');
+                }
+            }
+            if (strcasecmp($row['body'], 'Earth') !== 0) {
+                throw new SolarApiException('Close-approach response is for another body.');
+            }
+            foreach (['name', 'designation', 't_sigma'] as $field) {
+                if (isset($row[$field]) && ! is_string($row[$field])) {
+                    throw new SolarApiException('Invalid close-approach label.');
+                }
+            }
+            if (trim($row['name'] ?? '') === '' && trim($row['designation'] ?? '') === '') {
+                throw new SolarApiException('Missing close-approach object label.');
+            }
+            // The catalogue exposes UTC timestamps at second precision. Reject
+            // impossible dates rather than sorting an invented or missing time.
+            try {
+                $date = CarbonImmutable::createFromFormat('!Y-m-d\TH:i:s\Z', $row['cd_iso'], 'UTC');
+            } catch (Throwable) {
+                $date = null;
+            }
+            if (! $date || $date->format('Y-m-d\TH:i:s\Z') !== $row['cd_iso'] || $date->year < 1) {
+                throw new SolarApiException('Invalid close-approach date.');
+            }
+            foreach (['dist_au', 'dist_min_au', 'dist_max_au', 'v_rel_km_s'] as $field) {
+                $value = $row[$field] ?? null;
+                if ($value !== null && (! is_numeric($value) || ! is_finite((float) $value) || (float) $value < 0)) {
+                    throw new SolarApiException('Invalid close-approach measurement.');
+                }
+            }
+        }
+
+        return array_map(static function (array $row): CloseApproach {
+            // Treat a blank display name as absent so designation fallback works.
+            if (trim($row['name'] ?? '') === '') {
+                $row['name'] = null;
+            }
+
+            return CloseApproach::fromArray($row);
+        }, $data['results']);
     }
 
     /**
@@ -243,10 +459,12 @@ class SolarApiClient
             return [];
         }
 
-        return $this->mapResults(
-            $this->cachedGet('/search', ['q' => $query, 'limit' => max(1, min($limit, 100))], $this->ttl['catalog']),
-            SearchResult::fromArray(...),
-        );
+        $data = $this->cachedGet('/search', ['q' => $query, 'limit' => max(1, min($limit, 100))], $this->ttl['catalog']);
+        if (! is_array($data) || ! isset($data['results']) || ! is_array($data['results'])) {
+            throw new SolarApiException('Solar-system search is not available.');
+        }
+
+        return $this->mapResults($data, SearchResult::fromArray(...));
     }
 
     // ------------------------------------------------------------------
@@ -275,6 +493,11 @@ class SolarApiClient
      */
     public function sky(string $idOrName, ?string $datetime = null, ?float $lat = null, ?float $lon = null): ?SkyPosition
     {
+        if (($lat === null) !== ($lon === null)
+            || ($lat !== null && (! is_finite($lat) || abs($lat) > 90))
+            || ($lon !== null && (! is_finite($lon) || abs($lon) > 180))) {
+            throw new SolarApiException('Invalid observer coordinates.');
+        }
         $observer = $lat !== null && $lon !== null;
         $when = $datetime !== null
             ? CarbonImmutable::parse($datetime)->utc()
@@ -291,7 +514,68 @@ class SolarApiClient
 
         $data = $this->cachedGet('/sky/'.$this->encodePath($idOrName), $query, $this->ttl['positions']);
 
-        return is_array($data) ? SkyPosition::fromArray($data) : null;
+        if ($data === null) {
+            return null;
+        }
+        if (! is_array($data) || ! is_string($data['name'] ?? null) || trim($data['name']) === '') {
+            throw new SolarApiException('Invalid sky-position response.');
+        }
+        foreach (['input_datetime', 'resolved_from', 'ra_hms', 'dec_dms', 'hemisphere', 'visible_from', 'accuracy_note'] as $field) {
+            if (isset($data[$field]) && ! is_string($data[$field])) {
+                throw new SolarApiException('Invalid sky-position metadata.');
+            }
+        }
+        foreach (['ra_deg' => [0, 360], 'dec_deg' => [-90, 90], 'elongation_deg' => [0, 180],
+            'distance_from_earth_au' => [0, PHP_FLOAT_MAX], 'distance_from_sun_au' => [0, PHP_FLOAT_MAX]] as $field => [$min, $max]) {
+            $value = $data[$field] ?? null;
+            if ($value !== null && (! is_numeric($value) || ! is_finite((float) $value) || (float) $value < $min || (float) $value > $max)) {
+                throw new SolarApiException('Invalid sky-position measurement.');
+            }
+        }
+        if (isset($data['constellation'])) {
+            if (! is_array($data['constellation'])) {
+                throw new SolarApiException('Invalid constellation metadata.');
+            }
+            foreach (['name', 'abbr'] as $field) {
+                if (isset($data['constellation'][$field]) && ! is_string($data['constellation'][$field])) {
+                    throw new SolarApiException('Invalid constellation label.');
+                }
+            }
+        }
+        $view = $data['observer'] ?? null;
+        if (($observer && ! is_array($view)) || ($view !== null && ! is_array($view))) {
+            throw new SolarApiException('Observer calculation unavailable.');
+        }
+        if (is_array($view)) {
+            foreach (['lat' => [-90, 90], 'lon' => [-180, 180], 'altitude_deg' => [-90, 90],
+                'azimuth_deg' => [0, 360], 'sun_altitude_deg' => [-90, 90]] as $field => [$min, $max]) {
+                $value = $view[$field] ?? null;
+                if (! is_numeric($value) || ! is_finite((float) $value) || (float) $value < $min || (float) $value > $max) {
+                    throw new SolarApiException('Invalid observer measurement.');
+                }
+            }
+            foreach (['is_up', 'is_dark', 'circumpolar', 'never_rises'] as $field) {
+                if (! is_bool($view[$field] ?? null)) {
+                    throw new SolarApiException('Invalid observer status.');
+                }
+            }
+            foreach (['rise_utc', 'transit_utc', 'set_utc'] as $field) {
+                $value = $view[$field] ?? null;
+                if ($value === null) {
+                    continue;
+                }
+                try {
+                    $date = is_string($value) ? CarbonImmutable::createFromFormat('!Y-m-d\TH:i:s\Z', $value, 'UTC') : null;
+                } catch (Throwable) {
+                    $date = null;
+                }
+                if (! $date || $date->year < 1 || $date->format('Y-m-d\TH:i:s\Z') !== $value) {
+                    throw new SolarApiException('Invalid observer event time.');
+                }
+            }
+        }
+
+        return SkyPosition::fromArray($data);
     }
 
     /**
@@ -312,12 +596,15 @@ class SolarApiClient
         $ids = array_values(array_unique($ids));
         $out = [];
         $pending = [];
+        $context = app(CatalogueContext::class);
+        $state = $context->current();
+        $known = $state['identity']->known();
 
         foreach ($ids as $id) {
             $path = '/positions/'.$this->encodePath($id);
             $query = ['date' => $date];
-            $key = $this->cacheKey($path, $query);
-            $entry = Cache::get($key);
+            $key = $context->key($path, $query, $state);
+            $entry = $state['token'] === 'checking' ? null : Cache::get($key);
             $cached = is_array($entry) && array_key_exists('soft', $entry) ? $entry : null;
 
             if ($cached !== null && $cached['soft'] > time()) {
@@ -325,7 +612,7 @@ class SolarApiClient
             } else {
                 // Keep the soft-stale value (if any) as the fallback for a
                 // failed refresh, rather than dropping the body from the plot.
-                $pending[$id] = compact('path', 'query', 'key') + ['stale' => $cached['value'] ?? null];
+                $pending[$id] = compact('path', 'query', 'key') + ['stale' => $known ? ($cached['value'] ?? null) : null];
             }
         }
 
@@ -346,15 +633,27 @@ class SolarApiClient
                     continue;
                 }
 
-                $this->putCached($request['key'], $value, $this->ttl['positions']);
+                if ($state['token'] !== 'checking' && $context->key($request['path'], $request['query']) === $request['key']) {
+                    $this->putCached($request['key'], $value, $known ? $this->ttl['positions'] : min($this->ttl['positions'], CatalogueContext::UNKNOWN_DATA_SECONDS), $known);
+                }
                 $out[$id] = $value;
             }
         }
 
-        return array_map(
-            static fn ($value) => is_array($value) ? Position::fromArray($value) : null,
-            $out,
-        );
+        return array_map(static function ($value): ?Position {
+            if (! is_array($value)) {
+                return null;
+            }
+            // A malformed metadata field must omit one body, not fail the whole
+            // drawing with an array-to-string conversion in the tolerant DTO.
+            foreach (['name', 'designation', 'input_date', 'frame', 'accuracy_note'] as $field) {
+                if (isset($value[$field]) && ! is_scalar($value[$field])) {
+                    return null;
+                }
+            }
+
+            return Position::fromArray($value);
+        }, $out);
     }
 
     /**
@@ -384,6 +683,21 @@ class SolarApiClient
     // Reference
     // ------------------------------------------------------------------
 
+    public function catalogueIdentity(): CatalogueIdentity
+    {
+        return app(CatalogueContext::class)->current()['identity'];
+    }
+
+    public function downloadManifest(): ?DownloadManifest
+    {
+        $key = CatalogueContext::storageKey().':download';
+        $entry = Cache::remember($key, CatalogueContext::PROBE_SECONDS, static fn () => [
+            'manifest' => app(CatalogueContext::class)->metadata('/download'),
+        ]);
+
+        return DownloadManifest::fromArray($entry['manifest']);
+    }
+
     public function stats(): ?Stats
     {
         $data = $this->cachedGet('/stats', [], $this->ttl['reference']);
@@ -410,9 +724,9 @@ class SolarApiClient
      */
     public function reachable(): bool
     {
-        return (bool) Cache::remember('solar:health', $this->ttl['health'], function (): bool {
+        return (bool) Cache::remember(CatalogueContext::storageKey().':health', $this->ttl['health'], function (): bool {
             try {
-                return Http::baseUrl($this->baseUrl)
+                return Http::baseUrl(rtrim((string) config('services.solar.base_url'), '/'))
                     ->timeout(min(3, $this->timeout))
                     ->get('/stats')
                     ->successful();
@@ -435,33 +749,45 @@ class SolarApiClient
      */
     private function cachedGet(string $path, array $query, int $ttl): mixed
     {
-        $key = $this->cacheKey($path, $query);
-        $entry = Cache::get($key);
+        $context = app(CatalogueContext::class);
+        $state = $context->current();
+        $key = $context->key($path, $query, $state);
+        $entry = $state['token'] === 'checking' ? null : Cache::get($key);
 
         if (is_array($entry) && array_key_exists('soft', $entry)) {
             if ($entry['soft'] > time()) {
-                return $entry['value'];                       // fresh
+                return $entry['value'];
             }
+            if ($state['identity']->known()) {
+                RefreshSolarCache::dispatch($path, $query, $key, $ttl);
 
-            // Soft-stale: serve immediately, revalidate out of band.
-            RefreshSolarCache::dispatch($path, $query, $key, $ttl);
-
-            return $entry['value'];
+                return $entry['value'];
+            }
         }
 
-        return $this->refreshInto($path, $query, $key, $ttl); // cold miss
+        return $this->refreshInto($path, $query, $key, $ttl, foreground: true);
     }
 
     /**
-     * Fetch fresh and store it. Public so {@see RefreshSolarCache} can call it.
+     * Old queued jobs cannot populate a newly observed generation or a different
+     * configured backend. A probe is shared across all jobs in the short lease.
      *
      * @param  array<string,mixed>  $query
      */
-    public function refreshInto(string $path, array $query, string $key, int $ttl): mixed
+    public function refreshInto(string $path, array $query, string $key, int $ttl, bool $foreground = false): mixed
     {
+        $context = app(CatalogueContext::class);
+        $state = $context->current();
+        if ($context->key($path, $query, $state) !== $key) {
+            // A cold foreground read still needs real data; an obsolete job
+            // can be skipped. Never turn a generation race into a false404.
+            return $foreground ? $this->request($path, $query) : null;
+        }
         $value = $this->request($path, $query);
-
-        $this->putCached($key, $value, $ttl);
+        if ($state['token'] !== 'checking' && $context->key($path, $query) === $key) {
+            $known = $state['identity']->known();
+            $this->putCached($key, $value, $known ? $ttl : min($ttl, CatalogueContext::UNKNOWN_DATA_SECONDS), $known);
+        }
 
         return $value;
     }
@@ -488,7 +814,7 @@ class SolarApiClient
     private function configureRequest(PendingRequest $request): PendingRequest
     {
         return $request
-            ->baseUrl($this->baseUrl)
+            ->baseUrl(rtrim((string) config('services.solar.base_url'), '/'))
             ->timeout($this->timeout)
             ->acceptJson()
             ->retry(1, 150, throw: false);
@@ -518,14 +844,36 @@ class SolarApiClient
         return is_array($json) ? $json : null;
     }
 
-    private function putCached(string $key, mixed $value, int $ttl): void
+    private function putCached(string $key, mixed $value, int $ttl, bool $allowStale = true): void
     {
-        Cache::put($key, ['value' => $value, 'soft' => time() + $ttl], $ttl * 6);
+        Cache::put($key, ['value' => $value, 'soft' => time() + $ttl], $allowStale ? $ttl * 6 : $ttl);
     }
 
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
+
+    /**
+     * A keyset page must contain only ids strictly after the cursor, in
+     * ascending byte order (the backend's `o.id > :after ORDER BY o.id`; the
+     * id column uses SQLite's BINARY collation, which strcmp matches). An
+     * API that ignores `after` answers with its offset-ordered first page
+     * instead, which would make "next" repeat the same rows forever; fail
+     * closed so the page shows unavailability rather than a silent loop.
+     *
+     * @param  list<mixed>  $rows
+     */
+    private function assertCursorHonoured(array $rows, string $after): void
+    {
+        $previous = $after;
+        foreach ($rows as $row) {
+            $id = is_array($row) ? ($row['id'] ?? null) : null;
+            if (! is_string($id) || strcmp($id, $previous) <= 0) {
+                throw new SolarApiException('Object catalogue did not honour the catalogue cursor.');
+            }
+            $previous = $id;
+        }
+    }
 
     /**
      * @param  list<array<string,mixed>>  $rows
@@ -565,6 +913,7 @@ class SolarApiClient
         $allowed = [
             'type', 'parent', 'min_radius_km', 'max_radius_km', 'max_eccentricity',
             'min_semi_major_axis_au', 'max_semi_major_axis_au', 'neo', 'pha', 'named_only',
+            'orbit_class', 'max_moid_au', 'min_diameter_km', 'max_condition_code', 'discovered_after',
         ];
 
         $clean = [];
@@ -578,14 +927,6 @@ class SolarApiClient
         }
 
         return $clean;
-    }
-
-    /** @param array<string,mixed> $query */
-    private function cacheKey(string $path, array $query): string
-    {
-        ksort($query);
-
-        return 'solar:'.sha1($path.'?'.http_build_query($query));
     }
 
     /** Encode a name/id for a path segment while keeping it readable in logs. */

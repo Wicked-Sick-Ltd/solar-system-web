@@ -1,0 +1,39 @@
+name: Community releases
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: community-releases
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    # An App token makes release PRs trigger the normal CI/review workflows.
+    # No GITHUB_TOKEN fallback: bot-created PRs otherwise silently miss checks.
+    if: vars.RELEASE_APP_ID != '' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create repository-scoped release token
+        id: token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: solar-system-web
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Update the release PR or tag an approved release
+        uses: googleapis/release-please-action@8b8fd2cc23b2e18957157a9d923d75aa0c6f6ad5 # v4
+        with:
+          token: ${{ steps.token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
