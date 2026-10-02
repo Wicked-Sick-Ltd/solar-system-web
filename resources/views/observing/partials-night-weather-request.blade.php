@@ -1,5 +1,5 @@
 <section class="surface my-6 space-y-3 p-5 print:hidden" aria-labelledby="night-weather-heading">
-    <h2 id="night-weather-heading" class="text-xl">{{ __('Weather for this observing interval') }}</h2>
+    <h2 id="night-weather-heading" tabindex="-1" class="text-xl">{{ __('Weather for this observing interval') }}</h2>
     <p>{{ __('Weather is separate from your calculated observing windows. Request an hourly forecast for the selected UTC interval; dates outside forecast coverage remain unknown. Cloud, humidity, wind and horizontal visibility do not measure astronomical seeing or guarantee a useful view.') }}</p>
     <p>{{ __('Only when you choose the button below, your rounded coordinates will be sent through this server to Open-Meteo and used in this server’s forecast cache. No equipment or journal data is sent. The forecast opens in a new tab so this calculation and your temporary equipment stay here.') }}</p>
     <form method="POST" action="{{ route('observe.night.weather') }}" target="_blank" rel="noopener" data-night-weather-request>

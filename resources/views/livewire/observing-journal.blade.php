@@ -1,5 +1,11 @@
 <div data-observing-journal class="mx-auto max-w-4xl space-y-8">
     <x-page-header :title="__('Observing lists and journal')" :eyebrow="__('Your nights outside')" :lead="__('Plan what to look for and record what you actually observed. These records stay in this browser by default; no account is needed.')" />
+    <x-section-navigation :sections="[
+        ['id' => 'journal-lists-heading', 'label' => __('Observing lists')],
+        ['id' => 'journal-entries-heading', 'label' => __('Actual observations')],
+        ['id' => 'journal-backup-heading', 'label' => __('Backup and import')],
+    ]" />
+
     <p>{{ __('Signing in does not upload this journal. Anyone using this browser can read it. Export a private backup before clearing browser storage or moving to another domain.') }}</p>
     <p><a class="underline" href="{{ route('observing.sync.page') }}">{{ __('Optional private account backup') }}</a></p>
     <p role="status" data-journal-status></p><p role="alert" id="journal-error" data-journal-error></p>
@@ -25,7 +31,7 @@
         </fieldset></form>
     </section>
     <section aria-labelledby="journal-lists-heading" class="space-y-4">
-        <h2 id="journal-lists-heading" class="text-2xl">{{ __('Observing lists') }}</h2>
+        <h2 id="journal-lists-heading" tabindex="-1" class="text-2xl">{{ __('Observing lists') }}</h2>
         <p>{{ __('Lists preserve exact catalogue identifiers even if a target becomes unavailable. A saved target or “observed” list status does not prove visibility or create a journal observation.') }}</p>
         <p data-journal-empty-lists hidden>{{ __('No lists saved yet.') }}</p><div data-journal-lists class="space-y-4"></div>
         <form data-journal-list-form class="surface p-5 print:hidden"><fieldset data-journal-controls disabled class="space-y-3"><legend>{{ __('Create a list') }}</legend>
@@ -39,7 +45,7 @@
         </fieldset></form>
     </section>
     <section aria-labelledby="journal-entries-heading" class="space-y-4">
-        <h2 id="journal-entries-heading" class="text-2xl">{{ __('Actual observations') }}</h2>
+        <h2 id="journal-entries-heading" tabindex="-1" class="text-2xl">{{ __('Actual observations') }}</h2>
         <p data-journal-empty-entries hidden>{{ __('No observations recorded yet.') }}</p><div data-journal-entries class="space-y-4"></div>
         <form data-journal-entry-form class="surface p-5 print:hidden"><fieldset data-journal-controls disabled class="space-y-4"><legend>{{ __('Record an observation') }}</legend>
             @include('observing.journal-target-fields')
@@ -55,7 +61,7 @@
         </fieldset></form>
     </section>
     <section class="surface space-y-4 p-5 print:hidden" aria-labelledby="journal-backup-heading">
-        <h2 id="journal-backup-heading" class="text-2xl">{{ __('Backup, export and import') }}</h2>
+        <h2 id="journal-backup-heading" tabindex="-1" class="text-2xl">{{ __('Backup, export and import') }}</h2>
         <p>{{ __('JSON contains lists and observations and can be imported again. CSV contains observations for spreadsheets. Site names and coordinates are omitted by default; notes can still contain private information. Choose to include sites only when you want a complete private backup.') }}</p>
         <label class="flex min-h-11 items-center gap-2"><input data-journal-include-locations type="checkbox">{{ __('Include site names and coordinates in exports, and site names when printing') }}</label>
         <div class="flex flex-wrap gap-3"><button type="button" data-journal-json class="min-h-11 rounded border px-4">{{ __('Export journal JSON') }}</button><button type="button" data-journal-csv class="min-h-11 rounded border px-4">{{ __('Export observations CSV') }}</button><button type="button" data-journal-print class="min-h-11 rounded border px-4">{{ __('Print this journal') }}</button></div>

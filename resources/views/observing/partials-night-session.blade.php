@@ -1,5 +1,5 @@
 <section class="surface mt-6 space-y-3 p-5 print:hidden" aria-labelledby="night-session-heading">
-    <h2 id="night-session-heading" class="text-xl">{{ __('Keep this observing session') }}</h2>
+    <h2 id="night-session-heading" tabindex="-1" class="text-xl">{{ __('Keep this observing session') }}</h2>
     <p>{{ __('Download this calculation’s windows, exact inputs and scientific provenance without recalculating or uploading anything. The JSON summary omits chart samples, weather, equipment and actual observations. CSV is a window overview; keep its companion JSON for the assumptions and sources.') }}</p>
     <div data-night-session-controls hidden class="space-y-3">
         <label class="flex min-h-11 items-center gap-3"><input type="checkbox" data-night-session-locations> {{ __('Include rounded coordinates and the terrain profile in downloads and print') }}</label>

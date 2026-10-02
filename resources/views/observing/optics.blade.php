@@ -1,5 +1,5 @@
 <section data-workspace-optics class="surface mb-8 p-5 sm:p-6" aria-labelledby="optics-heading">
-    <h2 id="optics-heading" class="font-serif text-2xl">{{ __('Compare your optical setup') }}</h2>
+    <h2 id="optics-heading" tabindex="-1" class="font-serif text-2xl">{{ __('Compare your optical setup') }}</h2>
     <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Choose equipment saved above. These geometric estimates help you compare magnification and field width; they do not predict brightness, detail or whether a target is observable. Changes here are temporary and stay in this browser.') }}</p>
     <fieldset disabled data-workspace-enabled class="mt-5">
         <legend class="sr-only">{{ __('Optical calculation inputs') }}</legend>

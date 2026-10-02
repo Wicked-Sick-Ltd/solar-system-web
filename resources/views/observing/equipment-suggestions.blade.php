@@ -1,5 +1,5 @@
 <section data-equipment-suggestions class="surface my-8 p-5 sm:p-6" aria-labelledby="equipment-suggestions-heading">
-    <h2 id="equipment-suggestions-heading" class="font-serif text-2xl">{{ __('Compare eyepieces for this plan') }}</h2>
+    <h2 id="equipment-suggestions-heading" tabindex="-1" class="font-serif text-2xl">{{ __('Compare eyepieces for this plan') }}</h2>
     <p class="mt-2 text-sm">{{ __('Compare magnification, exit pupil and estimated field width using your saved equipment or a temporary setup. These choices do not change your night plan. Temporary inputs stay on this page and are not saved or sent.') }}</p>
     <p class="mt-2 text-sm">{{ __('Start with lower magnification to locate a target, then compare other choices. Seeing, sky brightness, optical quality, your eye and equipment compatibility can limit what you see; a larger magnification is not automatically better.') }} <a class="underline" href="https://www.celestron.com/blogs/knowledgebase/what-is-magnification-power-as-it-pertains-to-telescopes">{{ __('Manufacturer guidance') }}</a></p>
     <noscript><p class="mt-3">{{ __('The local equipment comparison needs JavaScript. Your night-plan results and numeric tables remain available without it.') }}</p></noscript>

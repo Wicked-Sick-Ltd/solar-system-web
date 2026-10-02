@@ -1,5 +1,5 @@
                 <article class="surface mt-6 space-y-4 p-5" aria-labelledby="target-{{ $target['id'] }}">
-                    <h2 id="target-{{ $target['id'] }}" class="text-2xl">{{ $target['name'] }}</h2>
+                    <h2 id="target-{{ $target['id'] }}" tabindex="-1" class="text-2xl">{{ $target['name'] }}</h2>
                     @isset($candidate) @include('observing.partials-shortlist-reasons') @endisset
                     @php
                         $journalTarget = \App\Services\Observing\NightTargets::journalIdentity($target['id']);

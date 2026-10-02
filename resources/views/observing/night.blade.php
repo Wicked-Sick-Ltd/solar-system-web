@@ -1,6 +1,20 @@
 <x-layouts.app>
     <div class="mx-auto max-w-5xl" @if($sessionSummary) data-night-session @endif>
         <x-page-header :title="__('Plan a night')" :eyebrow="__('Moon, planets and catalogue targets')" :lead="__('Find geometric observing windows for your location. Clouds, terrain, brightness and equipment can still prevent a useful view.')" />
+        @php
+            $sections = [['id' => 'night-plan-heading', 'label' => __('Location, time and targets')]];
+            if ($plan) {
+                $sections = array_merge($sections, [
+                    ['id' => 'night-summary', 'label' => __('Your night')],
+                    ['id' => 'night-session-heading', 'label' => __('Save and print')],
+                    ['id' => 'equipment-suggestions-heading', 'label' => __('Equipment')],
+                    ['id' => 'night-weather-heading', 'label' => __('Weather')],
+                    ['id' => 'target-'.$plan['targets'][0]['id'], 'label' => __('Target windows')],
+                    ['id' => 'night-method', 'label' => __('Calculation and limits')],
+                ]);
+            }
+        @endphp
+        <x-section-navigation :sections="$sections" />
         <p class="mb-6">{{ __('A night runs from local noon to the following noon. Times include their UTC offset so clock changes are unambiguous. Coordinates are rounded to two decimal places and sent for this calculation; this form does not save them.') }}</p>
         <p class="mb-6"><a class="underline" href="{{ route('observe.shortlist') }}">{{ __('Not sure what to choose? Find an explained shortlist for your site and equipment.') }}</a></p>
         @if ($problem)
@@ -10,6 +24,7 @@
             </div>
         @endif
         <form data-night-form method="POST" action="{{ route('observe.night.calculate') }}" class="surface space-y-5 p-5 print:hidden">
+            <h2 id="night-plan-heading" tabindex="-1" class="text-2xl">{{ __('Location, time and targets') }}</h2>
             @csrf
             @include('observing.partials-night-conditions')
             <fieldset @if(collect($validation)->keys()->contains(fn ($key) => str_starts_with($key, 'targets'))) aria-describedby="night-error-targets" @endif>
@@ -32,7 +47,7 @@
                 $duration = strtotime($plan['night']['end_utc']) - $start;
             @endphp
             <section class="mt-8 space-y-4" aria-labelledby="night-summary">
-                <h2 id="night-summary" class="text-2xl">{{ __('Your night') }} · {{ $plan['night']['date'] }}</h2>
+                <h2 id="night-summary" tabindex="-1" class="text-2xl">{{ __('Your night') }} · {{ $plan['night']['date'] }}</h2>
                 <p>{{ $local($plan['night']['start_utc']) }} → {{ $local($plan['night']['end_utc']) }} · {{ $plan['observer']['timezone'] }} · {{ $plan['night']['duration_hours'] }} {{ __('hours') }}</p>
                 <p>{{ __('Selected observing interval:') }} {{ $local($plan['constraints']['window_start_utc']) }} → {{ $local($plan['constraints']['window_end_utc']) }}. {{ $plan['constraints']['horizon_mask'] === null ? __('Terrain is unknown; only the baseline altitude was applied.') : __('Your supplied horizon profile was applied with the baseline altitude.') }}</p>
                 <p><span data-night-private-location class="print:hidden">{{ __('Location:') }} {{ $plan['observer']['lat'] }}°, {{ $plan['observer']['lon'] }}° · </span>{{ __('Moon illuminated:') }} {{ number_format($plan['moon']['illumination_fraction'] * 100, 1) }}% {{ __('at') }} {{ $local($plan['moon']['reference_utc']) }}.</p>
@@ -47,7 +62,7 @@
                 @include('observing.partials-night-target')
             @endforeach
             <section class="surface mt-6 space-y-3 p-5" aria-labelledby="night-method">
-                <h2 id="night-method" class="text-xl">{{ __('Calculation and limits') }}</h2>
+                <h2 id="night-method" tabindex="-1" class="text-xl">{{ __('Calculation and limits') }}</h2>
                 <p>{{ $plan['method']['provider'] }} · {{ $plan['method']['ephemeris'] }} · {{ $plan['method']['frame'] }} · {{ $plan['method']['refraction'] }}</p>
                 <p>{{ $plan['method']['accuracy_note'] }}</p><p>{{ $plan['method']['window_note'] }}</p>
                 <p>{{ __('Earth-orientation data:') }} {{ $plan['method']['iers']['status'] }}. {{ __('Numerical crossing tolerance:') }} {{ $plan['method']['root_tolerance_seconds'] }} s.</p>

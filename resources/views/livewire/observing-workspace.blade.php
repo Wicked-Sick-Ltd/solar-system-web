@@ -2,13 +2,20 @@
     <x-page-header :title="__('Your observatory')" :eyebrow="__('Prepare for a night outside')"
         :lead="__('Keep your equipment and observing sites together in this browser by default; an account is not needed.')" />
 
+    <x-section-navigation :sections="[
+        ['id' => 'equipment-heading', 'label' => __('Equipment')],
+        ['id' => 'sites-heading', 'label' => __('Observing sites')],
+        ['id' => 'optics-heading', 'label' => __('Optical setup')],
+        ['id' => 'workspace-backup-heading', 'label' => __('Backup and import')],
+    ]" />
+
     <noscript><p class="surface mb-6 p-4">{{ __('This workspace needs JavaScript to save data in your browser. You can still explore the catalogue and read the observing guides.') }}</p></noscript>
     <p class="mb-2 text-sm" role="status" aria-live="polite" data-workspace-status></p>
     <p class="mb-6 text-sm" role="alert" id="workspace-error" style="color: var(--error);" data-workspace-error></p>
     <p class="mb-8 text-sm" style="color: var(--muted);">{{ __('Browser storage can be cleared by your browser or anyone using this device. Export a backup to keep your records. Saving here or signing in does not upload equipment or named sites. A separate private account backup requires your explicit preview and upload choice.') }}</p>
 
     <section class="surface mb-8 p-5 sm:p-6" aria-labelledby="equipment-heading">
-        <h2 id="equipment-heading" class="font-serif text-2xl">{{ __('Your equipment') }}</h2>
+        <h2 id="equipment-heading" tabindex="-1" class="font-serif text-2xl">{{ __('Your equipment') }}</h2>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Use the specifications printed on your equipment. Unknown optional measurements can stay blank. Saving equipment does not predict what you will be able to see.') }}</p>
         <p class="mt-4 text-sm" data-workspace-equipment-empty>{{ __('No equipment saved yet. Add a telescope, binoculars, eyepiece, optical accessory or camera sensor below.') }}</p>
         <ul class="mt-4 space-y-3" data-workspace-equipment-list aria-label="{{ __('Saved equipment') }}"></ul>
@@ -57,7 +64,7 @@
     </section>
 
     <section class="surface mb-8 p-5 sm:p-6" aria-labelledby="sites-heading">
-        <h2 id="sites-heading" class="font-serif text-2xl">{{ __('Your observing sites') }}</h2>
+        <h2 id="sites-heading" tabindex="-1" class="font-serif text-2xl">{{ __('Your observing sites') }}</h2>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Coordinates are rounded to two decimal places, about a kilometre. Choose Use on a saved site to make it the location used by sky calculations. Those calculations send approximate coordinates to our astronomy API and weather service as explained on the privacy page.') }}</p>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('The night planner can explicitly copy a saved site’s timezone, minimum altitude and horizon mask into its calculation form. Activating a site only selects its approximate location for other sky views. A saved horizon is user-entered data, not surveyed terrain or a guarantee of a clear view.') }}</p>
         <p class="mt-4 text-sm" data-workspace-sites-empty>{{ __('No observing sites saved yet.') }}</p>
@@ -99,7 +106,7 @@
     @include('observing.optics')
 
     <section class="surface p-5 sm:p-6" aria-labelledby="workspace-backup-heading">
-        <h2 id="workspace-backup-heading" class="font-serif text-2xl">{{ __('Back up or move your workspace') }}</h2>
+        <h2 id="workspace-backup-heading" tabindex="-1" class="font-serif text-2xl">{{ __('Back up or move your workspace') }}</h2>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Export a version-2 JSON file (older version-1 backups remain readable), then import it on another browser or after the domain move. Files are read on this device, never uploaded. Imports replace equipment and named sites only after your confirmation. Each workspace supports up to 100 equipment entries and 100 sites, within 256 KiB.') }}</p>
         <div class="mt-4 flex flex-wrap gap-3">
             <button type="button" disabled data-workspace-enabled data-workspace-action="export" class="min-h-11 rounded-lg border px-4 py-2 text-sm" style="border-color: var(--border);">{{ __('Export workspace') }}</button>
