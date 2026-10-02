@@ -1,5 +1,5 @@
 <div data-observing-journal class="mx-auto max-w-4xl space-y-8">
-    <x-page-header :title="__('Observing lists and journal')" :eyebrow="__('Your nights outside')" :lead="__('Plan what to look for and record what you actually observed. These records stay in this browser, without an account.')" />
+    <x-page-header :title="__('Observing lists and journal')" :eyebrow="__('Your nights outside')" :lead="__('Plan what to look for and record what you actually observed. These records stay in this browser by default; no account is needed.')" />
     <p>{{ __('Signing in does not upload this journal. Anyone using this browser can read it. Export a private backup before clearing browser storage or moving to another domain.') }}</p>
     <p><a class="underline" href="{{ route('observing.sync.page') }}">{{ __('Optional private account backup') }}</a></p>
     <p role="status" data-journal-status></p><p role="alert" id="journal-error" data-journal-error></p>
