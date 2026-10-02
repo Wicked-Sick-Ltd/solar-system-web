@@ -12,7 +12,7 @@ With the repository's pinned Node 22 and locked dependencies:
 
 ```sh
 npm ci
-node --test tools/performance/render-harness/metrics.test.js
+node --test tests/js/map-render-metrics.test.js
 node node_modules/vite/bin/vite.js build --config tools/performance/render-harness/vite.config.js
 python3 -m http.server 18025 --bind 127.0.0.1 --directory tmp/map-render-harness
 ```

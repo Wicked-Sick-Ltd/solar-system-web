@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createMetrics } from './metrics.js';
+import { createMetrics } from '../../tools/performance/render-harness/metrics.js';
 function setup({ supported = true } = {}) {
     let time = 0, id = 0, disjoint = false, lost = false, ready = false;
     const jobs = new Map(), deleted = [], ext = { TIME_ELAPSED_EXT: 1, GPU_DISJOINT_EXT: 2 };
