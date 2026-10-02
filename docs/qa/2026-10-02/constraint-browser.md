@@ -38,6 +38,14 @@ print job was submitted. Escape returned control to the ordinary page. The
 current revision's printed appearance/privacy is **not verified** by this attempt;
 the earlier three-page preview remains evidence only for its recorded revision.
 
+A separate reviewer repeated one scoped attempt against the same current local
+runtime: M31, UTC 20:00–21:00, with an explicit two-point terrain profile. The
+calculation and both throughout-interval diagnostics appeared, but Print again
+timed out and native Chrome inspection exposed an unrelated window. The reviewer
+stopped without acting on that window. This reproduces the preview-observation
+limitation; it supplies no new print artifact or permission to change browser
+settings.
+
 A fresh Download session JSON event wait also timed out. This does not prove
 download success or failure, and no artifact from that attempt is certified.
 The current JSON retention/redaction tests pass; earlier inspected native

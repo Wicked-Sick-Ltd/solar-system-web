@@ -104,9 +104,19 @@ replace the corresponding pending statements at the earlier checkpoint above.
 The last report explicitly distinguishes passing live JPL explanations from
 unverified final print/download attempts. Native file-import and exoplanet
 attachment restrictions, physical touch, assistive technology, lower-power
-hardware, heap/GPU-byte accounting and field performance remain qualified gaps.
-No missing accepted product feature was found after the A4 follow-up, but these
-acceptance gaps prevent declaring the complete programme finished.
+hardware and required browser acceptance remain incomplete. Exact heap/GPU-byte
+accounting is a measurement limitation; field p75 is an eventual target, not an
+additional local completion gate. No missing accepted product feature was found
+after the A4 follow-up, but the remaining required acceptance prevents declaring
+the complete programme finished.
+
+The later [full-catalogue finalization report](https://github.com/Wicked-Sick-Ltd/solar-system-db/blob/89e90de3b37a3bd4e60a985dade0fdef0255d155/docs/performance/full-catalogue-finalization-20261002.md)
+extends the smaller baseline with 1,574,019 objects across 14 logical tables:
+143.892/144.096/143.808 seconds across three disposable copies, with matching
+logical IDs, 32.5–36.3 MiB whole-child peak RSS and unchanged source bytes.
+This legacy artifact has no exoplanet/host/starter tables. These are local M3 Max
+finalization measurements; no public latency, cold-cache or production claim
+follows. The derived IDs were not written to the original download or manifest.
 
 ## Review the exact community copy
 

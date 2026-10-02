@@ -287,3 +287,33 @@ touch, assistive technology, lower-power hardware, field p75, full minor-planet
 finalization and production provisioning are still unverified or separately
 authorized. The unpublished 1.0.0 notes and review packet reflect this state;
 `version.txt` remains `0.0.0`. No production, domain or publication action occurred.
+
+
+## Full-catalogue measurement and completion-gate audit — 2 October
+
+The [retained report](https://github.com/Wicked-Sick-Ltd/solar-system-db/blob/89e90de3b37a3bd4e60a985dade0fdef0255d155/docs/performance/full-catalogue-finalization-20261002.md) now measures the published 2 October legacy
+catalogue, using three sequential disposable copies and fresh interpreters.
+The 3,912,310,784-byte input contains 1,574,019 objects and 14 logical tables;
+its compressed download checksum and read-only SQLite integrity check passed.
+The harness verified the source hash and filesystem identity before and after.
+
+Finalization elapsed **143.892 / 144.096 / 143.808 seconds**, with whole-child
+peak RSS **34,095,104 / 38,092,800 / 37,994,496 bytes**, on an M3 Max with 64 GiB
+RAM. All three derived logical IDs and table counts agree. The source remains
+unchanged. Timing excludes copying/imports/verification; RSS includes the whole
+child. Caches were not flushed and the machine was not isolated. This is neither
+public API latency nor ingestion/production throughput. No exoplanet, host or
+starter tables exist in this input; earlier mixed-catalogue measurements remain
+separate. [Backend PR #45](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/45)
+retains the harness and raw evidence at `89e90de`; independent artifact review
+found no material issue. The branch passes 515 tests including actual JPL,
+offline verification, Ruff and diff checks; CI is checked on its pushed head.
+
+Independent review of the accepted programme distinguishes genuine remaining
+acceptance dependencies (lower-power devices and required native browser checks)
+from reported limitations or operations outside scope (eventual field p75,
+exact heap/GPU bytes, production provisioning and publication). A second scoped
+print attempt reproduced the unobservable native dialog without changing any
+permissions. Import and attachment restrictions were not bypassed. No additional
+accepted product feature was found missing; this checkpoint is not full programme
+completion or a deployment authorization.
