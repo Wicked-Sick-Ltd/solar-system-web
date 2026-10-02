@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Links;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Cache;
  * backend almost nothing. The catalogue is ~15k objects; we list the named,
  * browsable bodies (planets, dwarf planets, moons, notable small bodies) rather
  * than every faint designation — that's what's worth indexing.
+ *
+ * Every <loc> is on the canonical host (APP_URL) regardless of which alias
+ * hostname the request arrived on; the result is cached, so it must not
+ * depend on the request.
  */
 final class SitemapController extends Controller
 {
@@ -33,8 +38,8 @@ final class SitemapController extends Controller
 
         // Static, high-value pages.
         foreach (['home', 'explore', 'observe', 'learn', 'objects.index', 'planets.index', 'dwarf-planets',
-            'asteroids', 'comets', 'tnos', 'close-approaches', 'orrery', 'exoplanets.index', 'systems.index', 'galaxy', 'meteor-showers.index', 'releases.index', 'about', 'api', 'privacy'] as $name) {
-            $urls[route($name)] = $name === 'home' ? '1.0' : '0.7';
+            'asteroids', 'comets', 'tnos', 'close-approaches', 'orrery', 'exoplanets.index', 'systems.index', 'galaxy', 'meteor-showers.index', 'releases.index', 'about', 'educators', 'api', 'privacy'] as $name) {
+            $urls[Links::canonical(route($name))] = $name === 'home' ? '1.0' : '0.7';
         }
 
         // Object detail pages worth indexing.
@@ -64,7 +69,7 @@ final class SitemapController extends Controller
             }
 
             foreach (array_unique(array_filter($slugs)) as $slug) {
-                $urls[route('objects.show', $slug)] = '0.6';
+                $urls[Links::canonical(route('objects.show', $slug))] = '0.6';
             }
         } catch (SolarApiException) {
             // A degraded backend still yields a valid sitemap of static pages.

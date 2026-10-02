@@ -49,7 +49,7 @@ final readonly class MailchimpClient
         $response = $this->putMember($url, [
             'email_address' => $email,
             'status_if_new' => 'pending',
-            'tags' => ['sol.wickedsick.com'],
+            'tags' => [$this->siteTag()],
         ]);
 
         $status = $response->json('status');
@@ -73,6 +73,17 @@ final readonly class MailchimpClient
             'pending' => SubscribeResult::Pending,
             default => throw new MailchimpException((string) ($response->json('detail') ?? 'Mailchimp rejected the request.')),
         };
+    }
+
+    /**
+     * Mailchimp tag naming the site the signup came from: the canonical
+     * hostname from APP_URL, so it is not tied to any one alias.
+     */
+    private function siteTag(): string
+    {
+        $host = parse_url((string) config('app.url'), PHP_URL_HOST);
+
+        return is_string($host) && $host !== '' ? $host : 'solar';
     }
 
     /**

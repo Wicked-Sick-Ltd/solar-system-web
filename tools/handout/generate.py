@@ -42,12 +42,16 @@ from pathlib import Path
 
 DEFAULT_API = "https://api.sol.wickedsick.com/api/v1"
 DEFAULT_SITE_NAME = "Public Universe"
-DEFAULT_SITE_URL = "https://sol.wickedsick.com"
+# The public site the sheet points readers at. The CLI default follows
+# SITE_URL / APP_URL so the printed hostname tracks the canonical one
+# (publicuniverse.net; sol.wickedsick.com stays an alias) without editing
+# the template.
+DEFAULT_SITE_URL = "https://publicuniverse.net"
 DEFAULT_DOWNLOAD_URL = "https://download.sol.wickedsick.com/latest.json"
 J2000_JD = 2451545.0
 AU_KM = 149_597_870.7
 HTTP_TIMEOUT = 30
-USER_AGENT = "public-universe-handout/1.0 (+https://sol.wickedsick.com)"
+USER_AGENT = "public-universe-handout/1.0 (+{site})"
 
 PLANETS = ("mercury", "venus", "earth", "mars",
            "jupiter", "saturn", "uranus", "neptune")
@@ -78,7 +82,7 @@ COLOUR = {"mercury": "#8c8378", "venus": "#c8922f", "earth": "#2f6f8f",
 # --------------------------------------------------------------------------
 
 def fetch_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT.format(site=DEFAULT_SITE_URL),
                                                "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
@@ -459,8 +463,8 @@ def main() -> None:
     parser.add_argument("--site-name", default=os.environ.get("SITE_NAME", DEFAULT_SITE_NAME),
                         help="printed name (SITE_NAME, otherwise Public Universe)")
     parser.add_argument("--site-url", type=public_http_url,
-                        default=os.environ.get("APP_URL", DEFAULT_SITE_URL),
-                        help="website URL (APP_URL, otherwise the existing public website)")
+                        default=os.environ.get("SITE_URL") or os.environ.get("APP_URL") or DEFAULT_SITE_URL,
+                        help=f"website URL (SITE_URL / APP_URL, otherwise {DEFAULT_SITE_URL})")
     parser.add_argument("--download-url", type=public_http_url,
                         default=os.environ.get("SOLAR_DOWNLOAD_URL", DEFAULT_DOWNLOAD_URL),
                         help="manifest URL (SOLAR_DOWNLOAD_URL, otherwise the existing download manifest)")

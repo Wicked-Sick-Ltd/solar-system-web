@@ -13,9 +13,14 @@ front end stores lightweight user accounts, email visibility alerts and public r
 own database. Consult individual source references and reuse terms when using
 the data; the repository's MIT licence applies to the code.
 
-The project is preparing to move to **publicuniverse.net**. Existing website,
-API, MCP and download addresses remain in use until a separately authorized
-cutover. See the [migration runbook](docs/PUBLIC-UNIVERSE-MIGRATION.md).
+The canonical website host is **publicuniverse.net** (`APP_URL`);
+**sol.wickedsick.com** stays live as a permanent alias with no redirect, because
+printed handouts point at it. Canonical tags, OG URLs, JSON-LD, the sitemap and
+`robots.txt` always name the canonical host whichever hostname served the
+request. Existing API, MCP and download addresses remain in use until a
+separately authorized cutover. See the
+[migration runbook](docs/PUBLIC-UNIVERSE-MIGRATION.md) and
+[`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 This is an **astronomy** site, not astrology. The original solar-system-only
 product brief in [`BRIEF.md`](BRIEF.md) is historical. Deployment instructions
@@ -65,13 +70,14 @@ Website branding, website URLs and backend endpoints are configured separately:
 | `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://s3.wickedsick.com/solar-system-db/latest.json` |
 | `CONTACT_EMAIL` | Public contact address | `hello@wickedsick.com` |
 | `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
-| `APP_URL`      | This site's public URL (canonical/OG/sitemap/JSON-LD)| `https://sol.wickedsick.com`             |
+| `APP_URL`      | Canonical public URL (canonical/OG/sitemap/JSON-LD)  | `https://publicuniverse.net`             |
 
 `APP_NAME` also influences default session-cookie and cache names. Keep its
 existing value during a branding-only release and change `SITE_NAME` instead.
 MCP and OpenAPI URLs are derived from `API_BASE_URL`; the download manifest is
-independent. Set `APP_URL` to the actual serving origin. During a domain move,
-configure the web server/proxy's canonical host and verify generated links too.
+independent. Set `APP_URL` to the canonical origin; alias hostnames keep
+internal navigation on the host that served the request while SEO surfaces are
+rewritten onto `APP_URL`. Verify generated links from every hostname.
 
 **Running the backend locally for development.** The backend repo can be cloned
 and run alongside this one. It ships a committed SQLite database and a FastAPI

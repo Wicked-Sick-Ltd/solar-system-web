@@ -1,8 +1,10 @@
 # Public Universe handout
 
-A two-page A4 introduction to Public Universe, served at the existing
-[sol.wickedsick.com](https://sol.wickedsick.com) origin until the domain move.
-The planetary pages remain a solar-system snapshot generated from API data.
+A two-page A4 introduction to Public Universe at
+[publicuniverse.net](https://publicuniverse.net) (sol.wickedsick.com remains a
+permanent alias). The planetary pages remain a solar-system snapshot generated
+from API data. (The classroom handouts on `/educators` are a different,
+hand-designed set — see `config/educators.php`.)
 
 - **Page 1** — what Public Universe is, the catalogue counts, the free REST API, the MCP
   server and the nightly database download.
@@ -40,7 +42,7 @@ brew install --cask wkhtmltopdf       # macOS
 | `--out path/to/file.pdf` | Where to write the PDF |
 | `--api-base http://127.0.0.1:8003/api/v1` | Build against a local `solar-system-db`; also controls printed API/MCP/docs links |
 | `--site-name "Public Universe"` | Visitor-facing title and introduction |
-| `--site-url https://sol.wickedsick.com` | Printed website links |
+| `--site-url https://publicuniverse.net` | Printed website links (default: `$SITE_URL` / `$APP_URL`, else publicuniverse.net) |
 | `--download-url https://download.sol.wickedsick.com/latest.json` | Printed catalogue manifest link |
 | `--keep-html` | Keep the intermediate HTML beside the PDF |
 | `--html-only` | Write the HTML and stop — no wkhtmltopdf needed |
@@ -115,10 +117,11 @@ science.
 
 ## Branding and endpoint configuration
 
-Command-line flags override `SITE_NAME`, `APP_URL`, `API_BASE_URL` and
-`SOLAR_DOWNLOAD_URL` environment variables, respectively. The generator does
-not load Laravel or read `.env` files. Defaults print **Public Universe** while
-retaining the existing website/API origins and the download manifest default
+Command-line flags override `SITE_NAME`, `SITE_URL`/`APP_URL`, `API_BASE_URL`
+and `SOLAR_DOWNLOAD_URL` environment variables, respectively. The generator
+does not load Laravel or read `.env` files. Defaults print **Public Universe**
+with the canonical website `https://publicuniverse.net`, while retaining the
+existing API origin and the download manifest default
 `https://download.sol.wickedsick.com/latest.json`. Merely changing the brand does not move a service.
 API documentation and MCP links use the configured API origin plus `/docs` and
 `/mcp`; website and download links can be configured independently. Printed

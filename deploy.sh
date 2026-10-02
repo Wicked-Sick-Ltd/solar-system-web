@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Forge in-place release for an EXISTING installation with persistent accounts.
 # First installation, backup hook contract and recovery: see DEPLOYMENT.md.
+# The public hostname(s) are set in the Forge site (the canonical URL comes
+# from APP_URL), not here.
 set -euo pipefail
 
 : "${FORGE_SITE_PATH:?}"

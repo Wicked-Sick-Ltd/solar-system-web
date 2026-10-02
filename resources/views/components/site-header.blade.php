@@ -155,6 +155,7 @@
                 @endforeach
                 <a href="{{ route('random') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Random object') }}</a>
                 <a href="{{ route('about') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('About') }}</a>
+                <a href="{{ route('educators') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('For educators') }}</a>
                 @auth
                     <a href="{{ route('alerts.index') }}" class="flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text);">{{ __('Your alerts') }}</a>
                     <form method="POST" action="{{ route('logout') }}">

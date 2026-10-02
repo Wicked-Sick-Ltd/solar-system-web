@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Support\Links;
 use Illuminate\Http\Response;
 
 final class RobotsController extends Controller
@@ -17,7 +18,8 @@ final class RobotsController extends Controller
             'Disallow: /search',
             'Disallow: /random',
             '',
-            'Sitemap: '.route('sitemap'),
+            // On the canonical host, whichever alias served this request.
+            'Sitemap: '.Links::canonical(route('sitemap')),
             '',
         ];
 

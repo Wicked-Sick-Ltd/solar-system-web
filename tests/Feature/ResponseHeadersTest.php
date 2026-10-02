@@ -32,6 +32,7 @@ it('makes non-interactive public pages edge-cacheable and cookie-less', function
     'home' => '/',
     'planets' => '/planets',
     'about' => '/about',
+    'educators' => '/educators',
     'api' => '/api',
     'dwarf-planets' => '/dwarf-planets',
 ]);

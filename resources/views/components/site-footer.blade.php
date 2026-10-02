@@ -38,6 +38,7 @@
                 <li><a class="link-quiet" href="{{ route('about') }}">{{ __('About & data sources') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('search') }}">{{ __('Search the catalogue') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('releases.index') }}">{{ __('What’s new') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('educators') }}">{{ __('For educators') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('api') }}">{{ __('Use the API') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('random') }}">{{ __('Random object') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('settings') }}">{{ __('Your settings') }}</a></li>

@@ -1,8 +1,24 @@
 # Public Universe domain migration
 
-Status: preparation only, 1 October 2026. No DNS, infrastructure, mail or live
-service changes are authorized by this development document. Obtain approval
-for the concrete production cutover after completing the rehearsal below.
+Status: preparation only, updated 2 October 2026. No DNS, infrastructure, mail
+or live service changes are authorized by this development document. Obtain
+approval for the concrete production cutover after completing the rehearsal
+below.
+
+**Domain decision (Craig, 2 October 2026).** `publicuniverse.net` is the
+canonical website host, set through `APP_URL`. `sol.wickedsick.com` is a
+**permanent alias of the same site with no redirect**: printed handouts and QR
+codes point at it, and paper cannot be recalled. There is no host-redirect
+middleware and none should be added. Canonical tags, OG URLs, JSON-LD, sitemap
+`<loc>` entries and the `robots.txt` `Sitemap:` line are rewritten onto
+`APP_URL` whichever host served the request (`App\Support\Links::canonical()`,
+covered by `tests/Feature/CanonicalHostTest.php`); navigation, assets and
+Livewire round-trips stay on the serving host. Only `www.publicuniverse.net`
+redirects (301 to the apex at the edge). If the alias is ever retired, every
+path must 301 permanently, path for path and query-preserving, to the same
+path on `publicuniverse.net`, as an edge rule rather than application code.
+[DEPLOYMENT.md](../DEPLOYMENT.md) (*Hostnames: canonical and alias*) is the
+operational record of this policy; keep the two documents in agreement.
 
 ## Names and compatibility
 
@@ -16,7 +32,7 @@ Proposed addresses, subject to provisioning and production approval:
 
 | Surface | Current configuration/address | Proposed address |
 | --- | --- | --- |
-| Website | `APP_URL`, currently `https://sol.wickedsick.com` | `https://publicuniverse.net` |
+| Website | `APP_URL`, currently `https://sol.wickedsick.com` | `https://publicuniverse.net` (canonical); `sol.wickedsick.com` stays a permanent alias, no redirect |
 | REST | `API_BASE_URL=https://api.sol.wickedsick.com/api/v1` | `https://api.publicuniverse.net/api/v1` |
 | MCP | API host plus `/mcp` | `https://api.publicuniverse.net/mcp` |
 | OpenAPI / docs | API host plus `/openapi.json` and `/docs`; `API_DOCS_URL` override | Same paths on new API host |
@@ -42,8 +58,8 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
   Follow [DEPLOYMENT.md](../DEPLOYMENT.md) for deploy/migration procedure; do not
   create a second independent account database for the new website.
 - Provision approved web/API/download hostnames, DNS and TLS with renewals.
-  Include `www.publicuniverse.net` only if serving or redirecting it, and cover
-  that name with a certificate. Keep certificates and DNS for old hosts valid.
+  Cover `www.publicuniverse.net` (301 to the apex) and the `sol.wickedsick.com`
+  alias with certificates. Keep certificates and DNS for old hosts valid.
   Rehearse using staging or local hostname overrides before changing public DNS.
 - Test the new hosts against the same intended data: REST responses, errors,
   pagination, CORS where applicable, rate-limit headers, OpenAPI and full MCP
@@ -92,29 +108,39 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
    Set `SITE_NAME` independently. Rebuild Laravel configuration and relevant
    URL-bearing caches, restart long-lived workers, and ensure scheduled mail
    generates links for the new origin. Run only one alert scheduler.
-3. Configure the serving/proxy host explicitly. `APP_URL` alone is not a
-   canonical-host enforcement rule: request-time URL generation can follow
-   the request host. Verify canonical tags, OG URLs, JSON-LD, sitemap entries,
-   robots sitemap URL, redirects and mail links using requests to both hosts.
-4. At the old **website** host, redirect public read-only page paths to the same
-   paths on the new host, preserving valid query parameters. Choose permanent
-   redirects only after rehearsal; avoid home-page catch-all redirects and
-   redirect chains. Preserve existing `/objects/{id}`, `/exoplanets/{id}` and
-   `/systems/{id}` paths; upstream exoplanet renames are a separate ID issue.
-5. Do not blindly redirect old login/logout/Livewire/form POST requests across
-   origins. Their session/CSRF context does not transfer. Provide a deliberate
-   expired-page/reload path or finish an explicit old-origin drain period, then
-   direct visitors to restart on the new website. Test open tabs and in-flight
-   forms. A method-preserving 308 alone does not solve session migration.
-6. Publish the new sitemap and verify ownership/search indexing configuration
-   for both website properties. Use the supported site-move procedure and
-   monitor old/new indexing, errors, redirect loops and request volumes. Keep
-   working old-host redirects for at least a year and preferably indefinitely
-   for durable public object links. See [Google's site-move guidance](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes).
+3. Serve both hostnames from the same site. Add `sol.wickedsick.com` (and
+   `www.publicuniverse.net`) as aliases of the `publicuniverse.net` site with a
+   certificate covering every name. `APP_URL` alone does not change which host
+   a request arrives on: request-time URL generation deliberately follows the
+   serving host, and only the SEO surfaces are rewritten onto the canonical
+   one. Verify canonical tags, OG URLs, JSON-LD, sitemap entries, the robots
+   sitemap URL and mail links using requests to both hosts; both must answer
+   `200` and both must name `publicuniverse.net` in those surfaces.
+4. Do **not** redirect `sol.wickedsick.com` to the new host. The alias stays
+   live indefinitely because printed material points at it. Preserve existing
+   `/objects/{id}`, `/exoplanets/{id}` and `/systems/{id}` paths on both hosts;
+   upstream exoplanet renames are a separate ID issue. The only website
+   redirect is `www.publicuniverse.net` → apex (301, query preserved) at the
+   edge. Should the alias ever be retired, apply the permanent path-for-path
+   301 policy recorded above and in DEPLOYMENT.md; rehearse it first and avoid
+   home-page catch-all redirects and redirect chains.
+5. Because there is no cross-origin redirect, open sessions, Livewire requests
+   and form POSTs are never moved between origins by the server. Visitors who
+   switch hosts themselves start a new session; see *Accounts, preferences and
+   mail*. If a redirect is ever introduced, do not blindly redirect
+   login/logout/Livewire/form POST requests across origins: their session/CSRF
+   context does not transfer, and a method-preserving 308 alone does not solve
+   session migration.
+6. Publish the sitemap (every `<loc>` already names the canonical host) and
+   verify ownership/search indexing configuration for both website properties.
+   Search engines should treat the alias as a duplicate of the canonical host;
+   monitor old/new indexing, errors and request volumes on both hosts. See
+   [Google's site-move guidance](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes)
+   for the canonical-consolidation case.
 
 ## API, MCP and download compatibility
 
-Do not apply the website redirect rule to API or MCP traffic. Existing clients
+Do not redirect API or MCP traffic between hosts either. Existing clients
 may reject redirects, change methods, lose auth headers or fail streaming.
 Prefer serving both API hostnames through the same compatible backend and
 keeping old MCP endpoints available. Test complete old- and new-host client
@@ -136,16 +162,17 @@ but it does not establish API/MCP client compatibility.
   registration, alert management and scheduler duplicate prevention. Test any
   supported verification/reset/unsubscribe links, including already sent links;
   host-bound signatures may require old-origin handling or fresh links.
-- Cookies cannot span `wickedsick.com` and `publicuniverse.net`. Expect users to
-  sign in again. Use host-scoped cookies with appropriate secure settings; do
-  not attempt to copy session tokens through URLs or weaken cookie boundaries.
+- Cookies cannot span `wickedsick.com` and `publicuniverse.net`. A visitor who
+  moves from the alias to the canonical host signs in again. Use host-scoped
+  cookies with appropriate secure settings; do not attempt to copy session
+  tokens through URLs or weaken cookie boundaries.
 - `localStorage` is origin-specific. `theme`, `observer_location` and
-  `preferences` will not follow a redirect. The existing `/settings` share link
-  can carry a user-selected import in its `#s=` fragment: before a blanket
-  redirect, offer instructions to copy settings on the old origin, replace only
-  the link origin with the new website, then review and accept import there.
-  If no transition page is built, clearly state that preferences must be set
-  again. Browser geolocation permission is also origin-specific.
+  `preferences` do not follow a visitor between hosts. The existing `/settings`
+  share link can carry a user-selected import in its `#s=` fragment: offer
+  instructions to copy settings on one origin, replace only the link origin,
+  then review and accept the import on the other. If no transition page is
+  built, clearly state that preferences must be set again. Browser geolocation
+  permission is also origin-specific.
 - Never put observer coordinates or settings tokens in query parameters,
   redirect logs or analytics. Do not silently transfer consent: the
   `cookie_consent` choice is origin-specific too. Analytics must stay unloaded
@@ -159,8 +186,9 @@ but it does not establish API/MCP client compatibility.
 
 Record date, operator, exact release commits and staging URLs with:
 
-- DNS/TLS renewal results for every old/new host; tested host mappings and
-  redirect matrix for pages, queries, missing pages, forms and open sessions.
+- DNS/TLS renewal results for every old/new host; tested host mappings (both
+  hosts `200`, canonical surfaces naming `publicuniverse.net`, `www` → apex
+  301) for pages, queries, missing pages, forms and open sessions.
 - Rendered canonical/OG/JSON-LD/robots/sitemap examples; mobile/desktop branding
   screenshots and approved handout/share-card renders.
 - Account backup restoration, sign-in/alerts and single scheduler checks;
@@ -175,9 +203,10 @@ Record date, operator, exact release commits and staging URLs with:
 Rehearse rollback before cutover. If a defect appears, stop rollout and pause
 new scheduler/mail work if it would generate broken links. Restore the recorded
 serving configuration, `APP_URL`, backend/download endpoints and DNS routing as
-needed; remove redirect loops; rebuild configuration and URL caches and restart
-workers. Keep TLS and working routes on both domains because cached permanent
-redirects and DNS may outlive the rollback. DNS reversal alone is insufficient.
+needed; remove any redirect loops; rebuild configuration and URL caches and
+restart workers. Keep TLS and working routes on both domains: the alias stays
+in service either way, and cached `www` redirects and DNS may outlive the
+rollback. DNS reversal alone is insufficient.
 
 Preserve all account/alert writes made during the transition. Do not restore an
 older account database over new registrations or alert edits: prefer compatible
