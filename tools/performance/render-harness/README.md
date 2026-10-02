@@ -22,6 +22,10 @@ until pending GPU queries is zero, then retain the visible initial report. Mark
 interaction, choose All radius, select a host, change view, reset and use keyboard
 zoom. Wait for pending queries again, retain the report, then Dispose and retain
 the final lifecycle counts. Reload for a new independent run. The harness does
+record Three draw-call/point/line/triangle counts and drawing-buffer dimensions
+per render. The initial 25 pc filter shows only a subset of the 5,000-row fixture;
+choose All to exercise the whole point cloud. Fixture size is not a draw count.
+The harness does
 not generate interactions or run an idle animation loop. Its bounded query poll
 ends after results, disposal or five seconds. At most 16 GPU queries and 200 draw
 records are retained, with at most 50 lifecycle records. Retain the emitted build
