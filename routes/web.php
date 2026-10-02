@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ExoplanetExportController;
 use App\Http\Controllers\GalaxyDataController;
+use App\Http\Controllers\NightPlannerController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\RandomObjectController;
 use App\Http\Controllers\ReleaseController;
@@ -41,6 +42,8 @@ Route::get('/whats-new', ReleaseController::class)->name('releases.index');
 Route::get('/whats-new/{version}', ReleaseController::class)->name('releases.show');
 Route::get('/explore', ExplorePage::class)->name('explore');
 Route::get('/observe', ObservePage::class)->name('observe');
+Route::get('/observe/night', NightPlannerController::class)->name('observe.night');
+Route::post('/observe/night', NightPlannerController::class)->middleware('throttle:6,1')->name('observe.night.calculate');
 Route::get('/learn', LearnPage::class)->name('learn');
 
 Route::get('/objects', ObjectsIndex::class)->name('objects.index');

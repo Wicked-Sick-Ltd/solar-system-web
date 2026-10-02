@@ -19,6 +19,11 @@
             <a class="mt-4 inline-block underline" href="{{ route('privacy') }}">{{ __('How location and alerts are handled') }} →</a>
         </li>
     </ol>
+    <section class="surface mt-6 p-6" aria-labelledby="observe-night-planner">
+        <h2 id="observe-night-planner" class="text-2xl">{{ __('Plan a night with the Moon and planets') }}</h2>
+        <p class="mt-3 leading-relaxed">{{ __('Choose a date and approximate location for altitude charts, darkness and observing windows, with the calculation limits explained.') }}</p>
+        <a class="mt-4 inline-block underline" href="{{ route('observe.night') }}">{{ __('Plan a night') }} →</a>
+    </section>
     <section class="mt-8" aria-labelledby="observe-events">
         <h2 id="observe-events" class="text-2xl">{{ __('Follow astronomical events') }}</h2>
         <p class="mt-3 leading-relaxed">{{ __('Earth close approaches describe how near objects pass. Proximity alone does not tell you whether an object is bright enough to see.') }}</p>

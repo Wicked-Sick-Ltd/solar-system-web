@@ -41,7 +41,11 @@ final class SetResponseHeaders
         // Shared caches must select the anonymous representation before lookup,
         // and account pages must not remain in the browser cache after logout.
         $response->setVary('Cookie', false);
-        if ($request->user() !== null || $request->cookies->count() > 0 || $request->headers->has('Authorization')) {
+        if ($request->is('observe/night')) {
+            // Include validation, throttle and exception responses for this private form.
+            $response->headers->set('Cache-Control', 'private, no-store');
+            $response->headers->set('Referrer-Policy', 'no-referrer');
+        } elseif ($request->user() !== null || $request->cookies->count() > 0 || $request->headers->has('Authorization')) {
             $response->headers->set('Cache-Control', 'private, no-store');
         } else {
             $this->makeCacheable($request, $response);
