@@ -29,6 +29,7 @@ import argparse
 import datetime as dt
 import json
 import math
+import os
 import shutil
 import subprocess
 import sys
@@ -36,11 +37,15 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-DEFAULT_API = "https://api.sol.wickedsick.com/api/v1"
+DEFAULT_API = os.environ.get("API_BASE_URL", "https://api.sol.wickedsick.com/api/v1")
+# The public site the sheet points readers at. Follows APP_URL so the printed
+# hostname tracks the canonical one without editing the template.
+DEFAULT_SITE = os.environ.get("SITE_URL") or os.environ.get("APP_URL") \
+    or "https://publicuniverse.net"
 J2000_JD = 2451545.0
 AU_KM = 149_597_870.7
 HTTP_TIMEOUT = 30
-USER_AGENT = "solar-handout-generator/1.0 (+https://sol.wickedsick.com)"
+USER_AGENT = "solar-handout-generator/1.0 (+{site})"
 
 PLANETS = ("mercury", "venus", "earth", "mars",
            "jupiter", "saturn", "uranus", "neptune")
@@ -71,7 +76,7 @@ COLOUR = {"mercury": "#8c8378", "venus": "#c8922f", "earth": "#2f6f8f",
 # --------------------------------------------------------------------------
 
 def fetch_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT.format(site=DEFAULT_SITE),
                                                "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
@@ -336,7 +341,8 @@ def moons_page_values(counts: dict) -> dict:
 
 def build_html(template: str, stats: dict, panels: list[str],
                when: dt.datetime, api_base: str,
-               moons: dict | None = None) -> str:
+               moons: dict | None = None,
+               site_url: str = DEFAULT_SITE) -> str:
     start, end = "<!--PAGE3_START-->", "<!--PAGE3_END-->"
     if moons is None:
         head, _, rest = template.partition(start)
@@ -351,6 +357,7 @@ def build_html(template: str, stats: dict, panels: list[str],
     values["PANELS"] = grid
     values["DATE_HUMAN"] = f"{day}, {when:%H:%M} UTC"
     values["API_HOST"] = api_base.split("//", 1)[-1].split("/", 1)[0]
+    values["SITE_HOST"] = site_url.split("//", 1)[-1].split("/", 1)[0]
     values["N_PAGES"] = "3" if moons else "2"
     if moons:
         values.update(moons_page_values(moons))
@@ -358,7 +365,8 @@ def build_html(template: str, stats: dict, panels: list[str],
     for key, value in values.items():
         template = template.replace("{{" + key + "}}", value)
 
-    leftover = [t for t in ("{{PANELS}}", "{{DATE_HUMAN}}") if t in template]
+    leftover = [t for t in ("{{PANELS}}", "{{DATE_HUMAN}}", "{{SITE_HOST}}")
+                if t in template]
     if leftover:
         raise SystemExit(f"template placeholders left unfilled: {leftover}")
     return template
@@ -407,6 +415,9 @@ def main() -> None:
         description="Build the two-page A4 Solar handout as a PDF.")
     parser.add_argument("--api-base", default=DEFAULT_API,
                         help=f"REST API root (default: {DEFAULT_API})")
+    parser.add_argument("--site-url", default=DEFAULT_SITE,
+                        help="public site URL printed on the sheet "
+                             f"(default: $SITE_URL / $APP_URL, else {DEFAULT_SITE})")
     parser.add_argument("--date", default=None,
                         help="UTC instant for the planet positions, ISO 8601 "
                              "(default: now, rounded down to the hour)")
@@ -457,7 +468,8 @@ def main() -> None:
               f"{sum(MOONS_1991.values())} known in 1991", file=sys.stderr)
 
     html_path.write_text(
-        build_html(template, stats, panels, when, api_base, moons),
+        build_html(template, stats, panels, when, api_base, moons,
+                   site_url=args.site_url.rstrip("/")),
         encoding="utf-8")
 
     if args.html_only:

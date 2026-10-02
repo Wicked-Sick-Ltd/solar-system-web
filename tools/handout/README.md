@@ -1,7 +1,8 @@
 # Solar handout
 
-A two-page A4 leave-behind for [sol.wickedsick.com](https://sol.wickedsick.com),
-generated from live data.
+A two-page A4 leave-behind for [publicuniverse.net](https://publicuniverse.net),
+generated from live data. (The classroom handouts on `/educators` are a
+different, hand-designed set — see `config/educators.php`.)
 
 - **Page 1** — what Solar is, the catalogue counts, the free REST API, the MCP
   server and the nightly database download.
@@ -37,6 +38,7 @@ brew install --cask wkhtmltopdf       # macOS
 | `--date 2027-03-20T12:00:00Z` | Positions for a given UTC instant rather than now |
 | `--out path/to/file.pdf` | Where to write the PDF |
 | `--api-base http://127.0.0.1:8003/api/v1` | Build against a local `solar-system-db` |
+| `--site-url https://publicuniverse.net` | Site URL printed on the sheet (default: `$SITE_URL` / `$APP_URL`, else publicuniverse.net) |
 | `--keep-html` | Keep the intermediate HTML beside the PDF |
 | `--html-only` | Write the HTML and stop — no wkhtmltopdf needed |
 | `--wkhtmltopdf /path/to/bin` | Use a wkhtmltopdf that isn't on `PATH` |
