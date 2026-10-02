@@ -185,6 +185,36 @@ main[id], main [id], :focus-visible {
     body:has([data-night-session]) > a[href='#main'] {
         display: none;
     }
-    [data-night-session] svg { break-inside: avoid; }
-    [data-night-session] h2 { break-after: avoid; }
+    body:has([data-night-session]) > main {
+        /* The print dialog supplies page margins; screen padding wastes paper. */
+        padding: 0;
+    }
+    [data-night-session] {
+        --text-base: 11pt;
+        --text-base--line-height: 1.4;
+        --text-sm: 10pt;
+        --text-sm--line-height: 1.4;
+        font-size: 11pt;
+        line-height: 1.4;
+    }
+    [data-night-session] .surface {
+        padding: 3mm;
+        margin-top: 4mm;
+    }
+    /* Keep short explanations together, without keeping an entire target/table
+       on one page. Oversized or expanded blocks may still paginate naturally. */
+    [data-night-session] [data-constraint-coverage],
+    [data-night-session] [aria-labelledby='night-method'],
+    [data-night-session] svg {
+        break-inside: avoid-page;
+    }
+    [data-night-session] h2,
+    [data-night-session] h3,
+    [data-night-session] summary {
+        break-after: avoid-page;
+    }
+    [data-night-session] p {
+        orphans: 3;
+        widows: 3;
+    }
 }
