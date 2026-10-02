@@ -101,10 +101,14 @@ export function mountOptics(root, getEquipment) {
             const amplifier = rows.find(row => row.id === accessory.value) ?? null;
             if (isCamera) data = cameraOptics(selected, rows.find(row => row.id === camera.value) ?? null, amplifier);
             else {
-                const statedField = isBinocular ? inputNumber(get('binocular-field'), 'Binocular true field') : null;
-                if (statedField !== null && statedField > 180) throw new Error('Binocular true field must be no greater than 180 degrees.');
-                data = isBinocular ? binocularOptics(selected, statedField)
+                // Magnification and exit pupil do not depend on a valid field.
+                data = isBinocular ? binocularOptics(selected, null)
                     : telescopeOptics(selected, rows.find(row => row.id === eyepiece.value) ?? null, amplifier);
+                if (isBinocular) {
+                    const statedField = inputNumber(get('binocular-field'), 'Binocular true field');
+                    if (statedField !== null && statedField > 180) throw new Error('Binocular true field must be no greater than 180 degrees.');
+                    if (statedField !== null) data = binocularOptics(selected, statedField);
+                }
             }
             show(data);
             const diameter = inputNumber(get('diameter'), 'Angular diameter');

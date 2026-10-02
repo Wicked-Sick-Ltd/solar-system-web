@@ -85,6 +85,21 @@ test('invalid diameter hides stale preview and correcting it restores the curren
     assert.match(h.elements.comparison.textContent, /larger than/);
     assert.equal(h.elements.diagram.hidden, false);
 });
+test('invalid binocular true field keeps independent magnification and exit pupil', () => {
+    const h = harness();
+    h.select('instrument', 'bino');
+    assert.equal(h.elements.magnification.textContent, '10×');
+    assert.equal(h.elements.pupil.textContent, '5 mm');
+    h.input('binocular-field', '200');
+    assert.equal(h.elements.magnification.textContent, '10×');
+    assert.equal(h.elements.pupil.textContent, '5 mm');
+    assert.match(h.elements.field.textContent, /^Unknown/);
+    assert.match(h.elements.error.textContent, /180/);
+    h.input('binocular-field', '-1');
+    assert.equal(h.elements.magnification.textContent, '10×');
+    assert.equal(h.elements.pupil.textContent, '5 mm');
+    assert.match(h.elements.error.textContent, /positive number/);
+});
 test('tiny angular targets are not enlarged to a minimum visible size', () => {
     const h = harness();
     h.select('instrument', 'scope'); h.select('eyepiece', 'eye'); h.input('diameter', '0.00001');
