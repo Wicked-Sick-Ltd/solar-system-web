@@ -127,9 +127,24 @@ a consolidated automated suite does not retroactively complete that acceptance.
 
 ## Validation
 
-Validation results are recorded in the consolidated PR. Local tools are PHP
+Validation results are recorded in [replacement draft #98](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/98). Local tools are PHP
 8.4.22 and an isolated Node 22.23.3 installation; dependencies use the lockfiles.
 The Windows release-hook suite invokes a Linux shell with Windows paths and
 cannot establish the Linux deployment result locally. The Linux CI and local
 HTTPS rehearsal remain necessary for the combined revision. All tests use
 fixtures or isolated local services; no live customer data is used.
+
+At `ca14452`, Linux CI passed 1,339 PHP tests / 5,556 assertions (the ten
+built-asset performance cases are skipped in that job and pass separately),
+249 JavaScript tests, Pint, PHPStan, deployment ordering, four loopback transport
+checks, release metadata, production assets, fixture budgets, Lighthouse,
+handout PDF generation and the local HTTPS publication rehearsal. Windows passed
+1,343 of 1,349 PHP tests; its four OG renderer failures and two subprocess
+transport timeouts did not reproduce on Linux. The 65 directly affected
+canonical-host/Educators/asteroid/contract cases passed locally.
+
+CodeQL initially flagged two inherited test-only selector helpers as incomplete
+escaping. They now extract the fixed selector prefix/suffix with `slice`, matching
+the journal harness, rather than using chained first-match replacements. Their
+24 focused checks pass; the final revision is checked again by CI. These helpers
+receive selectors from the test modules, not user-controlled product inputs.

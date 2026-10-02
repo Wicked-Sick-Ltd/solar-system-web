@@ -43,7 +43,7 @@ function harness(saved = null) {
         form.reset();
     }
     const enabled = [new Element(), new Element(), new Element()];
-    root.querySelector = selector => elements[selector.replace('[data-workspace-', '').replace(']', '')];
+    root.querySelector = selector => elements[selector.slice('[data-workspace-'.length, -1)];
     root.querySelectorAll = () => enabled;
     root.contains = () => true;
     function action(action, extra = {}) {

@@ -17,7 +17,7 @@ function harness() {
     root.ownerDocument = doc;
     const keys = ['mode', 'camera', 'camera-input', 'pixel', 'camera-diagram', 'sensor-rectangle', 'camera-target', 'camera-description', 'instrument', 'eyepiece', 'accessory', 'binocular-input', 'binocular-field', 'diameter', 'error', 'focal', 'magnification', 'pupil', 'field', 'method', 'diagram', 'comparison', 'field-circle', 'target-circle', 'diagram-description'];
     const elements = Object.fromEntries(keys.map(key => [key, new Element()]));
-    root.querySelector = selector => elements[selector.replace('[data-optics-', '').replace(']', '')];
+    root.querySelector = selector => elements[selector.slice('[data-optics-'.length, -1)];
     let rows = [
         { id: 'scope', name: 'Scope', kind: 'telescope', apertureMm: 200, focalLengthMm: 1000 },
         { id: 'eye', name: 'Eyepiece', kind: 'eyepiece', focalLengthMm: 20, apparentFovDeg: 60, fieldStopMm: null },
