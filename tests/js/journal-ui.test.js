@@ -156,6 +156,20 @@ test('imports require explicit replacement and undo restores the prior journal w
     assert.equal(h.store.values.get(WORKSPACE_KEY), profiles); assert.equal(h.store.values.get(LOCATION_KEY), 'retained location marker');
 });
 
+test('failed imports can retry the same file and a valid retry clears the error', async () => {
+    const h = harness({ journal: documentWithList() });
+    h.elements.import.value = 'backup.json';
+    await chooseFile(h, '{broken');
+    assert.notEqual(h.elements.error.textContent, '');
+    assert.equal(h.elements.import.value, '');
+    h.elements.import.value = 'backup.json';
+    await chooseFile(h, JSON.stringify(emptyJournal()));
+    assert.equal(h.elements.error.textContent, '');
+    assert.equal(h.elements.import.value, '');
+    assert.equal(h.elements['import-preview'].hidden, false);
+    assert.equal(h.store.writes.length, 0);
+});
+
 test('newer file selection, cancel, reload and navigation invalidate pending import reads', async () => {
     for (const action of ['replace', 'cancel', 'reload', 'dispose']) {
         const h = harness({ journal: documentWithList() }), first = deferred();
