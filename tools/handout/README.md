@@ -1,8 +1,9 @@
 # Public Universe handout
 
-A two-page A4 introduction to Public Universe, served at the existing
-[sol.wickedsick.com](https://sol.wickedsick.com) origin until the domain move.
+A two-page A4 introduction to [Public Universe](https://publicuniverse.net).
 The planetary pages remain a solar-system snapshot generated from API data.
+The classroom handouts on `/educators` are a separate, hand-designed set; see
+`config/educators.php`.
 
 - **Page 1** — what Public Universe is, the catalogue counts, the free REST API, the MCP
   server and the nightly database download.
@@ -40,7 +41,7 @@ brew install --cask wkhtmltopdf       # macOS
 | `--out path/to/file.pdf` | Where to write the PDF |
 | `--api-base http://127.0.0.1:8003/api/v1` | Build against a local `solar-system-db`; also controls printed API/MCP/docs links |
 | `--site-name "Public Universe"` | Visitor-facing title and introduction |
-| `--site-url https://sol.wickedsick.com` | Printed website links |
+| `--site-url https://publicuniverse.net` | Printed website links (default: `$SITE_URL` / `$APP_URL`, else publicuniverse.net) |
 | `--download-url https://download.sol.wickedsick.com/latest.json` | Printed catalogue manifest link |
 | `--keep-html` | Keep the intermediate HTML beside the PDF |
 | `--html-only` | Write the HTML and stop — no wkhtmltopdf needed |

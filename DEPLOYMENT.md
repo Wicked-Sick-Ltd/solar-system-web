@@ -28,7 +28,7 @@ sessions. On an existing installation, inspect configuration before editing it.
 | --- | --- |
 | `APP_KEY` | Stable secret, generated once at first installation |
 | `APP_ENV`, `APP_DEBUG` | `production`, `false` |
-| `APP_URL` | Actual public origin; drives mail links, canonical URLs and sitemap |
+| `APP_URL` | Canonical origin (`https://publicuniverse.net`); mail links and SEO use it on every serving hostname |
 | `DB_CONNECTION`, `DB_DATABASE` | Existing account database; absolute path for SQLite |
 | `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` | If using a database server |
 | `API_BASE_URL` | Catalogue REST root, e.g. `https://api.sol.wickedsick.com/api/v1` |
@@ -176,6 +176,85 @@ mail-provider errors and scheduler exit status. A future durable outbox with
 provider idempotency would be required to close that ambiguity. `MAIL_MAILER=log`
 records mail bodies (including approximate locations) rather than sending them;
 restrict log access and retention, and never call that a delivery test.
+
+## Hostnames: canonical and alias
+
+Configure one Forge site with `publicuniverse.net` as its canonical hostname,
+`www.publicuniverse.net` and `sol.wickedsick.com` as aliases, and a valid TLS
+certificate covering all three. Keep the document root at `public/`. The
+hostname policy below supplements the account-safe release procedure above.
+
+The site answers on more than one hostname. **`publicuniverse.net` is
+canonical**; **`sol.wickedsick.com` is an alias that stays live
+indefinitely** — the printed classroom handouts on `/educators` and their QR
+codes carry `sol.wickedsick.com`, and paper does not get redeployed.
+
+What that means in practice:
+
+- **No host redirect.** There is deliberately no middleware or edge rule that
+  301s the alias to the canonical host. A visitor who scans a handout lands on
+  `sol.wickedsick.com` and browses there; every link, asset and Livewire
+  round-trip stays on the host that served the page.
+- **SEO surfaces always name the canonical host.** `<link rel="canonical">`,
+  the Open Graph / Twitter URLs and images, JSON-LD, every `<loc>` in
+  `sitemap.xml` and the `Sitemap:` line in `robots.txt` are rewritten onto
+  `APP_URL` whichever host the request arrived on (`App\Support\Links::canonical()`,
+  used by `Seo`, `SitemapController` and `RobotsController`). Search engines
+  therefore treat the alias as a duplicate of the canonical host rather than a
+  second site. Covered by `tests/Feature/CanonicalHostTest.php`.
+- **Nothing hard-codes a hostname at runtime.** `APP_URL` is the single source
+  of truth (also for the Mailchimp signup tag and the `tools/handout`
+  generator's printed URL). Add a hostname in Forge + Cloudflare and the app
+  needs no change.
+- **`/educators` uses root-relative URLs** for the PDFs and page images, so the
+  same markup works on both hosts.
+
+**Cloudflare (`publicuniverse.net` zone)**
+
+1. DNS: `A`/`AAAA` (or `CNAME`) for the **apex** and **`www`** → the Forge
+   server, both **proxied** (orange cloud).
+2. SSL/TLS → **Full (strict)**; *Always Use HTTPS* on. The origin presents the
+   Let's Encrypt certificate Forge issued for the aliases above.
+3. **Redirect `www` → apex**: a Redirect Rule — *if* hostname equals
+   `www.publicuniverse.net`, *then* dynamic redirect to
+   `concat("https://publicuniverse.net", http.request.uri.path)`, status
+   **301**, *preserve query string* ticked. `www` is the one hostname that
+   *does* redirect — nothing printed points at it.
+4. Cache rule for the cookie-less pages, as in *Headers and edge caching*.
+
+**Cloudflare (`wickedsick.com` zone)** — leave the existing proxied
+`sol.wickedsick.com` record and its *Full (strict)* setting exactly as they
+are. Do **not** add a redirect rule for it.
+
+**If `sol.wickedsick.com` is ever retired** (it should not be): it must
+**301 permanently, path for path, to the same path on `publicuniverse.net`** —
+every path, including `/orrery` (printed on the handouts), `/api`,
+`/educators` and the PDF paths under `/handouts/*.pdf`, with the query string
+preserved — and that redirect must stay in place forever, because the printed
+URLs cannot be recalled. Do it as a Cloudflare Redirect Rule on the
+`wickedsick.com` zone (hostname equals `sol.wickedsick.com` → dynamic
+`concat("https://publicuniverse.net", http.request.uri.path)`, 301, preserve
+query string), *not* in application code, so it keeps working even if the app
+is down or moves host again.
+
+> **Backend dependency:** the API subdomain must be deployed and reachable
+> before launch — the front end is a pure consumer. If it's down the site still
+> renders (degradation panels), but it has no data to show.
+
+## Web server
+
+Point the document root at `public/`. Standard Laravel rewrite to
+`public/index.php`. HTTPS should terminate at the proxy/load balancer; the app
+forces the `https` scheme for generated URLs in production.
+
+## Caching & cache warming
+
+All API responses are cached (see `config/services.php` → `solar.cache`). With a
+real queue driver (Redis), stale entries refresh in the background so the cache
+never goes cold. The `solar:warm-cache` command pre-warms the hot paths and is
+**scheduled** (04:30 + 12:30 daily, see `routes/console.php`) — so as long as
+the Laravel scheduler runs, no cron of your own is needed. Run it by hand any
+time with `php artisan solar:warm-cache`.
 
 ## Headers and edge caching
 

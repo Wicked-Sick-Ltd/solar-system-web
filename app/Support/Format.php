@@ -145,6 +145,16 @@ final class Format
         return number_format($value);
     }
 
+    /** A file size in KB or MB (decimal units, as the download dialogs show), e.g. 1.2 MB. */
+    public static function fileSize(int $bytes): string
+    {
+        if ($bytes >= 1_000_000) {
+            return self::trimZeros(number_format($bytes / 1_000_000, 1)).' MB';
+        }
+
+        return number_format(max(1, (int) round($bytes / 1_000))).' KB';
+    }
+
     /**
      * Scientific notation with a Unicode superscript exponent,
      * e.g. 5.683 × 10²⁶.

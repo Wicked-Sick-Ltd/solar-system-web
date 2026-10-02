@@ -65,7 +65,7 @@ Website branding, website URLs and backend endpoints are configured separately:
 | `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://s3.wickedsick.com/solar-system-db/latest.json` |
 | `CONTACT_EMAIL` | Public contact address | `hello@wickedsick.com` |
 | `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
-| `APP_URL`      | This site's public URL (canonical/OG/sitemap/JSON-LD)| `https://sol.wickedsick.com`             |
+| `APP_URL`      | Canonical public URL (canonical/OG/sitemap/JSON-LD)  | `https://publicuniverse.net`             |
 
 `APP_NAME` also influences default session-cookie and cache names. Keep its
 existing value during a branding-only release and change `SITE_NAME` instead.

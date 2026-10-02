@@ -38,6 +38,7 @@ it('renders every public P0 route', function (string $uri) {
     'meteor showers' => '/meteor-showers',
     'close approaches' => '/close-approaches',
     'about' => '/about',
+    'educators' => '/educators',
     'api' => '/api',
     'privacy' => '/privacy',
 ]);

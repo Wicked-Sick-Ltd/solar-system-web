@@ -27,11 +27,11 @@ class HandoutBrandingTests(unittest.TestCase):
     def render(self, **options):
         return generate.build_html(TEMPLATE, STATS, PANELS, WHEN, generate.DEFAULT_API, **options)
 
-    def test_default_brand_keeps_existing_origins_and_planetary_context(self):
+    def test_default_brand_uses_canonical_site_and_keeps_data_origins(self):
         rendered = self.render()
         self.assertIn("<h1>Public Universe</h1>", rendered)
         self.assertNotIn("<h1>Solar</h1>", rendered)
-        self.assertIn('href="https://sol.wickedsick.com"', rendered)
+        self.assertIn('href="https://publicuniverse.net"', rendered)
         self.assertIn('href="https://api.sol.wickedsick.com/api/v1"', rendered)
         self.assertIn('href="https://api.sol.wickedsick.com/mcp"', rendered)
         self.assertIn('href="https://download.sol.wickedsick.com/latest.json"', rendered)
@@ -48,6 +48,13 @@ class HandoutBrandingTests(unittest.TestCase):
         self.assertIn("1991", rendered)
         self.assertIn("Deuteros", rendered)
         self.assertNotIn("{{", rendered)
+
+    def test_fetch_json_sends_the_canonical_site_in_its_user_agent(self):
+        with patch.object(generate.urllib.request, "urlopen") as request:
+            request.return_value.__enter__.return_value = io.StringIO('{"fixture": true}')
+            self.assertEqual(generate.fetch_json("https://api.example.test/stats"), {"fixture": True})
+        self.assertEqual(request.call_args.args[0].get_header("User-agent"),
+                         "public-universe-handout/1.0 (+https://publicuniverse.net)")
 
     def test_brand_is_escaped_and_origins_are_independent(self):
         rendered = generate.build_html(

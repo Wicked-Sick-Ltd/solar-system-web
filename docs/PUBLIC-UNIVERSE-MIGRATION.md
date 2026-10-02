@@ -1,14 +1,17 @@
 # Public Universe domain migration
 
-Status: preparation only, 1 October 2026. No DNS, infrastructure, mail or live
-service changes are authorized by this development document. Obtain approval
-for the concrete production cutover after completing the rehearsal below.
+Status: reconciled with main PR #97 on 2 October 2026. The website policy is
+`publicuniverse.net` canonical with `sol.wickedsick.com` served indefinitely
+as an alias, without a redirect. See [hostnames](../DEPLOYMENT.md#hostnames-canonical-and-alias).
+API/download hostname moves remain proposals. This document does not authorize
+DNS, infrastructure, mail or live service changes.
 
 ## Names and compatibility
 
 The public name is **Public Universe** (`SITE_NAME`). Keep the repository names,
 API schemas, object IDs, routes and MCP server identifier `solar-system-db`
-compatible. This release changes editorial branding, not service addresses.
+compatible. Website SEO uses the configured canonical origin on both serving hosts;
+API and download service addresses remain independently configured.
 `APP_NAME` is an operational identifier too: changing it can change default
 session-cookie names and cache prefixes. Leave existing values unchanged.
 
@@ -71,8 +74,8 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
   Confirm image content, not only the image URL. No production invalidation or
   CDN configuration has been performed by this development change.
 - The handout template and generator now use Public Universe with escaped,
-  configurable branding and public URLs. Legacy website/API/download origins
-  remain defaults; set the approved values explicitly when generating new
+  configurable branding and public URLs. The website defaults to the canonical `publicuniverse.net` origin; API and
+  download defaults remain unchanged. Set approved overrides when generating new
   material. Eleven offline tests cover generation and malformed-data handling.
   Actual wkhtmltopdf now renders both variants as two/three A4 pages; all five
   pages have been visually reviewed, with link and text-bound checks. This closes
@@ -92,29 +95,25 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
    Set `SITE_NAME` independently. Rebuild Laravel configuration and relevant
    URL-bearing caches, restart long-lived workers, and ensure scheduled mail
    generates links for the new origin. Run only one alert scheduler.
-3. Configure the serving/proxy host explicitly. `APP_URL` alone is not a
-   canonical-host enforcement rule: request-time URL generation can follow
-   the request host. Verify canonical tags, OG URLs, JSON-LD, sitemap entries,
-   robots sitemap URL, redirects and mail links using requests to both hosts.
-4. At the old **website** host, redirect public read-only page paths to the same
-   paths on the new host, preserving valid query parameters. Choose permanent
-   redirects only after rehearsal; avoid home-page catch-all redirects and
-   redirect chains. Preserve existing `/objects/{id}`, `/exoplanets/{id}` and
-   `/systems/{id}` paths; upstream exoplanet renames are a separate ID issue.
-5. Do not blindly redirect old login/logout/Livewire/form POST requests across
-   origins. Their session/CSRF context does not transfer. Provide a deliberate
-   expired-page/reload path or finish an explicit old-origin drain period, then
-   direct visitors to restart on the new website. Test open tabs and in-flight
-   forms. A method-preserving 308 alone does not solve session migration.
-6. Publish the new sitemap and verify ownership/search indexing configuration
-   for both website properties. Use the supported site-move procedure and
-   monitor old/new indexing, errors, redirect loops and request volumes. Keep
-   working old-host redirects for at least a year and preferably indefinitely
-   for durable public object links. See [Google's site-move guidance](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes).
+3. Configure both serving hosts and their TLS certificates. `APP_URL` drives
+   canonical tags, OG URLs, JSON-LD, sitemap entries and the robots sitemap URL
+   through `Links::canonical()`. Navigation, assets and Livewire stay on the
+   serving host. Verify both hosts and mail links after rebuilding URL caches.
+4. Keep `sol.wickedsick.com` serving all existing paths indefinitely, including
+   `/educators` and `/handouts/*.pdf`; printed QR codes depend on it. Do not
+   redirect it to the canonical host. Only `www.publicuniverse.net` redirects
+   to the apex, preserving paths and query strings.
+5. Test login/logout/Livewire/form POSTs and open tabs on both hosts. Cookies
+   and browser storage are origin-specific; canonical SEO does not transfer
+   sessions or settings between them.
+6. Publish the canonical sitemap and monitor indexing, errors and request
+   volumes for both hosts. If the old alias is ever retired under a separate
+   decision, preserve every path with a permanent redirect as documented in
+   [DEPLOYMENT.md](../DEPLOYMENT.md#hostnames-canonical-and-alias).
 
 ## API, MCP and download compatibility
 
-Do not apply the website redirect rule to API or MCP traffic. Existing clients
+Do not introduce redirects for existing API or MCP traffic. Existing clients
 may reject redirects, change methods, lose auth headers or fail streaming.
 Prefer serving both API hostnames through the same compatible backend and
 keeping old MCP endpoints available. Test complete old- and new-host client
