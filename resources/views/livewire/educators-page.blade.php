@@ -3,19 +3,17 @@
         {{ __('Free A4 handouts for teachers, built on the same live NASA/JPL data as the rest of the site. Print them, share them in the staff room, or put them on the board.') }}
     </x-page-header>
 
-    <p class="mb-10 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style="color: var(--muted);">
-        <span class="inline-flex items-center gap-1.5">
-            <svg class="h-4 w-4 shrink-0" style="color: var(--accent);" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/>
-                <path d="m6.5 10.5 2.3 2.3L13.5 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>{{ __('Free, with no adverts.') }}</span>
-        </span>
-        <span aria-hidden="true">·</span>
-        <span>{{ __('Pupils never need an account.') }}</span>
-        <span aria-hidden="true">·</span>
-        <span>{{ __('Location is optional and never needed to browse.') }}</span>
-    </p>
+    <ul class="mb-10 flex flex-wrap gap-x-5 gap-y-1.5 text-sm" style="color: var(--muted);" role="list">
+        @foreach ([__('Free, with no adverts.'), __('Pupils never need an account.'), __('Location is optional and never needed to browse.')] as $reassurance)
+            <li class="inline-flex items-center gap-1.5">
+                <svg class="h-4 w-4 shrink-0" style="color: var(--accent);" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="m6.5 10.5 2.3 2.3L13.5 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>{{ $reassurance }}</span>
+            </li>
+        @endforeach
+    </ul>
 
     @if (count($handouts) === 0)
         <x-empty-state :title="__('No handouts yet')" />
@@ -25,7 +23,7 @@
                 <li id="{{ $handout->id }}" class="surface flex flex-col overflow-hidden">
                     <div class="grid gap-6 p-5 sm:grid-cols-[9rem_1fr] sm:p-6">
                         <a href="{{ $handout->url() }}" download="{{ $handout->filename() }}"
-                           class="block overflow-hidden rounded-lg border"
+                           class="block w-40 self-start overflow-hidden rounded-lg border sm:w-auto"
                            style="border-color: var(--border); background-color: var(--bg-elevated-2);"
                            aria-label="{{ __('Download :title (PDF)', ['title' => $handout->title]) }}">
                             <img src="{{ $handout->thumbnailUrl() }}" width="640" height="905"
