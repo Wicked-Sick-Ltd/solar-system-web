@@ -15,9 +15,12 @@ final class NightSession
      */
     public static function summary(array $plan, array $query): array
     {
-        $targets = array_map(static function (array $target): array {
+        $targets = array_map(static function (array $target) use ($plan): array {
             $out = Arr::only($target, ['id', 'name', 'status']);
             $out['windows'] = array_map(static fn (array $window): array => Arr::only($window, ['start_utc', 'end_utc']), $target['windows']);
+            if (array_key_exists('constraint_coverage', $target)) {
+                $out['constraint_coverage'] = NightConstraintCoverage::validate($target['constraint_coverage'], $plan['constraints'], $plan['darkness'], $target['windows']);
+            }
             if (isset($target['catalogue'])) {
                 $out['catalogue'] = NightCatalogueProvenance::validate($target['catalogue'], $target['id']);
             }
