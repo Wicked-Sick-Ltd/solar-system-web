@@ -13,7 +13,7 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
     const sunLabel = root.querySelector('[data-sun-label]');
     const centreLabel = root.querySelector('[data-centre-label]');
     const events = new AbortController();
-    let renderer, controls, frame, observer;
+    let renderer, controls, frame = null, observer;
     let mode = 'nearby', shown = [], pointCloud, selectedMarker, radius = 25;
     let scene, camera, sun, galaxyOutline;
     let disposed = false;
@@ -21,7 +21,8 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
         if (disposed) return;
         disposed = true;
         events.abort();
-        cancelAnimationFrame(frame);
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null;
         observer?.disconnect();
         controls?.dispose();
         scene?.traverse(object => {
@@ -68,7 +69,7 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
                 camera.position.copy(target).add(new THREE.Vector3(distance, distance * 0.6, distance));
                 controls.update();
             }
-            draw();
+            requestDraw();
         }
 
         picker.addEventListener('change', () => selectHost(picker.value), { signal: events.signal });
@@ -110,7 +111,7 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
         controls.minDistance = 0.1;
         controls.maxDistance = 100000;
         controls.listenToKeyEvents(renderer.domElement);
-        controls.addEventListener('change', draw);
+        controls.addEventListener('change', requestDraw);
         sun = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3()]), new THREE.PointsMaterial({ color: '#ffd58b', size: 11, sizeAttenuation: false, depthTest: false }));
         sun.renderOrder = 2;
         scene.add(sun);
@@ -128,7 +129,14 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
             element.style.left = `${(projected.x + 1) * viewport.clientWidth / 2 + 9}px`;
             element.style.top = `${(-projected.y + 1) * viewport.clientHeight / 2 - 8}px`;
         }
+        // Controls, selection, rebuild and resize can all change before paint.
+        // Keep one on-demand frame and draw the latest state, never an idle loop.
+        function requestDraw() {
+            if (disposed || frame !== null) return;
+            frame = requestAnimationFrame(draw);
+        }
         function draw() {
+            frame = null;
             if (disposed || !renderer || !camera) return;
             renderer.render(scene, camera);
             label(sunLabel, sun.position);
@@ -140,7 +148,7 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
             const size = mode === 'galaxy' ? 24000 : radius * 2;
             camera.position.copy(controls.target).add(new THREE.Vector3(size * 0.5, size * 0.65, size));
             controls.update();
-            draw();
+            requestDraw();
         }
         function rebuild() {
             mode = modeControl.value;
@@ -166,7 +174,7 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
             if (!['+', '=', '-'].includes(event.key)) return;
             event.preventDefault();
             camera.position.sub(controls.target).multiplyScalar(event.key === '-' ? 1.2 : 1 / 1.2).add(controls.target);
-            controls.update(); draw();
+            controls.update(); requestDraw();
         }, { signal: events.signal });
         let pointerStart;
         renderer.domElement.addEventListener('pointerdown', event => { pointerStart = [event.clientX, event.clientY]; }, { signal: events.signal });
@@ -178,6 +186,9 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
             const mouse = new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1);
             const ray = new THREE.Raycaster();
             ray.params.Points.threshold = camera.position.distanceTo(controls.target) * 0.009;
+            // A camera change may be waiting for its coalesced paint. Picking
+            // still needs the latest world transform immediately.
+            camera.updateMatrixWorld();
             ray.setFromCamera(mouse, camera);
             const hit = ray.intersectObject(pointCloud)[0];
             if (hit && shown[hit.index]) selectHost(shown[hit.index].id, false);
@@ -188,7 +199,7 @@ export function mountGalaxy(root, hosts, { focusOnReady = false } = {}) {
             camera.aspect = viewport.clientWidth / viewport.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(viewport.clientWidth, viewport.clientHeight);
-            cancelAnimationFrame(frame); frame = requestAnimationFrame(draw);
+            requestDraw();
         });
         observer.observe(viewport);
         rebuild();
