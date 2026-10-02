@@ -6,8 +6,9 @@ The existing `version.txt` remains `0.0.0`, the bootstrap sentinel. The unpublis
 is no invented 1.1.0 release or retroactive history. It uses the existing exact
 `title`, `summary`, `sections` schema and deliberately says it is a review draft.
 
-The draft is broader than the code in this documentation branch, which starts
-at `e39df13` (web #77). It is an editorial proposal for a combined release, not
+The original draft started at `e39df13` (web #77); this review packet is updated
+against `1b14b81` and published topics through #86. The draft remains broader
+than the code in this documentation branch. It is an editorial proposal for a combined release, not
 an assertion that checking out this branch enables all described features.
 Keep a proposed feature out of final publication if its reviewed implementation
 and required acceptance are not in the selected release revision.
@@ -25,11 +26,15 @@ separates implementation from acceptance.
 | [#75](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/75) | Explain source coordinate frames, epochs and motion | Backend [#36](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/36); unsupported records stay browsable without a calculation promise. |
 | [#76](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/76) | Explicit preview/consent for account upload, restore and removal | #74, guest workspace v2 and journal v1; login alone transfers nothing. Local two-key replacement has documented non-atomic race limits. |
 | [#77](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/77) | Selected observing hours and explicit saved-site terrain | Backend [#37](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/37), compatible planner and saved horizon schema; browser-selected site is copied only on request. |
-| [#78](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/78) | Separate optional hourly forecast | Explicit private request and provider coverage; no overall viewing score. Combined planner/weather browser acceptance remains to be recorded. |
+| [#78](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/78) | Separate optional hourly forecast | Explicit private request and provider coverage; no overall viewing score. Combined matching-hour and outside-coverage browser checks are recorded in the observing QA log. |
 | [#79](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/79) | Catalogue-aware caching and API/download identity comparison | Backend [#40](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/40); legacy identity unknown is supported. Existing long-lived CDN entries need expiry or a separately approved purge during rollout. |
 | [#80](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/80) | Keep live search titles and map-loading guidance current | Focused desktop Chrome acceptance passed; automated detached-title and map retry/disposal regressions. |
 | [#81](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/81), C3/N6 frontend integration | Mixed solar/star/deep-sky plans, source/model metadata, session JSON/CSV/print and journal links | Backend [#39](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/39); independent consumer/export review and selected Chrome checks completed, combined branch acceptance still required. |
-| N4 equipment comparisons, forthcoming review checkpoint | Saved/temporary eyepiece comparison and sourced appearance context | Existing optics/workspace plus optional backend appearance metadata; independent 15 JS tests and one PHP test/14 assertions passed. Combined mounting and browser acceptance remain. Replace this row with the actual PR after it exists. |
+| [#83](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/83) | Saved/temporary eyepiece comparison and sourced appearance context | Integrated desktop/mobile and saved-workspace browser checks pass. This compares equipment for already chosen targets; automatic candidate selection is still incomplete. |
+| [#84](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/84) | Repeatable route and asset workload budgets | Fixed fixtures and local kernel measurements, not public latency; final combined baseline and actual map/device evidence remain separate. |
+| [#85](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/85) | Correct observations, rename lists and recover original unreadable storage | Preserves historical identity/setup. Chrome correction/error/undo/reload passes; recovery files are explicitly unredacted. |
+| [#86](https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/86) | Exoplanet exports retain optional identity associated with their page rows | Backend [#42](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/42); older responses remain unassociated. Not a multi-page snapshot guarantee; actual combined browser export still pending. |
+| Scientific followthrough `1b14b81` | Preserve reported algorithm-source identity and explain older omissions | Backend retained-fixture replay requires compatible source/runtime/kernel/IERS identities; no executable session import or hosted archive is implied. |
 
 Backend [#38](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/38) improves
 measured query workloads without changing response hashes. Do not turn its
@@ -52,7 +57,7 @@ edit the JSON source rather than maintaining a second divergent announcement.
 The eventual community destination has not been selected or authorized here.
 
 Before any publication, an editor must select the actual integrated scope,
-replace the explicit forthcoming references and revise the draft-only section.
+recheck topic dependencies and revise the draft-only section.
 Recheck source attribution, scientific limitations and privacy wording against
 that exact code and backend. Confirm every claimed browser flow and record
 remaining device limitations. Then follow [the existing release workflow](releases.md)

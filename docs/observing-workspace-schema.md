@@ -43,22 +43,27 @@ V2 sites retain `id`, `name`, rounded `latitude`/`longitude`, canonical IANA
 Azimuths are 0–360 degrees clockwise from north; 360 canonicalizes to 0 before
 sorting and duplicate detection. Altitudes are −90–90 degrees, allowing a
 user-measured depressed horizon. A value of 90 represents an obstruction up to
-the zenith; it is never silently reduced to the planner's existing 85° bound.
+the zenith; it is never silently reduced to a lower altitude.
 
 Values between points use linear circular interpolation, including the segment
 across north. Two points are valid but coarse; an interval with few measurements
 can miss obstacles. All masks are user-entered, not a terrain database or a
-survey claimed by this application. A future consumer can call
-`minimumAltitudeAt(site, azimuth)` to take the maximum of the independent
+survey claimed by this application. The local geometry helper
+`minimumAltitudeAt(site, azimuth)` takes the maximum of the independent
 baseline and interpolated mask. Its `horizonKnown` flag distinguishes a missing
 mask from an entered zero-degree horizon.
 
-These masks, timezone and baseline preferences are not yet applied by the
-existing sky or night-planning endpoints. Integration must explicitly resolve
-the older night-planner's 0–85° input range; it must not clamp stored 85–90°
-preferences silently. Choosing Use still transfers only rounded coordinates
-into the existing `observer_location` setting. Horizon/site records never leave
-the browser without a later explicit opt-in feature.
+The night planner accepts the full 0–90° baseline. Its explicit Copy this site
+into the form action copies rounded coordinates, timezone, baseline and terrain;
+submitting that form sends those inputs for the selected calculation. It neither
+activates the site nor saves the edited form back to the profile. Choosing Use in
+the workspace still transfers only rounded coordinates into the independent
+`observer_location` setting; the object sky panel does not apply a site mask.
+
+Signing in does not upload site records. An explicit account-backup transfer can
+include the whole workspace, including sites; exported files can also include
+private names and locations. See [private synchronization](observing-sync.md)
+for consent, encryption, deletion and browser replacement limits.
 
 ## Camera angular geometry
 

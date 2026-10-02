@@ -38,7 +38,10 @@ keyboard. A browser-saved site can explicitly copy coordinates, timezone,
 baseline and horizon into the form, without activating or changing its profile.
 Manual fields work without JavaScript. Blank terrain remains unknown; Moon
 interference uses its geometric altitude above zero, independent of that mask.
-Equipment suggestions and optional weather remain tracked follow-ups.
+The result integrates [local equipment comparison](observing-equipment-suggestions.md)
+and a separate [optional weather request](night-weather.md). Equipment selection
+does not change the geometric target list or upload profiles. Weather opens in a
+new tab so the private POST result and temporary equipment remain available.
 
 ## Validation fixture
 
@@ -93,3 +96,13 @@ inputs, source snapshots, ephemeris/IERS data and compatible software/timezone
 rules. The live API is not an immutable archive; no global catalogue identity was
 attached atomically to this night calculation. Per-target snapshots remain useful
 without making that stronger claim.
+
+
+Newer responses optionally include `method.calculation`: bounded public source
+file names, an algorithm-source hash and Python/NumPy versions. The consumer
+validates and preserves it in session JSON; older responses display that it was
+not reported. This is distinct from provider/kernel/IERS and per-target source
+identities, not an executed-code signature. Backend `docs/OBSERVING-REPLAY.md`
+describes retained builtin/JPL fixture checks requiring matching identities and
+compatible private inputs. A redacted session summary is not enough to replay a
+calculation, and a hash does not retrieve missing software or ephemeris files.
