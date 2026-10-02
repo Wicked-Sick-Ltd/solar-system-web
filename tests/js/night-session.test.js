@@ -69,3 +69,13 @@ test('download and print require explicit actions and reset location consent on 
     handlers.get('print:click')(); assert.deepEqual(printed, [false]);
     mounted.dispose(); assert.equal(locationHidden, true); assert.equal(nodes.locations.checked, false); assert.equal(handlers.size, 0);
 });
+
+test('optional refined coverage survives location-redacted JSON without becoming a whole-night or permanent claim', () => {
+    const original = sample();
+    original.targets[0].constraint_coverage = { scope: 'selected_interval', start_utc: '2026-10-01T20:00:00Z', end_utc: '2026-10-02T04:00:00Z', altitude: 'always_satisfied', darkness: 'unresolved' };
+    const out = JSON.parse(sessionExport(original));
+    assert.deepEqual(out.targets[0].constraint_coverage, original.targets[0].constraint_coverage);
+    assert.equal(Object.hasOwn(out.targets[1], 'constraint_coverage'), false);
+    assert.equal(Object.hasOwn(out.input, 'lat'), false);
+    assert.match(sessionCsv(original), /companion JSON/);
+});

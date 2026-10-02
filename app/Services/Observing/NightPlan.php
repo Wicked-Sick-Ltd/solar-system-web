@@ -83,6 +83,7 @@ final class NightPlan
         self::require(is_array($data['targets'] ?? null) && array_is_list($data['targets']));
         self::require(count($data['targets']) === count(explode(',', $request['targets'])));
         $ids = [];
+        $darknessCoverage = null;
         foreach ($data['targets'] as $target) {
             self::require(is_array($target));
             self::require(NightTargets::isSupportedId($target['id'] ?? null));
@@ -96,6 +97,11 @@ final class NightPlan
             self::require(in_array($target['status'] ?? null, ['unresolved_grazing', 'windows_found', 'no_matching_window'], true));
             self::windows($target['windows'] ?? null, $windowA, $windowB);
             self::status($target['status'], $target['windows'], 'windows_found', 'no_matching_window');
+            if (array_key_exists('constraint_coverage', $target)) {
+                $coverage = NightConstraintCoverage::validate($target['constraint_coverage'], $data['constraints'], $data['darkness'], $target['windows']);
+                self::require($darknessCoverage === null || $coverage['darkness'] === $darknessCoverage);
+                $darknessCoverage = $coverage['darkness'];
+            }
             self::samples($target['samples'] ?? null, $start, $end, $method['sample_minutes'], $target['id']);
             foreach ($target['samples'] as $sample) {
                 self::require(array_key_exists('horizon_altitude_deg', $sample));
