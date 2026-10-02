@@ -120,3 +120,33 @@ iframe checks above establish narrow-layout behavior. Physical
 touch, screen-reader interaction and device/GPU performance are not established
 by these checks. Native import remains separately pending the browser's file
 permission boundary; no permission was changed or bypassed here.
+
+## User-assisted native file import
+
+The user selected the unchanged synthetic `tests/fixtures/observing/workspace-v2.json`
+(copied to Downloads as `public-universe-import-test.json`) through the native
+file picker on `http://127.0.0.1:18026/observatory`, then completed confirmation
+before the agent inspected the preview. The workspace was visibly empty before
+this operation. No extension permissions or browser security settings changed.
+
+Native page inspection showed all six equipment records with their expected
+specifications, plus Example London site (51.51, −0.13, Europe/London, 20°
+minimum altitude and four horizon points). A full page reload preserved those
+records and specifications. The imported site remained available to activate
+explicitly; this check did not activate it.
+
+This establishes successful native v2 workspace import and persistence. The
+transient preview and confirmation text were not observed by the agent during
+this manually completed attempt, and export roundtrip remains a separate check.
+Journal import and older-version migration are not established by this result.
+
+Fixture SHA-256: `576944c372bfd8b9f7767d5935cfbdd938f3d24a4340fb3f8807bfbd7f23908f`.
+
+The user then clicked Export workspace and saved
+`public-universe-workspace-v2.json` to Downloads. The 1107-byte artifact parses
+to a document **exactly equal** to the original v2 fixture: all IDs, six equipment
+specifications, optional nulls, one site's coordinates/timezone/minimum altitude,
+four horizon points and `activeSiteId=null` survive import, reload and export.
+Only serialization formatting may differ. Artifact SHA-256:
+`fbcbe4462ab98c227dcf2442d719e09da9956c6e6c58358f1c3d8d680032e425`. This closes the native
+v2 workspace roundtrip check for these synthetic records.

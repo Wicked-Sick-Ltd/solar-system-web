@@ -81,3 +81,22 @@ each time. Whole-child peak RSS was 33,898,496, 31,801,344 and 33,898,496 bytes 
 Python 3.12.14 / macOS arm64. Elapsed time excludes copying/imports; peak RSS
 includes imports. OS caches were warm. These runs establish a retained-fixture
 baseline only; full-catalogue cost and production throughput remain unmeasured.
+
+## User-assisted exoplanet JSON download recovery
+
+On the combined `1483d12` checkout (runtime unchanged from `c36de8a`), the user
+clicked Download page as JSON at `http://127.0.0.1:18026/exoplanets`, against
+local backend `18010`, and saved `exoplanets-page-1.json` to Downloads. This
+manually completed browser journey succeeded without changing any browser
+security settings. It supersedes the earlier blocked native-attachment attempt
+for this JSON journey only; CSV has not been retested here.
+
+The 36,953-byte artifact parses as `public-universe.exoplanets.page.v1`. Its
+11 unique results match the unfiltered local page count; names/hosts agree with
+the retained source fields, and null uncertainty fields remain null. Metadata
+reports `same-read-transaction` association and a known catalogue ID identical
+to `snapshot_id`, scoped to the downloaded page. This is the 11-row local fixture,
+not evidence for a complete live catalogue or cross-page snapshot.
+
+Export serialization time: `2026-10-02T12:55:06+00:00`. Artifact SHA-256:
+`dba7219f83e569015aec3f647f9c24c546ab1d34e10cd8876623c9a9d986b23d`.

@@ -52,3 +52,42 @@ The current JSON retention/redaction tests pass; earlier inspected native
 downloads remain scoped to their recorded revisions. These timeouts are separate
 from the previously reported file-import permission and exoplanet attachment
 restrictions; no restriction was changed or bypassed.
+
+## User-assisted print recovery
+
+The user brought the existing `18026/observe/night` tab forward and reported an
+open print preview, then saved `Plan a night · Public Universe.pdf` to Downloads.
+The 59,163-byte, three-page A4 Chrome/Skia PDF was extracted with Poppler and all
+three rendered pages were visually inspected. Its content matches the retained
+Sirius (`bsc5p:hr2491`) case: 24 October, UTC 20:00–21:00, altitude unsatisfied,
+darkness satisfied, terrain unknown. The live page still has the location/terrain
+opt-in unchecked. This recovers the earlier preview's artifact; it does not
+claim a fresh calculation or a supplied-terrain print check.
+
+The target curve, minimum-altitude line, selected-interval shading, constraint
+explanations and scientific limits are readable. Printed text omits the test
+coordinates 51.5 / −0.12; date and Europe/London timezone remain, as disclosed.
+The weather note spills onto an otherwise empty third page, leaving pagination
+polish outstanding. Collapsed source/sample/identity disclosures remain collapsed
+in this artifact. No hardware print job was sent.
+
+Artifact SHA-256: `8e51513e1cb85f28357440d0f987b7d4794693aa8b3f44466566b3ceff3d646a`.
+Saving the PDF restored normal tab inspection. A following automation click for
+session JSON timed out again; its browser download has not yet been certified.
+
+## User-assisted session JSON recovery
+
+The user clicked Download session JSON on the same retained Sirius result and
+saved `public-universe-night-2026-10-24.json` to Downloads. The artifact is 8,842
+bytes, SHA-256 `0fc47bb8ff16d56ab5f9e2a80ac778c4450c0bc1318bded00f29191c750bc9a8`. JSON parsing and explicit
+content assertions passed: `location_included=false`, `inputs_complete=false`,
+no observer coordinates or terrain fields in inputs/constraints, the 25-hour
+night and selected UTC interval, no combined windows, and refined independent
+coverage (`altitude=never_satisfied`, `darkness=always_satisfied`). JPL kernel
+checksum, IERS snapshot, calculation-source identity and target source provenance
+are retained. Stellar RA/Dec are catalogue data, not observer-location leakage.
+
+This verifies the native default session JSON download for the retained
+`2026-10-02T07:40:57Z` calculation. It does not establish the opt-in terrain case
+or CSV output. Browser automation's click timeout was not a download defect in
+this manually completed journey.
