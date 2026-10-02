@@ -1,0 +1,82 @@
+{
+    "home": {
+        "cold_calls": 3,
+        "warm_calls": 0,
+        "upstream_bytes": 1000,
+        "response_bytes": 55000,
+        "gzip_bytes": 12000,
+        "dom_elements": 330
+    },
+    "saturn": {
+        "cold_calls": 7,
+        "warm_calls": 0,
+        "upstream_bytes": 4000,
+        "response_bytes": 100000,
+        "gzip_bytes": 18000,
+        "dom_elements": 550
+    },
+    "search": {
+        "cold_calls": 3,
+        "warm_calls": 0,
+        "upstream_bytes": 12000,
+        "response_bytes": 75000,
+        "gzip_bytes": 14000,
+        "dom_elements": 420
+    },
+    "exoplanets_page": {
+        "cold_calls": 2,
+        "warm_calls": 0,
+        "upstream_bytes": 12000,
+        "response_bytes": 60000,
+        "gzip_bytes": 14000,
+        "dom_elements": 480
+    },
+    "systems_5000": {
+        "cold_calls": 2,
+        "warm_calls": 0,
+        "upstream_bytes": 4000000,
+        "response_bytes": 80000,
+        "gzip_bytes": 16000,
+        "dom_elements": 750
+    },
+    "galaxy_5000": {
+        "cold_calls": 2,
+        "warm_calls": 0,
+        "upstream_bytes": 4000000,
+        "response_bytes": 45000,
+        "gzip_bytes": 10000,
+        "dom_elements": 350
+    },
+    "galaxy_data_5000": {
+        "cold_calls": 2,
+        "warm_calls": 0,
+        "upstream_bytes": 4000000,
+        "response_bytes": 4000000,
+        "gzip_bytes": 150000,
+        "dom_elements": 0
+    },
+    "orrery": {
+        "cold_calls": 12,
+        "warm_calls": 0,
+        "upstream_bytes": 2500,
+        "response_bytes": 50000,
+        "gzip_bytes": 12000,
+        "dom_elements": 340
+    },
+    "night_form": {
+        "cold_calls": 0,
+        "warm_calls": 0,
+        "upstream_bytes": 0,
+        "response_bytes": 65000,
+        "gzip_bytes": 16000,
+        "dom_elements": 450
+    },
+    "night_eight": {
+        "cold_calls": 1,
+        "warm_calls": 1,
+        "upstream_bytes": 1100000,
+        "response_bytes": 1100000,
+        "gzip_bytes": 130000,
+        "dom_elements": 30000
+    }
+}

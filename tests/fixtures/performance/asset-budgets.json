@@ -1,0 +1,34 @@
+{
+    "livewire_runtime": {
+        "bytes": 310000,
+        "gzip_bytes": 100000
+    },
+    "resources/css/app.css": {
+        "bytes": 45000,
+        "gzip_bytes": 10000
+    },
+    "resources/js/galaxy.js": {
+        "bytes": 20000,
+        "gzip_bytes": 6000
+    },
+    "resources/js/galaxy-renderer.js": {
+        "bytes": 650000,
+        "gzip_bytes": 170000
+    },
+    "resources/js/observing/workspace.js": {
+        "bytes": 35000,
+        "gzip_bytes": 13000
+    },
+    "resources/js/observing/journal.js": {
+        "bytes": 30000,
+        "gzip_bytes": 11000
+    },
+    "resources/js/observing/sync.js": {
+        "bytes": 30000,
+        "gzip_bytes": 11000
+    },
+    "resources/js/observing/night.js": {
+        "bytes": 32000,
+        "gzip_bytes": 12000
+    }
+}

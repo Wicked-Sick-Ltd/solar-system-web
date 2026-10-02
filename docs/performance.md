@@ -92,3 +92,10 @@ backend sky lookup that avoids loading full object detail for every time sample.
 Do not add planner time sampling by repeating today's full sky HTTP lookup for
 every object and timestamp. Record cold, warm and stale behavior separately,
 with fixed catalogue identity and bounded synthetic load.
+
+## Reproducible route and asset budgets
+
+The [built-asset and request-kernel workload](performance-budgets.md) extends
+this historical baseline with deterministic catalogue/map/planner fixtures,
+response/DOM sizes, timing and PHP-memory samples, and structural CI gates.
+It keeps browser/GPU and field Core Web Vitals acceptance separate.

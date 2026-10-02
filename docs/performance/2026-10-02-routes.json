@@ -1,0 +1,1951 @@
+{
+    "schema_version": 1,
+    "measurement": "Laravel test request-kernel with deterministic HTTP fakes; warm OS and framework process; no browser, sockets or backend computation in route timings.",
+    "source_head": "b8e9a1d59e6f74db0c6a87f30c411cf3f2beb04e",
+    "source_dirty": false,
+    "composer_lock_sha256": "a0da3f6c7792c4d9b2823a7bf982e020e560eb5c6803fb33ed264db47760b846",
+    "package_lock_sha256": "358a9bc22bd2d8bbae7a4dbf4a7f175857fb48af9f3c9a8d40de62b898cdf8e5",
+    "fixture_helpers_sha256": "372374b0be5a2f0b0f2828ed0c04226dfe765b02f9a9fa1c08a4d93dbafd61ad",
+    "machine_label": "Apple M3 Max, 64 GiB RAM; local macOS; warm OS cache",
+    "php_version": "8.4.23",
+    "os": "Darwin",
+    "architecture": "arm64",
+    "workload_sha256": "0a42066084bd1626db44ea4aa610dd93f4f628118ec335c99b229a58679a8c1a",
+    "night_fixture_sha256": "f86206fb787284b8fbe9f962d6bfabfd6ed13141e50b36714dd3bbcf9485924c",
+    "routes": {
+        "home": {
+            "method": "GET",
+            "path": "/",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 42.906,
+                        "php_peak_used_bytes": 42003504,
+                        "php_peak_increment_bytes": 5929064,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 734,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6948,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 6.114,
+                        "php_peak_used_bytes": 42878096,
+                        "php_peak_increment_bytes": 368344,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 734,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6948,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 6.142,
+                        "php_peak_used_bytes": 42881408,
+                        "php_peak_increment_bytes": 368344,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 734,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6951,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 6.011,
+                        "php_peak_used_bytes": 42884880,
+                        "php_peak_increment_bytes": 368504,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 734,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6947,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 6.716,
+                        "php_peak_used_bytes": 42888512,
+                        "php_peak_increment_bytes": 368504,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 734,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6950,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 6.272,
+                        "php_peak_used_bytes": 42892144,
+                        "php_peak_increment_bytes": 368344,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 734,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6948,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 6.238,
+                        "php_peak_used_bytes": 42895456,
+                        "php_peak_increment_bytes": 368344,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 734,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6948,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 4.872,
+                        "php_peak_used_bytes": 42826256,
+                        "php_peak_increment_bytes": 358904,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6946,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.891,
+                        "php_peak_used_bytes": 42879752,
+                        "php_peak_increment_bytes": 342928,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6948,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.641,
+                        "php_peak_used_bytes": 42883064,
+                        "php_peak_increment_bytes": 342928,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6945,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.816,
+                        "php_peak_used_bytes": 42886696,
+                        "php_peak_increment_bytes": 343088,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6948,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.209,
+                        "php_peak_used_bytes": 42890488,
+                        "php_peak_increment_bytes": 342928,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6947,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.277,
+                        "php_peak_used_bytes": 42893800,
+                        "php_peak_increment_bytes": 342928,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6945,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.346,
+                        "php_peak_used_bytes": 42897112,
+                        "php_peak_increment_bytes": 342928,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 37402,
+                        "response_gzip_bytes": 6950,
+                        "dom_elements": 255,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "saturn": {
+            "method": "GET",
+            "path": "/objects/planet-saturn",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 24.699,
+                        "php_peak_used_bytes": 46161544,
+                        "php_peak_increment_bytes": 1834440,
+                        "upstream_calls": 7,
+                        "upstream_body_bytes": 2965,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12102,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 18.018,
+                        "php_peak_used_bytes": 46485704,
+                        "php_peak_increment_bytes": 1555944,
+                        "upstream_calls": 7,
+                        "upstream_body_bytes": 2965,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12098,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 16.142,
+                        "php_peak_used_bytes": 46489080,
+                        "php_peak_increment_bytes": 1555944,
+                        "upstream_calls": 7,
+                        "upstream_body_bytes": 2965,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12102,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 15.332,
+                        "php_peak_used_bytes": 46492616,
+                        "php_peak_increment_bytes": 1556104,
+                        "upstream_calls": 7,
+                        "upstream_body_bytes": 2965,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12102,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 15.075,
+                        "php_peak_used_bytes": 46561688,
+                        "php_peak_increment_bytes": 1555944,
+                        "upstream_calls": 7,
+                        "upstream_body_bytes": 2965,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12108,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 15.266,
+                        "php_peak_used_bytes": 46565544,
+                        "php_peak_increment_bytes": 1555944,
+                        "upstream_calls": 7,
+                        "upstream_body_bytes": 2965,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12103,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 13.928,
+                        "php_peak_used_bytes": 46568920,
+                        "php_peak_increment_bytes": 1555944,
+                        "upstream_calls": 7,
+                        "upstream_body_bytes": 2965,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12105,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 15.342,
+                        "php_peak_used_bytes": 46483384,
+                        "php_peak_increment_bytes": 1487344,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12103,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 15.443,
+                        "php_peak_used_bytes": 46487352,
+                        "php_peak_increment_bytes": 1487344,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12102,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 13.552,
+                        "php_peak_used_bytes": 46490728,
+                        "php_peak_increment_bytes": 1487344,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12101,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 13.378,
+                        "php_peak_used_bytes": 46559960,
+                        "php_peak_increment_bytes": 1487504,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12102,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 12.369,
+                        "php_peak_used_bytes": 46563816,
+                        "php_peak_increment_bytes": 1487344,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12105,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 13.561,
+                        "php_peak_used_bytes": 46567192,
+                        "php_peak_increment_bytes": 1487344,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12103,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 13.911,
+                        "php_peak_used_bytes": 46570568,
+                        "php_peak_increment_bytes": 1487344,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 71565,
+                        "response_gzip_bytes": 12102,
+                        "dom_elements": 413,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "search": {
+            "method": "GET",
+            "path": "/search?q=Saturn",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 10.883,
+                        "php_peak_used_bytes": 45497704,
+                        "php_peak_increment_bytes": 683296,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 10150,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6767,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 8.776,
+                        "php_peak_used_bytes": 45546808,
+                        "php_peak_increment_bytes": 472928,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 10150,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6767,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 8.481,
+                        "php_peak_used_bytes": 45550120,
+                        "php_peak_increment_bytes": 472928,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 10150,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6764,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.366,
+                        "php_peak_used_bytes": 45553592,
+                        "php_peak_increment_bytes": 473088,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 10150,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6765,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.199,
+                        "php_peak_used_bytes": 45557224,
+                        "php_peak_increment_bytes": 473088,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 10150,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6767,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.287,
+                        "php_peak_used_bytes": 45560856,
+                        "php_peak_increment_bytes": 472928,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 10150,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6764,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 8.219,
+                        "php_peak_used_bytes": 45564168,
+                        "php_peak_increment_bytes": 472928,
+                        "upstream_calls": 3,
+                        "upstream_body_bytes": 10150,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6767,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 8.067,
+                        "php_peak_used_bytes": 45544520,
+                        "php_peak_increment_bytes": 387096,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6767,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.969,
+                        "php_peak_used_bytes": 45548464,
+                        "php_peak_increment_bytes": 387096,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6766,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.937,
+                        "php_peak_used_bytes": 45551776,
+                        "php_peak_increment_bytes": 387096,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6768,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.821,
+                        "php_peak_used_bytes": 45555408,
+                        "php_peak_increment_bytes": 387256,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6767,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 8.49,
+                        "php_peak_used_bytes": 45559200,
+                        "php_peak_increment_bytes": 387096,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6769,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.734,
+                        "php_peak_used_bytes": 45562512,
+                        "php_peak_increment_bytes": 387096,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6766,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 8.43,
+                        "php_peak_used_bytes": 45565824,
+                        "php_peak_increment_bytes": 387096,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 55544,
+                        "response_gzip_bytes": 6766,
+                        "dom_elements": 313,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "exoplanets_page": {
+            "method": "GET",
+            "path": "/exoplanets",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 17.408,
+                        "php_peak_used_bytes": 46205856,
+                        "php_peak_increment_bytes": 1227472,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 10034,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6846,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 10.72,
+                        "php_peak_used_bytes": 46346544,
+                        "php_peak_increment_bytes": 536736,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 10034,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6838,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.201,
+                        "php_peak_used_bytes": 46349856,
+                        "php_peak_increment_bytes": 536736,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 10034,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6843,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.219,
+                        "php_peak_used_bytes": 46353328,
+                        "php_peak_increment_bytes": 536896,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 10034,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6842,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 11.044,
+                        "php_peak_used_bytes": 46356800,
+                        "php_peak_increment_bytes": 536736,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 10034,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6842,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 11.241,
+                        "php_peak_used_bytes": 46360592,
+                        "php_peak_increment_bytes": 536736,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 10034,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6841,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 10.379,
+                        "php_peak_used_bytes": 46363904,
+                        "php_peak_increment_bytes": 536736,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 10034,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6844,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 10.383,
+                        "php_peak_used_bytes": 46344256,
+                        "php_peak_increment_bytes": 459288,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6841,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.765,
+                        "php_peak_used_bytes": 46348200,
+                        "php_peak_increment_bytes": 459288,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6840,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.474,
+                        "php_peak_used_bytes": 46351512,
+                        "php_peak_increment_bytes": 459288,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6843,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 8.94,
+                        "php_peak_used_bytes": 46355144,
+                        "php_peak_increment_bytes": 459448,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6840,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.746,
+                        "php_peak_used_bytes": 46358936,
+                        "php_peak_increment_bytes": 459288,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6841,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.9,
+                        "php_peak_used_bytes": 46362248,
+                        "php_peak_increment_bytes": 459288,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6844,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 10.421,
+                        "php_peak_used_bytes": 46365560,
+                        "php_peak_increment_bytes": 459288,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 41886,
+                        "response_gzip_bytes": 6843,
+                        "dom_elements": 360,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "systems_5000": {
+            "method": "GET",
+            "path": "/systems",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 51.36,
+                        "php_peak_used_bytes": 67191112,
+                        "php_peak_increment_bytes": 21506168,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 47.257,
+                        "php_peak_used_bytes": 67350616,
+                        "php_peak_increment_bytes": 21442728,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 84.92,
+                        "php_peak_used_bytes": 67353928,
+                        "php_peak_increment_bytes": 21442728,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 45.508,
+                        "php_peak_used_bytes": 67357240,
+                        "php_peak_increment_bytes": 21442728,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 45.571,
+                        "php_peak_used_bytes": 67360552,
+                        "php_peak_increment_bytes": 21442728,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 48.136,
+                        "php_peak_used_bytes": 67364184,
+                        "php_peak_increment_bytes": 21442728,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 46.323,
+                        "php_peak_used_bytes": 67367496,
+                        "php_peak_increment_bytes": 21442728,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 18.617,
+                        "php_peak_used_bytes": 65253784,
+                        "php_peak_increment_bytes": 1429024,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 24.049,
+                        "php_peak_used_bytes": 65257688,
+                        "php_peak_increment_bytes": 1429024,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 19.311,
+                        "php_peak_used_bytes": 65261000,
+                        "php_peak_increment_bytes": 1429024,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 18.95,
+                        "php_peak_used_bytes": 65264312,
+                        "php_peak_increment_bytes": 1429024,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 18.376,
+                        "php_peak_used_bytes": 65267944,
+                        "php_peak_increment_bytes": 1429024,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 19.194,
+                        "php_peak_used_bytes": 65271256,
+                        "php_peak_increment_bytes": 1429024,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 19.247,
+                        "php_peak_used_bytes": 65274568,
+                        "php_peak_increment_bytes": 1429024,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 57908,
+                        "response_gzip_bytes": 7248,
+                        "dom_elements": 569,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "galaxy_5000": {
+            "method": "GET",
+            "path": "/galaxy",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 39.571,
+                        "php_peak_used_bytes": 67309416,
+                        "php_peak_increment_bytes": 21520552,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6824,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 39.602,
+                        "php_peak_used_bytes": 67403360,
+                        "php_peak_increment_bytes": 21466912,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6829,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 38.981,
+                        "php_peak_used_bytes": 67406832,
+                        "php_peak_increment_bytes": 21466912,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6826,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 38.783,
+                        "php_peak_used_bytes": 67410464,
+                        "php_peak_increment_bytes": 21467072,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6823,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 38.799,
+                        "php_peak_used_bytes": 67414096,
+                        "php_peak_increment_bytes": 21466912,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6826,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 37.709,
+                        "php_peak_used_bytes": 67418048,
+                        "php_peak_increment_bytes": 21466912,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6826,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 38.367,
+                        "php_peak_used_bytes": 67421520,
+                        "php_peak_increment_bytes": 21466912,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6827,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 11.034,
+                        "php_peak_used_bytes": 64399320,
+                        "php_peak_increment_bytes": 546112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6823,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 12.778,
+                        "php_peak_used_bytes": 64403416,
+                        "php_peak_increment_bytes": 546112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6828,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 12.557,
+                        "php_peak_used_bytes": 64406888,
+                        "php_peak_increment_bytes": 546112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6828,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 10.711,
+                        "php_peak_used_bytes": 64410680,
+                        "php_peak_increment_bytes": 546272,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6826,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 10.806,
+                        "php_peak_used_bytes": 64414632,
+                        "php_peak_increment_bytes": 546112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6825,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 11.187,
+                        "php_peak_used_bytes": 64418104,
+                        "php_peak_increment_bytes": 546112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6828,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 10.346,
+                        "php_peak_used_bytes": 64421576,
+                        "php_peak_increment_bytes": 546112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 31986,
+                        "response_gzip_bytes": 6826,
+                        "dom_elements": 258,
+                        "script_sources": [
+                            "http://localhost/build/assets/galaxy-CFbmaxtT.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "galaxy_data_5000": {
+            "method": "GET",
+            "path": "/galaxy/data",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 45.731,
+                        "php_peak_used_bytes": 67424000,
+                        "php_peak_increment_bytes": 21612744,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 44.792,
+                        "php_peak_used_bytes": 67495256,
+                        "php_peak_increment_bytes": 21443696,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 44.693,
+                        "php_peak_used_bytes": 67497944,
+                        "php_peak_increment_bytes": 21443696,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 45.278,
+                        "php_peak_used_bytes": 67500632,
+                        "php_peak_increment_bytes": 21443696,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 43.379,
+                        "php_peak_used_bytes": 67503640,
+                        "php_peak_increment_bytes": 21444016,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 44.365,
+                        "php_peak_used_bytes": 67506328,
+                        "php_peak_increment_bytes": 21443696,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 43.935,
+                        "php_peak_used_bytes": 67509016,
+                        "php_peak_increment_bytes": 21443696,
+                        "upstream_calls": 2,
+                        "upstream_body_bytes": 3477868,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 16.583,
+                        "php_peak_used_bytes": 67493320,
+                        "php_peak_increment_bytes": 3524576,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 16.563,
+                        "php_peak_used_bytes": 67496600,
+                        "php_peak_increment_bytes": 3524576,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 16.405,
+                        "php_peak_used_bytes": 67499288,
+                        "php_peak_increment_bytes": 3524576,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 17.083,
+                        "php_peak_used_bytes": 67501976,
+                        "php_peak_increment_bytes": 3524576,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 16.278,
+                        "php_peak_used_bytes": 67504984,
+                        "php_peak_increment_bytes": 3524576,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 16.463,
+                        "php_peak_used_bytes": 67507672,
+                        "php_peak_increment_bytes": 3524576,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    },
+                    {
+                        "kernel_ms": 17.1,
+                        "php_peak_used_bytes": 67510360,
+                        "php_peak_increment_bytes": 3524576,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 3477521,
+                        "response_gzip_bytes": 92961,
+                        "dom_elements": 0,
+                        "script_sources": []
+                    }
+                ]
+            }
+        },
+        "orrery": {
+            "method": "GET",
+            "path": "/orrery?date=2026-10-01",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 10.58,
+                        "php_peak_used_bytes": 46554512,
+                        "php_peak_increment_bytes": 549992,
+                        "upstream_calls": 12,
+                        "upstream_body_bytes": 1899,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 9.062,
+                        "php_peak_used_bytes": 46605112,
+                        "php_peak_increment_bytes": 436456,
+                        "upstream_calls": 12,
+                        "upstream_body_bytes": 1899,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.582,
+                        "php_peak_used_bytes": 46608424,
+                        "php_peak_increment_bytes": 436456,
+                        "upstream_calls": 12,
+                        "upstream_body_bytes": 1899,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.361,
+                        "php_peak_used_bytes": 46611896,
+                        "php_peak_increment_bytes": 436616,
+                        "upstream_calls": 12,
+                        "upstream_body_bytes": 1899,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.453,
+                        "php_peak_used_bytes": 46615528,
+                        "php_peak_increment_bytes": 436616,
+                        "upstream_calls": 12,
+                        "upstream_body_bytes": 1899,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.36,
+                        "php_peak_used_bytes": 46619160,
+                        "php_peak_increment_bytes": 436456,
+                        "upstream_calls": 12,
+                        "upstream_body_bytes": 1899,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6631,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 7.35,
+                        "php_peak_used_bytes": 46622472,
+                        "php_peak_increment_bytes": 436456,
+                        "upstream_calls": 12,
+                        "upstream_body_bytes": 1899,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6631,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 5.346,
+                        "php_peak_used_bytes": 46602832,
+                        "php_peak_increment_bytes": 344112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6633,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.556,
+                        "php_peak_used_bytes": 46606768,
+                        "php_peak_increment_bytes": 344112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.113,
+                        "php_peak_used_bytes": 46610080,
+                        "php_peak_increment_bytes": 344112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.643,
+                        "php_peak_used_bytes": 46613712,
+                        "php_peak_increment_bytes": 344272,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.861,
+                        "php_peak_used_bytes": 46617504,
+                        "php_peak_increment_bytes": 344112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6634,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.605,
+                        "php_peak_used_bytes": 46620816,
+                        "php_peak_increment_bytes": 344112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6627,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 5.665,
+                        "php_peak_used_bytes": 46624128,
+                        "php_peak_increment_bytes": 344112,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 35788,
+                        "response_gzip_bytes": 6632,
+                        "dom_elements": 250,
+                        "script_sources": [
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "night_form": {
+            "method": "GET",
+            "path": "/observe/night",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 6.579,
+                        "php_peak_used_bytes": 46629368,
+                        "php_peak_increment_bytes": 559688,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 3.616,
+                        "php_peak_used_bytes": 46727728,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 3.75,
+                        "php_peak_used_bytes": 46731200,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4,
+                        "php_peak_used_bytes": 46734672,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.371,
+                        "php_peak_used_bytes": 46738144,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 3.972,
+                        "php_peak_used_bytes": 46741936,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 3.896,
+                        "php_peak_used_bytes": 46745408,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 3.59,
+                        "php_peak_used_bytes": 46725400,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.08,
+                        "php_peak_used_bytes": 46729464,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.95,
+                        "php_peak_used_bytes": 46732936,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.204,
+                        "php_peak_used_bytes": 46736408,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.838,
+                        "php_peak_used_bytes": 46740200,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.232,
+                        "php_peak_used_bytes": 46743672,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 4.142,
+                        "php_peak_used_bytes": 46747144,
+                        "php_peak_increment_bytes": 490608,
+                        "upstream_calls": 0,
+                        "upstream_body_bytes": 0,
+                        "response_bytes": 32130,
+                        "response_gzip_bytes": 6876,
+                        "dom_elements": 245,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        },
+        "night_eight": {
+            "method": "POST",
+            "path": "/observe/night",
+            "measurements": {
+                "cold_application_cache": [
+                    {
+                        "kernel_ms": 91.818,
+                        "php_peak_used_bytes": 53702304,
+                        "php_peak_increment_bytes": 7564024,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 88.291,
+                        "php_peak_used_bytes": 53709384,
+                        "php_peak_increment_bytes": 6961296,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 86.996,
+                        "php_peak_used_bytes": 53712696,
+                        "php_peak_increment_bytes": 6961296,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 85.902,
+                        "php_peak_used_bytes": 53716008,
+                        "php_peak_increment_bytes": 6961296,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 91.095,
+                        "php_peak_used_bytes": 53784856,
+                        "php_peak_increment_bytes": 7026832,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 85.602,
+                        "php_peak_used_bytes": 53788488,
+                        "php_peak_increment_bytes": 6961296,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 85.592,
+                        "php_peak_used_bytes": 53791800,
+                        "php_peak_increment_bytes": 6961296,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ],
+                "fresh_application_cache": [
+                    {
+                        "kernel_ms": 85.798,
+                        "php_peak_used_bytes": 54695384,
+                        "php_peak_increment_bytes": 6959712,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 83.75,
+                        "php_peak_used_bytes": 54699288,
+                        "php_peak_increment_bytes": 6959712,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 95.762,
+                        "php_peak_used_bytes": 54702600,
+                        "php_peak_increment_bytes": 6959712,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 84.895,
+                        "php_peak_used_bytes": 54705912,
+                        "php_peak_increment_bytes": 6959712,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 84.491,
+                        "php_peak_used_bytes": 54775080,
+                        "php_peak_increment_bytes": 6959712,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 84.563,
+                        "php_peak_used_bytes": 54778392,
+                        "php_peak_increment_bytes": 6959712,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    },
+                    {
+                        "kernel_ms": 93.979,
+                        "php_peak_used_bytes": 54781704,
+                        "php_peak_increment_bytes": 6959712,
+                        "upstream_calls": 1,
+                        "upstream_body_bytes": 974868,
+                        "response_bytes": 865879,
+                        "response_gzip_bytes": 101726,
+                        "dom_elements": 23892,
+                        "script_sources": [
+                            "http://localhost/build/assets/night-ByF54j7G.js",
+                            "http://localhost/livewire-53ac0bbe/livewire.min.js?id=8ea5922c"
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}
