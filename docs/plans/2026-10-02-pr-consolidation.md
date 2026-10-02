@@ -148,3 +148,52 @@ escaping. They now extract the fixed selector prefix/suffix with `slice`, matchi
 the journal harness, rather than using chained first-match replacements. Their
 18 focused checks pass; the final revision is checked again by CI. These helpers
 receive selectors from the test modules, not user-controlled product inputs.
+
+## Fresh paired checks and live deployment finding
+
+The backend's 15 PRs (#31-#45) are now consolidated into
+[backend #46](https://github.com/Wicked-Sick-Ltd/solar-system-db/pull/46).
+Every original head is an ancestor of that replacement. Backend `e7c82c2` passes
+Linux CI: 513 tests, with two retained-environment replay comparisons explicitly
+skipped because the captured environment differs. The checksum-pinned real JPL
+acceptance cases run. CodeQL and Semgrep jobs pass.
+
+The Windows targeted integrity/query/horizon suite passes all 57 tests; its full
+suite is not a release gate (POSIX-only resource/kernel APIs, shell commands,
+symlink privileges and Windows file-lock differences prevent an equivalent run).
+Fresh offline REST/MCP results pass the frontend catalogue consumer: seven tests
+and 126 assertions. Additional real calculations match between REST and MCP and
+pass the PHP validators for mixed solar/catalogue targets, selected hours with
+an integer horizon mask, the autumn DST night, a polar observer and a binocular
+shortlist. Night-session exports retain every target's interval coverage.
+These are builtin-provider paired checks; JPL's Linux backend acceptance is
+separate. The catalogue runner now explicitly closes its SQLite connection,
+so its temporary database also cleans up on Windows. Backend Git attributes
+preserve checksum-pinned source bytes; a fresh autocrlf-enabled checkout verifies
+all 158 records and both sources.
+
+**Hold frontend main until the saved Forge deployment is corrected.** Read-only
+inspection of php01 / publicuniverse.net (site 3358456) on 2 October confirms:
+
+- Push-to-deploy is enabled; latest deployment is main `4a98a62`.
+- The saved script still says the app has no database. It runs `git pull`,
+  Composer and npm, reloads FPM, then `optimize:clear` and cache rebuilds.
+- It has no maintenance/backup phase, migration, exact-commit selection, release
+  preparation or release publication. Updating repository `deploy.sh` alone will
+  not replace this saved script.
+- A Redis queue worker is running. The server-wide scheduler includes
+  `/home/forge/publicuniverse.net/artisan schedule:run` every minute, even though
+  the site's own scheduled-jobs panel is empty. Both scopes matter when draining
+  writes before backup/migration.
+- Forge displays the historical `WizzoUK2/solar-system-web` repository name;
+  its latest commit matches the audited Wicked-Sick-Ltd repository. Verify the
+  configured remote/webhook target during release setup rather than changing it
+  merely to tidy the displayed name.
+
+The concrete replacement is the reviewed repository [deploy.sh](../../deploy.sh),
+following [DEPLOYMENT.md](../../DEPLOYMENT.md). Provision/verify the account
+backup hook and persistent storage first; disable automatic deployment while
+switching wrappers, drain writers, supply the approved full release SHA, then
+perform one coordinated release. Production configuration changes need Craig's
+authorization. No Forge values, services, production data or main branches were
+changed by this inspection.

@@ -8,6 +8,7 @@ No servers or network are used; builds always target a new temporary database.
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import importlib.util
 import json
 import os
@@ -98,7 +99,7 @@ def main() -> int:
         subprocess.run([sys.executable, str(backend / "scripts/build_full.py"), "--fresh", "--offline", "--no-vacuum"],
                        cwd=backend, env=env, check=True, stdout=subprocess.DEVNULL)
         # Stabilize only our temporary fixture, never the developer's catalogue.
-        with sqlite3.connect(database) as conn:
+        with closing(sqlite3.connect(database)) as conn, conn:
             conn.execute("UPDATE exoplanets SET retrieved_at = ?", ("2000-01-01T00:00:00+00:00",))
             conn.execute("UPDATE exoplanet_hosts SET retrieved_at = ?", ("2000-01-01T00:00:00+00:00",))
         payload = json.dumps(collect(backend, database), indent=2, ensure_ascii=False) + "\n"
