@@ -54,7 +54,7 @@ Everything keys off two env vars — nothing about the backend is hard-coded:
 | Var            | Purpose                                              | Example                                  |
 | -------------- | ---------------------------------------------------- | ---------------------------------------- |
 | `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
-| `APP_URL`      | This site's public URL (canonical/OG/sitemap/JSON-LD)| `https://sol.wickedsick.com`             |
+| `APP_URL`      | Canonical public URL (canonical/OG/sitemap/JSON-LD)  | `https://publicuniverse.net`             |
 
 **Running the backend locally for development.** The backend repo can be cloned
 and run alongside this one. It ships a committed SQLite database and a FastAPI
