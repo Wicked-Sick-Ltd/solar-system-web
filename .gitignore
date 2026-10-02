@@ -43,3 +43,6 @@ __pycache__/
 # Local PDF QA artifacts
 /output/pdf/
 /tmp/pdfs/
+
+# Disposable local actual-renderer measurement bundles and reports
+/tmp/map-render-harness/
