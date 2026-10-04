@@ -1,12 +1,17 @@
 # Public Universe progress and continuation
 
-Updated: 2026-10-02. Reviewed development checkpoints through web #86; programme remains active.
-See [development plan](2026-10-01-public-universe.md).
+Updated: 2026-10-04. Current continuation: [reboot handoff](../handoffs/2026-10-04-reboot.md).
 
-This is a chronological record. Pending statements in earlier waves describe
-those revisions, not the latest status. Use the [current acceptance audit](2026-10-02-programme-gap-review.md)
-for reconciled implementation, browser and external limitations. Topic PRs are
-unmerged review checkpoints; their test counts are not a combined release result.
+Web #98, backend #47 and plugin #1 are merged. Web #99 adds the plugin guide,
+university worksheets, school poster structure and private feedback addressed to
+hello@publicuniverse.net; its feature-head CI passed. Poster originals/credits,
+native university print pagination and authorized live mail acceptance remain.
+Use the handoff for the exact worktree, next action and process restart notes.
+
+Everything below is a historical chronological record. Earlier “active”,
+“pending” and “unmerged” statements describe those checkpoints, not new
+instructions to restart completed work. The new handoff takes precedence over
+the older acceptance audit for current state; production boundaries are unchanged.
 
 ## Active programme: performance and equipment-aware observing
 
