@@ -13,7 +13,7 @@ it('shows the public REST and MCP endpoints', function () {
         ->assertOk()
         ->assertSee(config('services.solar.base_url'))
         ->assertSee($mcpUrl)
-        ->assertSee('"mcpServers"', escape: false)
-        ->assertSee('"solar-system-db"', escape: false)
-        ->assertSee(sprintf('"url": "%s"', $mcpUrl), escape: false);
+        ->assertSee(route('plugin'), escape: false)
+        ->assertSee('Plugin setup guide')
+        ->assertSee('ChatGPT, Codex, Claude, Cursor and GitHub Copilot');
 });

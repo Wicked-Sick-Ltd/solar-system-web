@@ -23,6 +23,13 @@
             <li><strong>{{ __('Your location (astronomy tools).') }}</strong> {{ __('Some tools can use your approximate location to tailor sky data. For sky and night calculations, the rounded location is sent to our API without being saved as an account location. Alerts and private backups that you explicitly save can retain locations as described above. Weather checks for the observer panel and explicitly requested night forecasts are made server-side to Open-Meteo from our infrastructure, using the same location rounded to two decimals (about a kilometre), so your IP address is not sent to Open-Meteo. Forecasts are cached for 30 minutes per rounded grid cell and are not tied to a person. A settings link you copy to another device keeps those values in the fragment of the URL (after #), which browsers do not send to our server, to our logs, or as a Referer. Entering a what3words address is optional — the other ways of giving a location do not contact what3words. The weather lookup described above still uses Open-Meteo. If you use a what3words address, the three words are sent to what3words to convert them to coordinates; we do not store, cache or log the address or the result.') }}</li>
         </ul>
 
+        <section id="feedback" class="scroll-mt-24 space-y-3" aria-labelledby="feedback-heading">
+            <h2 id="feedback-heading" class="pt-2 font-serif text-2xl font-medium">{{ __('Feedback and contact') }}</h2>
+            <p>{{ __('The feedback form sends your chosen topic, message and optional reply email to our private inbox at hello@publicuniverse.net through our email delivery provider. Submissions are not published or used for newsletter signups. We do not automatically attach your observing location, equipment, journal or account details.') }}</p>
+            <p>{{ __('We use these messages to respond to enquiries and improve the site. They remain in our mailbox while needed to handle the enquiry and related follow-up. Contact hello@publicuniverse.net to ask us to remove your message. If delivery fails or validation finds an error, your form fields are temporarily kept in your session so you can correct and resend them; they are not stored as feedback records in our database.') }}</p>
+            <p>{{ __('The form uses an essential session cookie, CSRF protection and a short-lived request limit keyed to your connection to reduce spam. Normal web-server access logs still apply. Please avoid including passwords, exact observing locations or other sensitive details in your message.') }}</p>
+        </section>
+
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Cookies and local storage') }}</h2>
         <div class="surface overflow-x-auto">
             <table class="w-full text-sm">

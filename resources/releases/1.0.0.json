@@ -7,7 +7,10 @@
       "Search solar-system objects and exoplanets together, with results from an available catalogue retained if the other is unavailable. Live searches keep the browser title aligned with the current query.",
       "Browse measured planetary systems with ordinary name and distance filters, then open their planets or locate them on the galaxy map. The optional 3D display loads only when requested; its loading guidance changes when it is ready. Map redraw requests are combined when view changes arrive together; rendering does not run continuously while idle.",
       "Learning activities explain stellar distances, discovery methods and measurements. Meteor-shower pages retain distinct observation campaigns and approximate seasonal guidance, not visibility forecasts.",
-      "Native filters, pagination, clearer keyboard focus and mobile navigation improve access. Orrery dates and partial positions, close-approach limits and small uncertainties have clearer validation and explanations."
+      "Native filters, pagination, clearer keyboard focus and mobile navigation improve access. Orrery dates and partial positions, close-approach limits and small uncertainties have clearer validation and explanations.",
+      "Separate school and university resource pages connect free classroom handouts with printable undergraduate activities on orbital laws, exoplanet selection effects and reproducible data analysis.",
+      "The astronomy plugin guide explains setup for ChatGPT, Codex, Cursor, GitHub Copilot and Claude, including the difference between a data connection and reusable skills. Public connection verification awaits the planned domain and Cloudflare changes.",
+      "A private feedback form lets visitors request features, report bugs or contact the team without an account. A reply email is optional; submissions go to the existing team inbox when mail delivery is configured."
     ],
     "Keep your own observing workspace": [
       "Save named telescopes, binoculars, eyepieces, Barlows, reducers, cameras and observing sites in your browser by default. Known measurements retain explicit units; unknown values remain unknown.",

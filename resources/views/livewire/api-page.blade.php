@@ -45,16 +45,9 @@
         </section>
 
         <section>
-            <h2 class="mb-2 font-serif text-2xl font-medium">{{ __('Use in Claude') }}</h2>
-            <p class="mb-3" style="color: var(--muted);">{{ __('Add the MCP server to Claude Desktop (or another MCP client) by URL:') }}</p>
-            <pre class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>{
-  "mcpServers": {
-    "solar-system-db": {
-      "url": "{{ $mcpUrl }}"
-    }
-  }
-}</code></pre>
-            <p class="mt-3" style="color: var(--muted);">{{ __('Restart Claude, then open the tools menu to confirm the server is connected.') }}</p>
+            <h2 class="mb-2 font-serif text-2xl font-medium">{{ __('Use with your AI assistant') }}</h2>
+            <p style="color: var(--muted);">{{ __('Connect the astronomy tools or install the Solar plugin in your preferred assistant. Our guide covers ChatGPT, Codex, Claude, Cursor and GitHub Copilot.') }}</p>
+            <a class="mt-3 inline-block underline" href="{{ route('plugin') }}">{{ __('Plugin setup guide') }} →</a>
         </section>
     </div>
 </div>
