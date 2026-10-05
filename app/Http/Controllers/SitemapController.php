@@ -26,10 +26,7 @@ final class SitemapController extends Controller
     {
         $xml = Cache::remember('sitemap.xml', now()->addDay(), fn () => $this->build($api));
 
-        return response($xml, 200, [
-            'Content-Type' => 'application/xml; charset=UTF-8',
-            'Cache-Control' => 'public, max-age=3600, s-maxage=86400',
-        ]);
+        return response($xml)->withHeaders(['Content-Type' => 'application/xml; charset=UTF-8', 'Cache-Control' => 'public, max-age=3600, s-maxage=86400']);
     }
 
     private function build(SolarApiClient $api): string

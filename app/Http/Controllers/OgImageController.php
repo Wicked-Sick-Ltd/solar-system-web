@@ -65,10 +65,7 @@ final class OgImageController extends Controller
 
     private function png(string $bytes): Response
     {
-        return response($bytes, 200, [
-            'Content-Type' => 'image/png',
-            'Cache-Control' => 'public, max-age='.(int) config('og.ttl').', immutable',
-        ]);
+        return response($bytes)->withHeaders(['Content-Type' => 'image/png', 'Cache-Control' => 'public, max-age=' . (int) config('og.ttl') . ', immutable']);
     }
 
     /** The committed static site card, used whenever a per-object render isn't possible. */
