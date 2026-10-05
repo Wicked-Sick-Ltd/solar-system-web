@@ -29,7 +29,7 @@ final class SitemapController extends Controller
 
     private function xml(string $xml): Response
     {
-        return response($xml, 200, [
+        return response($xml)->withHeaders([
             'Content-Type' => 'application/xml; charset=UTF-8',
             'Cache-Control' => 'public, max-age=3600, s-maxage=86400',
         ]);
