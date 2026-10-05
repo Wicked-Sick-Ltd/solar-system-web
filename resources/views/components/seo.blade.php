@@ -34,5 +34,5 @@
 
 {{-- JSON-LD structured data --}}
 @foreach ($seo->getJsonLd() as $schema)
-    <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">@json($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)</script>
 @endforeach

@@ -2,11 +2,11 @@
     <x-page-header :title="__('Your visibility alerts')"
                    :lead="__('We will email you when a saved object is up after dark from the saved location.')" />
 
-    @if (session('status'))
+    @session('status')
         <p class="mb-4 rounded-lg border px-4 py-3 text-sm" style="border-color: var(--border); color: var(--text);">
-            {{ session('status') }}
+            {{ $value }}
         </p>
-    @endif
+    @endsession
 
     @if ($alerts->isEmpty())
         <x-empty-state :title="__('No alerts yet')"

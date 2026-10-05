@@ -15,7 +15,7 @@
     <details><summary class="cursor-pointer py-2">{{ __('Original file hashes') }}</summary>
         <dl class="mt-2 space-y-2">@foreach ($source->data['upstream_sha256'] as $file => $hash)<div><dt>{{ $file }}</dt><dd class="break-all font-mono text-xs">{{ $hash }}</dd></div>@endforeach</dl>
     </details>
-    @if (isset($source->data['astrometry_evidence']))
+    @isset($source->data['astrometry_evidence'])
         @php($evidence = $source->data['astrometry_evidence'])
         <details><summary class="cursor-pointer py-2">{{ __('Coordinate-frame evidence') }}</summary>
             <p class="mt-2"><a href="{{ $evidence['query_url'] }}" class="underline">{{ $evidence['authority'] }} · {{ $evidence['dataset'] }}</a></p>
@@ -23,5 +23,5 @@
             @if ($evidence['unsupported_identifiers'] !== [])<p>{{ __('Without matching frame evidence') }}: {{ implode(', ', $evidence['unsupported_identifiers']) }}.</p>@endif
             <dl class="mt-2"><dt>{{ __('Pinned response SHA256') }}</dt><dd class="break-all font-mono text-xs">{{ $evidence['response_sha256'] }}</dd></dl>
         </details>
-    @endif
+    @endisset
 </section>

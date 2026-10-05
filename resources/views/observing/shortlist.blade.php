@@ -10,7 +10,7 @@
         @endif
         <form data-shortlist-form method="POST" action="{{ route('observe.shortlist.calculate') }}" class="surface space-y-5 p-5 print:hidden">
             @csrf
-            <fieldset class="space-y-3 rounded border p-4" @if(isset($validation['equipment_mode'])) aria-describedby="shortlist-error-equipment" @endif>
+            <fieldset class="space-y-3 rounded border p-4" @isset($validation['equipment_mode']) aria-describedby="shortlist-error-equipment" @endisset>
                 <legend>{{ __('How would you like to observe?') }}</legend>
                 <div class="flex flex-wrap gap-3">
                     @foreach(['naked_eye' => 'Naked eye', 'binocular' => 'Binoculars', 'telescope' => 'Telescope'] as $mode => $label)
@@ -18,28 +18,28 @@
                     @endforeach
                 </div>
                 <p>{{ __('Naked eye favours the Moon and bright stars; binoculars favour known angular field fits and deep-sky families; telescopes favour Solar System targets and double stars. These are editorial ordering preferences, not detection or resolving-power limits. A double-star label does not mean its components can be resolved.') }}</p>
-                @if(isset($validation['equipment_mode']))<p id="shortlist-error-equipment">{{ implode(' ', $validation['equipment_mode']) }}</p>@endif
+                @isset($validation['equipment_mode'])<p id="shortlist-error-equipment">{{ implode(' ', $validation['equipment_mode']) }}</p>@endisset
             </fieldset>
             <div class="grid gap-4 sm:grid-cols-2">
                 <label class="block">{{ __('Prefer') }}
-                    <select name="preference" @if(isset($validation['preference'])) aria-invalid="true" aria-describedby="shortlist-error-preference" @endif class="mt-2 w-full rounded border p-3" style="background: var(--bg-elevated)">
+                    <select name="preference" @isset($validation['preference']) aria-invalid="true" aria-describedby="shortlist-error-preference" @endisset class="mt-2 w-full rounded border p-3" style="background: var(--bg-elevated)">
                         @foreach(['balanced' => 'Balanced families', 'wide_field' => 'Known angular field fit first', 'stars' => 'Stars first', 'deep_sky' => 'Deep-sky objects first', 'solar_system' => 'Moon and planets first'] as $value => $label)<option value="{{ $value }}" @selected($input['preference'] === $value)>{{ __($label) }}</option>@endforeach
                     </select>
                 </label>
-                <label class="block">{{ __('Maximum shortlisted targets') }}<select name="shortlist_limit" class="mt-2 w-full rounded border p-3" style="background: var(--bg-elevated)" @if(isset($validation['shortlist_limit'])) aria-invalid="true" aria-describedby="shortlist-error-limit" @endif>@foreach(range(1, 8) as $limit)<option value="{{ $limit }}" @selected((string)$input['shortlist_limit'] === (string)$limit)>{{ $limit }}</option>@endforeach</select></label>
-                @if(isset($validation['shortlist_limit']))<p id="shortlist-error-limit">{{ implode(' ', $validation['shortlist_limit']) }}</p>@endif
+                <label class="block">{{ __('Maximum shortlisted targets') }}<select name="shortlist_limit" class="mt-2 w-full rounded border p-3" style="background: var(--bg-elevated)" @isset($validation['shortlist_limit']) aria-invalid="true" aria-describedby="shortlist-error-limit" @endisset>@foreach(range(1, 8) as $limit)<option value="{{ $limit }}" @selected((string)$input['shortlist_limit'] === (string)$limit)>{{ $limit }}</option>@endforeach</select></label>
+                @isset($validation['shortlist_limit'])<p id="shortlist-error-limit">{{ implode(' ', $validation['shortlist_limit']) }}</p>@endisset
             </div>
-            @if(isset($validation['preference']))<p id="shortlist-error-preference">{{ implode(' ', $validation['preference']) }}</p>@endif
+            @isset($validation['preference'])<p id="shortlist-error-preference">{{ implode(' ', $validation['preference']) }}</p>@endisset
             <fieldset class="space-y-3 rounded border p-4">
                 <legend>{{ __('Optional constraints you supply') }}</legend>
                 <label class="block" for="shortlist-field">{{ __('True field of view, degrees (optional)') }}</label>
                 <input id="shortlist-field" name="true_field_deg" type="number" step="any" min="0.01" max="180" value="{{ $input['true_field_deg'] }}" class="w-full rounded border p-3" style="background: var(--bg-elevated)" aria-describedby="shortlist-field-help {{ isset($validation['true_field_deg']) ? 'shortlist-error-field' : '' }}" aria-invalid="{{ isset($validation['true_field_deg']) ? 'true' : 'false' }}">
                 <p id="shortlist-field-help">{{ __('Use a measured or calculated true field if you know it. Known catalogue major-axis extents can be compared with this angle; fitting does not guarantee visibility. Leave blank for an unknown field. Double-star separation is not treated as an object diameter.') }}</p>
-                @if(isset($validation['true_field_deg']))<p id="shortlist-error-field">{{ implode(' ', $validation['true_field_deg']) }}</p>@endif
+                @isset($validation['true_field_deg'])<p id="shortlist-error-field">{{ implode(' ', $validation['true_field_deg']) }}</p>@endisset
                 <label class="block" for="shortlist-magnitude">{{ __('Maximum catalogue V magnitude (optional)') }}</label>
                 <input id="shortlist-magnitude" name="max_catalogue_v_magnitude" type="number" step="any" min="-30" max="30" value="{{ $input['max_catalogue_v_magnitude'] }}" class="w-full rounded border p-3" style="background: var(--bg-elevated)" aria-describedby="shortlist-magnitude-help {{ isset($validation['max_catalogue_v_magnitude']) ? 'shortlist-error-magnitude' : '' }}" aria-invalid="{{ isset($validation['max_catalogue_v_magnitude']) ? 'true' : 'false' }}">
                 <p id="shortlist-magnitude-help">{{ __('This is your explicit catalogue filter, not a limiting magnitude inferred from equipment. Larger magnitudes are fainter. Supplying it excludes unknown or non-V magnitudes, including Moon and planet candidates whose brightness is not supplied. Integrated deep-sky magnitude is not surface brightness or point-source detectability.') }}</p>
-                @if(isset($validation['max_catalogue_v_magnitude']))<p id="shortlist-error-magnitude">{{ implode(' ', $validation['max_catalogue_v_magnitude']) }}</p>@endif
+                @isset($validation['max_catalogue_v_magnitude'])<p id="shortlist-error-magnitude">{{ implode(' ', $validation['max_catalogue_v_magnitude']) }}</p>@endisset
             </fieldset>
             <p>{{ __('A night runs from local noon to the following noon. Optional UTC observing hours avoid ambiguous clock-change times.') }}</p>
             @include('observing.partials-night-conditions')

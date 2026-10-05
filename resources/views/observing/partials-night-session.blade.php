@@ -12,5 +12,5 @@
     </div>
     <noscript>{{ __('Use your browser’s Print command to keep this page. Coordinates are hidden in print by default. JavaScript enables the structured downloads and location choice.') }}</noscript>
     <p data-night-session-status role="status"></p><p data-night-session-error role="alert"></p>
-    <script type="application/json" data-night-session-data>{!! json_encode($sessionSummary, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) !!}</script>
+    <script type="application/json" data-night-session-data>@json($sessionSummary, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)</script>
 </section>
