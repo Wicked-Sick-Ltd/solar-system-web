@@ -52,7 +52,7 @@ jobs:
         run: php -d memory_limit=512M vendor/bin/pest tests/Feature/RoutePerformanceTest.php
       - name: Retain synthetic performance reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deterministic-performance-${{ github.sha }}
           path: performance-results/*.json

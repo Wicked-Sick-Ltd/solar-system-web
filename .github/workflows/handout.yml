@@ -44,7 +44,7 @@ jobs:
       - name: Render and validate both offline handouts
         run: python3 -B tools/handout/pdf_smoke.py --docker-context default --docker-image public-universe-handout:bookworm
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: handout-offline-qa
           path: |
@@ -62,7 +62,7 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python3 -B tools/handout/pdf_smoke.py --docker-context default --docker-image public-universe-handout:bookworm --render-html output/pdf/solar-handout.html
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         with:
           name: solar-handout
