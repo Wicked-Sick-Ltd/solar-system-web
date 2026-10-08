@@ -24,6 +24,7 @@ final readonly class CloseApproach
         // Only set on the date-window listing, which spans many objects.
         public ?string $objectId = null,
         public ?string $name = null,
+        public ?float $massKg = null,
     ) {}
 
     /** @param array<string,mixed> $d */
@@ -39,6 +40,7 @@ final readonly class CloseApproach
             tSigma: self::str($d, 't_sigma'),
             objectId: self::str($d, 'object_id'),
             name: self::str($d, 'name') ?? self::str($d, 'designation'),
+            massKg: self::float($d, 'mass_kg'),
         );
     }
 

@@ -1,5 +1,6 @@
 @php
     use App\Support\CloseApproachFormat;
+    use App\Support\Format;
 @endphp
 
 <div>
@@ -26,6 +27,9 @@
                         <th scope="col" class="px-4 py-3 text-right font-medium">{{ __('Lunar distances') }}</th>
                         <th scope="col" class="px-4 py-3 text-right font-medium">{{ __('Distance') }}</th>
                         <th scope="col" class="px-4 py-3 text-right font-medium">{{ __('Relative speed') }}</th>
+                        @if ($showMass)
+                            <th scope="col" class="px-4 py-3 text-right font-medium">{{ __('Mass') }}</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -42,6 +46,9 @@
                             <td class="px-4 py-3 text-right tabular-nums" style="color: var(--text);">{{ CloseApproachFormat::measurement($approach->lunarDistances(), 'LD', 1) }}</td>
                             <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ CloseApproachFormat::measurement($approach->distAu, 'AU', 4) }}</td>
                             <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ CloseApproachFormat::measurement($approach->vRelKmS, 'km/s', 1) }}</td>
+                            @if ($showMass)
+                                <td class="px-4 py-3 text-right tabular-nums" style="color: var(--muted);">{{ Format::massKg($approach->massKg) ?? '—' }}</td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

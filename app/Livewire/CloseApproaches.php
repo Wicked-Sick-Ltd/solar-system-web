@@ -41,6 +41,8 @@ final class CloseApproaches extends Component
             'approaches' => $approaches,
             'apiDown' => $apiDown,
             'days' => self::DAYS,
+            // Measured masses are rare for small bodies; only show the column when one is on record.
+            'showMass' => array_any($approaches, fn ($a) => $a->massKg !== null),
             'limitReached' => count($approaches) >= self::LIMIT,
             'limit' => self::LIMIT,
             'windowStart' => $today->toDateString(),

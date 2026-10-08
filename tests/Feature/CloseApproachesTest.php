@@ -1,7 +1,9 @@
 <?php
 
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Format;
 use Illuminate\Http\Client\Factory;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(fn () => fakeSolar());
@@ -101,3 +103,14 @@ it('retains designation fallback and numeric source strings', function (?string 
     Http::fake(['*' => Http::response(['results' => [approachRow(['name' => $name, 'body' => 'earth', 'dist_au' => '0.00672'])]])]);
     $this->get('/close-approaches')->assertOk()->assertSee('2026 AA')->assertSee('2.6 LD');
 })->with([null, '', '   ']);
+
+it('shows a mass column only when an approach has a mass on record', function () {
+    Http::swap(new Factory);
+    Http::fake(['*' => Http::response(['results' => [approachRow(['mass_kg' => 7.329e10]), approachRow(['object_id' => 'ast-other'])]])]);
+    $this->get('/close-approaches')->assertOk()->assertSee('>Mass<', escape: false)->assertSee(Format::massKg(7.329e10), escape: false);
+
+    Http::swap(new Factory);
+    Http::fake(['*' => Http::response(['results' => [approachRow()]])]);
+    Cache::flush();
+    $this->get('/close-approaches')->assertOk()->assertDontSee('>Mass<', escape: false);
+});
