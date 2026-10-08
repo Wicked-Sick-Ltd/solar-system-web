@@ -39,6 +39,9 @@ it('renders every public P0 route', function (string $uri) {
     'close approaches' => '/close-approaches',
     'about' => '/about',
     'educators' => '/educators',
+    'higher education' => '/higher-education',
+    'astronomy plugin' => '/plugin',
+    'feedback' => '/feedback',
     'api' => '/api',
     'privacy' => '/privacy',
 ]);

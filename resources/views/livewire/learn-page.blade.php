@@ -1,6 +1,10 @@
 <div class="mx-auto max-w-3xl">
     <x-page-header :title="__('A little curiosity goes a long way')" :eyebrow="__('Learn with real observations')"
         :lead="__('Try these short explorations on your own, with family or in a classroom. Start with the question, then open the extra detail when you are ready.')" />
+    <nav class="surface mb-8 flex flex-wrap gap-4 p-5" aria-label="{{ __('Teaching resources') }}">
+        <a class="underline" href="{{ route('educators') }}">{{ __('Primary & secondary resources') }}</a>
+        <a class="underline" href="{{ route('higher-education') }}">{{ __('University activities & handouts') }}</a>
+    </nav>
     <div class="space-y-8">
         <section id="distances" class="surface scroll-mt-24 p-6" aria-labelledby="distance-heading">
             <h2 id="distance-heading" class="text-2xl">{{ __('How far away is a star?') }}</h2>

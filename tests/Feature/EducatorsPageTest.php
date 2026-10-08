@@ -94,3 +94,21 @@ it('is served cookie-less and edge-cacheable like the other editorial pages', fu
         ->assertOk()
         ->assertHeader('Cache-Control', 'max-age=0, public, s-maxage=600, stale-while-revalidate=86400');
 });
+
+it('connects school resources with posters, university work and private feedback', function (): void {
+    $this->get(route('educators'))->assertOk()->assertSee('Exoplanet poster series')
+        ->assertSee('href="#posters"', false)->assertSee(route('higher-education'), false)
+        ->assertSee(route('feedback'), false)->assertSee('The first posters are being prepared');
+});
+
+it('renders configured posters with credits and downloadable local artwork', function (): void {
+    config(['educators.posters' => [[
+        'title' => 'Example classroom poster', 'description' => 'Test artwork description',
+        'credit' => 'Example artist', 'licence' => 'Test licence',
+        'pdf' => 'handouts/posters/example.pdf', 'preview' => 'handouts/posters/example.webp',
+        'alt' => 'An example exoplanet diagram', 'width' => 600, 'height' => 850,
+    ]]]);
+    $this->get(route('educators'))->assertOk()->assertSee('Example artist')->assertSee('Test licence')
+        ->assertSee('href="/handouts/posters/example.pdf" download="example.pdf"', false)
+        ->assertSee('An example exoplanet diagram')->assertDontSee('The first posters are being prepared');
+});

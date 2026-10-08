@@ -15,6 +15,13 @@
         @endforeach
     </ul>
 
+    <nav class="surface mb-8 flex flex-wrap gap-4 p-5" aria-label="{{ __('Teaching resources') }}">
+        <a class="underline" href="#primary">{{ __('Primary handout') }}</a>
+        <a class="underline" href="#secondary">{{ __('Secondary handout') }}</a>
+        <a class="underline" href="#posters">{{ __('Exoplanet posters') }}</a>
+        <a class="underline" href="{{ route('higher-education') }}">{{ __('University activities & handouts') }} →</a>
+    </nav>
+
     @if (count($handouts) === 0)
         <x-empty-state :title="__('No handouts yet')" />
     @else
@@ -69,15 +76,38 @@
         </ul>
     @endif
 
+    <section id="posters" class="surface mt-10 scroll-mt-24 p-6" aria-labelledby="posters-heading">
+        <p class="text-sm font-semibold uppercase tracking-wider" style="color: var(--muted);">{{ __('For classroom walls') }}</p>
+        <h2 id="posters-heading" class="mt-2 font-serif text-3xl">{{ __('Exoplanet poster series') }}</h2>
+        <p class="mt-3 leading-relaxed" style="color: var(--muted);">{{ __('Explore worlds beyond our Solar System with posters for primary and secondary classrooms. Vector artwork keeps text and illustrations sharp when printed from A3 up to A0.') }}</p>
+        @if (count($posters))
+            <ul class="mt-6 grid gap-6 sm:grid-cols-2" role="list">
+                @foreach ($posters as $poster)
+                    <li>
+                        <img src="/{{ $poster['preview'] }}" alt="{{ $poster['alt'] }}" loading="lazy" width="{{ $poster['width'] }}" height="{{ $poster['height'] }}" class="h-auto w-full rounded-lg">
+                        <h3 class="mt-3 text-xl font-semibold">{{ $poster['title'] }}</h3>
+                        <p class="mt-2 text-sm">{{ $poster['description'] }}</p>
+                        <p class="mt-2 text-sm" style="color: var(--muted);">{{ $poster['credit'] }} · {{ $poster['licence'] }}</p>
+                        <a class="mt-3 inline-block underline" href="/{{ $poster['pdf'] }}" download="{{ basename($poster['pdf']) }}">{{ __('Download vector PDF (A0–A3)') }}</a>
+                    </li>
+                @endforeach
+            </ul>
+            <p class="mt-5 text-sm">{{ __('Choose A0, A1, A2 or A3 paper and fit the complete page to the printable area. Check the print preview for clipping before printing.') }}</p>
+        @else
+            <p class="mt-4 text-sm">{{ __('The first posters are being prepared for download. Classroom handouts are available above in the meantime.') }}</p>
+        @endif
+    </section>
+
     <div class="mt-12 space-y-4 text-base leading-relaxed" style="max-width: var(--container-prose); color: var(--text);">
         <h2 class="font-serif text-2xl font-medium">{{ __('Using them in class') }}</h2>
         <p style="color: var(--muted);">
-            {{ __('Every activity in the handouts points at a page on this site, so a whiteboard or a tablet is all you need. The data behind it is public domain, from NASA, JPL and the IAU Minor Planet Center, so you can reuse it in your own worksheets.') }}
+            {{ __('Every activity in the handouts points at a page on this site, so a whiteboard or a tablet is all you need. Follow the source links and their attribution and reuse terms when adapting data or images for your own worksheets.') }}
             <a class="underline" style="color: var(--link);" href="{{ route('orrery') }}">{{ __('Open the orrery') }}</a>
             {{ __('to show where the planets are today, or') }}
             <a class="underline" style="color: var(--link);" href="{{ route('planets.index') }}">{{ __('start with the planets') }}</a>.
         </p>
 
+        <p><a class="underline" href="{{ route('feedback') }}">{{ __('Suggest a classroom activity or give feedback') }}</a></p>
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Tell us what would help') }}</h2>
         <p style="color: var(--muted);">
             {{ __('Used one of these in a lesson? Want a sheet for a different year group or topic? We would love to hear from you:') }}

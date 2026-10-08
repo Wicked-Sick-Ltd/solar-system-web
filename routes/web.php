@@ -3,7 +3,9 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ExoplanetExportController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GalaxyDataController;
+use App\Http\Controllers\HigherEducationHandoutController;
 use App\Http\Controllers\NightPlannerController;
 use App\Http\Controllers\NightWeatherController;
 use App\Http\Controllers\ObservingShortlistController;
@@ -28,6 +30,7 @@ use App\Livewire\Exoplanets;
 use App\Livewire\ExoplanetSystem;
 use App\Livewire\ExplorePage;
 use App\Livewire\Galaxy;
+use App\Livewire\HigherEducationPage;
 use App\Livewire\Home;
 use App\Livewire\LearnPage;
 use App\Livewire\MeteorShowerDetail;
@@ -39,6 +42,7 @@ use App\Livewire\ObservingJournal;
 use App\Livewire\ObservingWorkspace;
 use App\Livewire\Orrery;
 use App\Livewire\Planets\Index as PlanetsIndex;
+use App\Livewire\PluginPage;
 use App\Livewire\PrivacyPage;
 use App\Livewire\SearchPage;
 use App\Livewire\SettingsPage;
@@ -100,8 +104,13 @@ Route::get('/og/objects/{slug}.png', OgImageController::class)
     ->name('og.object');
 
 Route::get('/about', AboutPage::class)->name('about');
-// Classroom handouts for teachers (static PDFs under public/educators/).
+// Classroom handouts for teachers (static PDFs under public/handouts/).
 Route::get('/educators', EducatorsPage::class)->name('educators');
+Route::get('/plugin', PluginPage::class)->name('plugin');
+Route::get('/higher-education', HigherEducationPage::class)->name('higher-education');
+Route::get('/higher-education/{activity}/handout', HigherEducationHandoutController::class)->where('activity', '[a-z-]+')->name('higher-education.handout');
+Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback');
+Route::post('/feedback', [FeedbackController::class, 'store'])->middleware('throttle:3,10,feedback')->name('feedback.store');
 Route::get('/api', ApiPage::class)->name('api');
 Route::get('/privacy', PrivacyPage::class)->name('privacy');
 Route::get('/settings', SettingsPage::class)->name('settings');

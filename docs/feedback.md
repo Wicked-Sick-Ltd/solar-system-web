@@ -1,0 +1,9 @@
+# Private feedback
+
+`GET /feedback` accepts feature requests, bug reports and contact messages through a CSRF-protected `POST /feedback`. No account is needed. Reply email is optional. Messages go only to `FEEDBACK_TO_ADDRESS` (default `hello@publicuniverse.net`), using `FEEDBACK_MAILER` or the existing `MAIL_MAILER`. The configured sender is retained; a validated visitor email becomes Reply-To, never From or To.
+
+Configure a delivering transport such as Postmark or SMTP and its existing provider credentials before release. The form disables delivery for log, array and composite transports (including the default log fallback), so private messages cannot spill into application logs or be falsely reported as delivered. A successful submission means the mail transport accepted the message, not that mailbox delivery was verified. Transport failures retain a bounded draft in the session and show an email alternative; exception details and message bodies are not logged by this feature.
+
+Messages are not saved in a feedback table or published as GitHub issues. Handle retention and deletion requests in the existing private inbox. Session drafts expire according to the existing session policy. Standard access logging and a rate-limit cache key still apply; no observing/account data is added to messages. POST is limited to three attempts per ten minutes per client by Laravel's route throttle. Shared reverse-proxy trust configuration should supply the intended client address. A hidden empty field catches basic automated spam. The form and responses use `private, no-store` and `no-referrer`.
+
+Deployment verification (separate authorized operation): confirm provider credentials, verified From address, correct recipient and delivery via the deployed form. Development tests use `Mail::fake()`; no live test messages are sent. The new domain does not need to be the website host to use its existing inbox. Domain, DNS and WAF changes are outside this change.
