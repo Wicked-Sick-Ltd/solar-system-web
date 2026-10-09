@@ -137,6 +137,18 @@ it('ignores array search parameters in the shared header', function () {
     $this->get('/learn?q%5B%5D=Proxima')->assertOk();
 });
 
+it('picks the featured object from the frozen UTC day', function () {
+    $this->travelTo(new DateTimeImmutable('2026-10-01T12:00:00Z'));
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('href="'.route('objects.show', 'moon-titan').'"', false);
+
+    $this->travelTo(new DateTimeImmutable('2026-10-09T12:00:00Z'));
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('href="'.route('objects.show', 'dwarf-pluto').'"', false);
+});
+
 it('renders the observing starter catalogue and exact source detail routes', function (string $uri) {
     $fixture = json_decode(file_get_contents(base_path('tests/fixtures/starter-catalogue.json')), true, flags: JSON_THROW_ON_ERROR);
     Http::swap(new Factory);
