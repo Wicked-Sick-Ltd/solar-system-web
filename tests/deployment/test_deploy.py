@@ -12,7 +12,7 @@ SCRIPT = Path(__file__).resolve().parents[2] / "deploy.sh"
 
 
 class DeployTests(unittest.TestCase):
-    def run_deploy(self, fail="", backup=True, revision="a" * 40, dirty=False, head=None, real_git=False):
+    def run_deploy(self, fail="", backup=True, revision="a" * 40, dirty=False, head=None, real_git=False, leftover_framework_lock=False, composer_form="path"):
         with tempfile.TemporaryDirectory(prefix="release test ") as directory:
             root = Path(directory)
             binary = root / "bin"
@@ -44,13 +44,47 @@ class DeployTests(unittest.TestCase):
                     'exit 0\n'
                 )
                 path.chmod(0o700)
+            # The site temp path contains a space. Composer is split on
+            # whitespace, so its command has to live on a path without spaces.
+            composer_dir = tempfile.mkdtemp(prefix="composermock")
+            self.addCleanup(shutil.rmtree, composer_dir, True)
+            php84 = Path(composer_dir) / "php8.4"
+            composer_bin = Path(composer_dir) / "composer"
+            shutil.copy(binary / "php", php84)
+            shutil.copy(binary / "composer", composer_bin)
+            php84.chmod(0o700)
+            composer_bin.chmod(0o700)
+            if composer_form == "path":
+                forge_composer = str(composer_bin)
+            elif composer_form == "php":
+                forge_composer = f"{php84} {composer_bin}"
+            elif composer_form == "glob":
+                forge_composer = f"{php84} *"
+            else:
+                raise AssertionError(composer_form)
             if real_git:
                 def git(*args):
                     return subprocess.check_output(["git", *args], cwd=site, text=True).strip()
                 git("init", "-q", "-b", "reviewed-branch")
                 git("config", "user.email", "test@example.test")
                 git("config", "user.name", "Release Test")
-                (site / ".gitignore").write_text("/storage/\n/bootstrap/\n")
+                if leftover_framework_lock:
+                    # A checkout from before deploy.lock was ignored. A blanket
+                    # /storage/ rule would hide the clean-checkout failure.
+                    (site / ".gitignore").write_text("/bootstrap/\n")
+                    (site / "storage/framework/.gitignore").write_text(
+                        "compiled.php\n"
+                        "config.php\n"
+                        "down\n"
+                        "events.scanned.php\n"
+                        "maintenance.php\n"
+                        "routes.php\n"
+                        "routes.scanned.php\n"
+                        "schedule-*\n"
+                        "services.json\n"
+                    )
+                else:
+                    (site / ".gitignore").write_text("/storage/\n/bootstrap/\n")
                 git("add", ".")
                 git("commit", "-qm", "chore: initial")
                 initial = git("rev-parse", "HEAD")
@@ -64,13 +98,15 @@ class DeployTests(unittest.TestCase):
                 subprocess.run(["git", "clone", "--bare", str(site), str(origin)], check=True, capture_output=True)
                 git("remote", "add", "origin", str(origin))
                 git("checkout", "--detach", "-q", initial)
+                if leftover_framework_lock:
+                    (site / "storage/framework/deploy.lock").write_text("")
             env = {
                 **os.environ,
                 "PATH": f"{binary}:{os.environ['PATH']}",
                 "FORGE_SITE_PATH": str(site),
                 "FORGE_SITE_BRANCH": "reviewed-branch",
                 "FORGE_PHP": str(binary / "php"),
-                "FORGE_COMPOSER": str(binary / "composer"),
+                "FORGE_COMPOSER": forge_composer,
                 "FORGE_PHP_FPM": "php8.4-fpm",
                 "COMMAND_LOG": str(log),
                 "FAIL_COMMAND": fail,
@@ -88,6 +124,15 @@ class DeployTests(unittest.TestCase):
             if real_git:
                 self.assertEqual(git("rev-parse", "HEAD"), revision)
                 self.assertEqual((site / "marker").read_text(), "reviewed")
+            if leftover_framework_lock:
+                self.assertFalse((site / "storage/framework/deploy.lock").exists(), result.stderr)
+                self.assertTrue(Path(f"{site}.deploy.lock").is_file(), result.stderr)
+                status = subprocess.check_output(
+                    ["git", "status", "--porcelain", "--untracked-files=normal"],
+                    cwd=site,
+                    text=True,
+                )
+                self.assertEqual(status, "", result.stderr)
             return result, commands
 
     def test_requires_backup_configuration_before_mutations(self):
@@ -99,6 +144,33 @@ class DeployTests(unittest.TestCase):
         result, commands = self.run_deploy(real_git=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(any("universe:releases:publish" in c for c in commands))
+
+    def test_deploy_lock_does_not_dirty_a_tracked_framework_directory(self):
+        ignore = (SCRIPT.parent / "storage/framework/.gitignore").read_text().splitlines()
+        self.assertIn("deploy.lock", ignore)
+        result, commands = self.run_deploy(real_git=True, leftover_framework_lock=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("clean checkout", result.stderr)
+        self.assertTrue(any("universe:releases:publish" in c for c in commands))
+
+    def test_forge_composer_includes_the_site_php_binary(self):
+        result, commands = self.run_deploy(composer_form="php")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        install = [
+            command for command in commands
+            if command.endswith("install --no-dev --no-interaction --prefer-dist --optimize-autoloader")
+        ]
+        self.assertEqual(len(install), 1, commands)
+        self.assertTrue(install[0].startswith("php8.4 /"), install[0])
+        self.assertIn("/composer ", install[0])
+
+    def test_forge_composer_splits_without_expanding_globs(self):
+        result, commands = self.run_deploy(composer_form="glob")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "php8.4 * install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
+            commands,
+        )
 
     def test_release_order(self):
         result, commands = self.run_deploy()
