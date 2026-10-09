@@ -81,6 +81,10 @@ an atomic or zero-downtime deployment. Use it only for an installed application
 with working dependencies. It checks out an exact revision in detached HEAD
 state. Configure Forge's `FORGE_SITE_*`, `FORGE_PHP`,
 `FORGE_COMPOSER` and `FORGE_PHP_FPM` variables as usual.
+`FORGE_COMPOSER` is a command line (`php8.4 /usr/local/bin/composer` on
+current Forge); the script splits it on whitespace. `FORGE_PHP`,
+`FORGE_PHP_FPM`, `FORGE_SITE_PATH`, and `FORGE_SITE_BRANCH` are single
+values and stay quoted.
 
 Before invoking it:
 
@@ -111,8 +115,10 @@ provider's consistent snapshot/dump procedure and test restoration. Back up
 `APP_KEY`/environment separately with restricted access. Encrypt off-site
 copies, apply a retention policy, and monitor backup failures.
 
-The script serializes releases and checks for a clean checkout, including
-untracked files. It fetches the configured branch and validates the target before
+The script serializes releases with a lock at `<site-path>.deploy.lock` (beside
+the checkout, so the lock cannot appear as an untracked file) and checks for a
+clean checkout, including untracked files. It fetches the configured branch and
+validates the target before
 maintenance begins. It then prerenders maintenance HTML, requires a successful
 backup, checks out `RELEASE_COMMIT`, installs locked dependencies, builds assets,
 clears stale configuration, migrates, writes the build identity, rebuilds
