@@ -87,6 +87,20 @@ final readonly class ObjectDetail
     }
 
     /**
+     * Date to show as the discovery date.
+     *
+     * `discovery_date` is the catalogue's historical discovery date. The nested
+     * MPC `discovered_on` is the date of the discovery observation, which can be
+     * an earlier plate: Pluto was photographed on 23 January 1930 and identified
+     * on 18 February 1930. Prefer the catalogue date, and use the observation
+     * date only when the catalogue has none.
+     */
+    public function discoveryDateForDisplay(): ?string
+    {
+        return $this->discoveryDate ?? $this->discovery?->discoveredOn;
+    }
+
+    /**
      * Designations other than the display name and the id, for an "also known as" line.
      *
      * @return list<string>
