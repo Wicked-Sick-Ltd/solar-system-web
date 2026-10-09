@@ -23,8 +23,14 @@ fi
 
 cd "$FORGE_SITE_PATH"
 # Serialize the entire release, including backup and migrations.
-exec 9>storage/framework/deploy.lock
+# The lock is a sibling of the checkout. Creating it under storage/framework
+# makes it an untracked file before this revision's gitignore is in effect,
+# so the clean-checkout check below rejects every deploy.
+site_root="${FORGE_SITE_PATH%/}"
+exec 9>"${site_root}.deploy.lock"
 flock -n 9 || { echo 'Another deployment is active.' >&2; exit 1; }
+# Older copies of this script left an in-tree lock. It is not source.
+rm -f -- storage/framework/deploy.lock
 
 # Fetch does not alter running source. Reject local changes and an unreviewed tip.
 checkout_status=$(git status --porcelain --untracked-files=normal)
