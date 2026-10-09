@@ -52,7 +52,8 @@ it('tells gtag where it is instead of letting it read the address bar', function
         ->assertOk()
         ->assertSee('name="ga-page-location" content="'.url('/').'"', escape: false)
         ->assertSee('meta[name="ga-page-location"]', escape: false)
-        ->assertSee('page_location: pageLocation(true)', escape: false);
+        ->assertSee('page_location: loc', escape: false)
+        ->assertSee('var loc = pageLocation(false)', escape: false);
 });
 
 it('records Livewire navigations as page_view once analytics has loaded', function () {

@@ -91,10 +91,51 @@ test('accepting analytics grants Consent Mode storage and injects gtag.js once',
     const config = h.calls.find((c) => c[0] === 'config');
     assert.equal(config[1], 'G-TEST1234');
     assert.equal(config[2].anonymize_ip, true);
-    assert.equal(config[2].page_location, 'https://publicuniverse.test/from-meta');
+    // Prefer the live address bar (meta is stale after wire:navigate).
+    assert.equal(config[2].page_location, 'https://publicuniverse.test/objects/mars');
 
     banner.choose('all');
     assert.equal(h.scripts.length, 1);
+});
+
+test('accepting analytics after wire:navigate configs the current URL, not the stale meta', () => {
+    const h = harness({
+        href: 'https://publicuniverse.test/',
+        metaLocation: 'https://publicuniverse.test/',
+    });
+    const banner = h.create();
+    banner.init();
+    assert.equal(banner.open, true);
+
+    // Catalogue pagination before consent: address bar moved, meta did not.
+    h.navigate('https://publicuniverse.test/catalogue?page=2');
+    h.calls.length = 0;
+
+    banner.choose('all');
+    const config = h.calls.find((c) => c[0] === 'config');
+    assert.ok(config);
+    assert.equal(config[2].page_location, 'https://publicuniverse.test/catalogue?page=2');
+});
+
+test('prior consent does not double-count the landing page when livewire:navigated fires on boot', () => {
+    const h = harness({
+        cookie: 'cookie_consent=all',
+        href: 'https://publicuniverse.test/objects/mars',
+        metaLocation: 'https://publicuniverse.test/objects/mars',
+    });
+    const banner = h.create();
+    banner.init();
+
+    // Livewire emits navigated on initial load as well as after wire:navigate.
+    for (const fn of h.document.listeners['livewire:navigated'] ?? []) fn();
+
+    const pageViews = h.calls.filter((c) => c[0] === 'event' && c[1] === 'page_view');
+    const configs = h.calls.filter((c) => c[0] === 'config');
+    assert.equal(configs.length, 1);
+    assert.equal(pageViews.length, 0, 'config already sent the landing page_view');
+
+    h.navigate('https://publicuniverse.test/objects/planet-saturn');
+    assert.equal(h.calls.filter((c) => c[0] === 'event' && c[1] === 'page_view').length, 1);
 });
 
 test('essential-only never loads Google scripts', () => {

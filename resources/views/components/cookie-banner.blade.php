@@ -91,9 +91,17 @@
         function trackPageView() {
             var id = measurementId();
             if (!id || !window.__gaLoaded || typeof window.gtag !== 'function') return;
+            var loc = pageLocation(false);
+            // gtag('config') already sent this URL; Livewire also emits navigated
+            // on first paint — drop that one duplicate, then clear the seed.
+            if (window.__gaSkipPageLocation !== undefined) {
+                var skip = window.__gaSkipPageLocation === loc;
+                window.__gaSkipPageLocation = undefined;
+                if (skip) return;
+            }
             window.gtag('event', 'page_view', {
                 send_to: id,
-                page_location: pageLocation(false),
+                page_location: loc,
                 page_path: pagePath()
             });
         }
@@ -117,10 +125,14 @@
                 window.gtag = gtag;
             }
             window.gtag('js', new Date());
+            // Always recompute from the bar: after wire:navigate the meta is stale,
+            // and Accept can run long after the landing page was rendered.
+            var loc = pageLocation(false);
             window.gtag('config', id, {
                 anonymize_ip: true,
-                page_location: pageLocation(true)
+                page_location: loc
             });
+            window.__gaSkipPageLocation = loc;
             bindNavigateTracking();
         }
         return {
