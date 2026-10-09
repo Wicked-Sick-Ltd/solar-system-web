@@ -56,8 +56,8 @@ final class Home extends Component
 
     private function featuredSlug(): string
     {
-        // UTC day-of-year through the application clock, so a frozen test
-        // instant picks a stable featured object. gmdate() ignores that clock.
+        // UTC day-of-year via the application clock, so a frozen test instant
+        // picks a stable featured object.
         $day = now()->utc()->format('Y-z');
         $index = crc32($day) % count(self::FEATURED_POOL);
 
