@@ -12,7 +12,7 @@ SCRIPT = Path(__file__).resolve().parents[2] / "deploy.sh"
 
 
 class DeployTests(unittest.TestCase):
-    def run_deploy(self, fail="", backup=True, revision="a" * 40, dirty=False, head=None, real_git=False, leftover_framework_lock=False):
+    def run_deploy(self, fail="", backup=True, revision="a" * 40, dirty=False, head=None, real_git=False, leftover_framework_lock=False, composer_form="path"):
         with tempfile.TemporaryDirectory(prefix="release test ") as directory:
             root = Path(directory)
             binary = root / "bin"
@@ -44,6 +44,24 @@ class DeployTests(unittest.TestCase):
                     'exit 0\n'
                 )
                 path.chmod(0o700)
+            # The site temp path contains a space. Composer is split on
+            # whitespace, so its command has to live on a path without spaces.
+            composer_dir = tempfile.mkdtemp(prefix="composermock")
+            self.addCleanup(shutil.rmtree, composer_dir, True)
+            php84 = Path(composer_dir) / "php8.4"
+            composer_bin = Path(composer_dir) / "composer"
+            shutil.copy(binary / "php", php84)
+            shutil.copy(binary / "composer", composer_bin)
+            php84.chmod(0o700)
+            composer_bin.chmod(0o700)
+            if composer_form == "path":
+                forge_composer = str(composer_bin)
+            elif composer_form == "php":
+                forge_composer = f"{php84} {composer_bin}"
+            elif composer_form == "glob":
+                forge_composer = f"{php84} *"
+            else:
+                raise AssertionError(composer_form)
             if real_git:
                 def git(*args):
                     return subprocess.check_output(["git", *args], cwd=site, text=True).strip()
@@ -88,7 +106,7 @@ class DeployTests(unittest.TestCase):
                 "FORGE_SITE_PATH": str(site),
                 "FORGE_SITE_BRANCH": "reviewed-branch",
                 "FORGE_PHP": str(binary / "php"),
-                "FORGE_COMPOSER": str(binary / "composer"),
+                "FORGE_COMPOSER": forge_composer,
                 "FORGE_PHP_FPM": "php8.4-fpm",
                 "COMMAND_LOG": str(log),
                 "FAIL_COMMAND": fail,
@@ -134,6 +152,25 @@ class DeployTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("clean checkout", result.stderr)
         self.assertTrue(any("universe:releases:publish" in c for c in commands))
+
+    def test_forge_composer_includes_the_site_php_binary(self):
+        result, commands = self.run_deploy(composer_form="php")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        install = [
+            command for command in commands
+            if command.endswith("install --no-dev --no-interaction --prefer-dist --optimize-autoloader")
+        ]
+        self.assertEqual(len(install), 1, commands)
+        self.assertTrue(install[0].startswith("php8.4 /"), install[0])
+        self.assertIn("/composer ", install[0])
+
+    def test_forge_composer_splits_without_expanding_globs(self):
+        result, commands = self.run_deploy(composer_form="glob")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "php8.4 * install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
+            commands,
+        )
 
     def test_release_order(self):
         result, commands = self.run_deploy()

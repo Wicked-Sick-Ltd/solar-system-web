@@ -54,7 +54,17 @@ if [[ "$(git rev-parse --verify HEAD)" != "$RELEASE_COMMIT" ]]; then
     echo 'Checkout did not match the reviewed revision.' >&2
     exit 1
 fi
-"$FORGE_COMPOSER" install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+# Forge sets FORGE_COMPOSER to a command line, for example
+# "php8.4 /usr/local/bin/composer", not a single executable path.
+# Split on whitespace without globbing. FORGE_PHP is one binary,
+# FORGE_PHP_FPM one service name, and FORGE_SITE_PATH / FORGE_SITE_BRANCH
+# one field each; those stay quoted.
+read -r -a forge_composer <<< "$FORGE_COMPOSER"
+if [[ ${#forge_composer[@]} -eq 0 ]]; then
+    echo 'FORGE_COMPOSER must be a composer command.' >&2
+    exit 1
+fi
+"${forge_composer[@]}" install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 npm ci --no-audit --no-fund
 npm run build
 
