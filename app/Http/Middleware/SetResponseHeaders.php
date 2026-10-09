@@ -18,8 +18,11 @@ use Symfony\Component\HttpFoundation\Response;
  * `no-store` that Livewire forces, on the routes where caching is safe.
  *
  * No Content-Security-Policy is set: the site uses a couple of inline scripts
- * (the no-FOUC theme switch) and inline handlers, so a strict CSP would need
- * refactoring first.
+ * (the no-FOUC theme switch, Consent Mode defaults, cookie banner) and inline
+ * handlers, so a strict CSP would need nonces or refactoring first. GA4 never
+ * appears as a server-rendered script src; gtag.js is injected only after
+ * consent, which keeps fixture-budget HTML script inventories free of
+ * googletagmanager.com / google-analytics.com when auditing the response body.
  */
 final class SetResponseHeaders
 {

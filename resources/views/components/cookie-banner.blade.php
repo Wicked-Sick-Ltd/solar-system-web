@@ -3,6 +3,10 @@
     until the visitor explicitly accepts. The choice lives in a first-party
     cookie (`cookie_consent` = essential | all) for a year.
 
+    Google Consent Mode v2 defaults (analytics_storage denied) are set in
+    <x-analytics /> when a measurement id is configured. gtag.js is loaded only
+    after "Accept analytics"; Livewire wire:navigate fires page_view thereafter.
+
     Rendered only when analytics is configured: without it the site sets
     essential cookies only, which need no consent banner.
 --}}
@@ -28,6 +32,8 @@
 <script>
     function cookieConsent() {
         var NAME = 'cookie_consent';
+        var REDACTED_QUERY_PARAMS = ['s'];
+
         function read() {
             var m = document.cookie.match(new RegExp('(?:^|; )' + NAME + '=([^;]*)'));
             return m ? decodeURIComponent(m[1]) : null;
@@ -36,28 +42,86 @@
             document.cookie = NAME + '=' + encodeURIComponent(value) + '; Max-Age=31536000; Path=/; SameSite=Lax' +
                 (location.protocol === 'https:' ? '; Secure' : '');
         }
-        function pageLocation() {
-            // The layout publishes the address gtag may report. Current share
-            // tokens live in the fragment (never on this request); leftover ?s=
-            // query values are redacted. Without the tag, report the path alone.
-            var meta = document.querySelector('meta[name="ga-page-location"]');
-            var value = meta && meta.getAttribute('content');
-            return value || (location.origin + location.pathname);
+        function clientPageLocation() {
+            // Mirror App\Support\Analytics: redact share tokens, never send the fragment.
+            try {
+                var u = new URL(location.href);
+                u.hash = '';
+                REDACTED_QUERY_PARAMS.forEach(function (key) {
+                    if (u.searchParams.has(key)) {
+                        u.searchParams.set(key, 'redacted');
+                    }
+                });
+                return u.origin + u.pathname + u.search;
+            } catch (e) {
+                return location.origin + location.pathname;
+            }
+        }
+        function pageLocation(preferMeta) {
+            // First hit: prefer the server-rendered redacted address. After
+            // wire:navigate the meta can be stale, so recompute from the bar.
+            if (preferMeta !== false) {
+                var meta = document.querySelector('meta[name="ga-page-location"]');
+                var value = meta && meta.getAttribute('content');
+                if (value) return value;
+            }
+            return clientPageLocation();
+        }
+        function measurementId() {
+            var meta = document.querySelector('meta[name="ga-measurement-id"]');
+            return meta ? meta.getAttribute('content') : null;
+        }
+        function grantAnalyticsConsent() {
+            if (typeof window.gtag !== 'function') return;
+            window.gtag('consent', 'update', { analytics_storage: 'granted' });
+        }
+        function pagePath() {
+            try {
+                var u = new URL(location.href);
+                REDACTED_QUERY_PARAMS.forEach(function (key) {
+                    if (u.searchParams.has(key)) {
+                        u.searchParams.set(key, 'redacted');
+                    }
+                });
+                return u.pathname + u.search;
+            } catch (e) {
+                return location.pathname;
+            }
+        }
+        function trackPageView() {
+            var id = measurementId();
+            if (!id || !window.__gaLoaded || typeof window.gtag !== 'function') return;
+            window.gtag('event', 'page_view', {
+                send_to: id,
+                page_location: pageLocation(false),
+                page_path: pagePath()
+            });
+        }
+        function bindNavigateTracking() {
+            if (window.__gaNavigateBound) return;
+            window.__gaNavigateBound = true;
+            document.addEventListener('livewire:navigated', trackPageView);
         }
         function loadAnalytics() {
-            var meta = document.querySelector('meta[name="ga-measurement-id"]');
-            if (!meta || window.__gaLoaded) return;
+            var id = measurementId();
+            if (!id || window.__gaLoaded) return;
             window.__gaLoaded = true;
-            var id = meta.getAttribute('content');
+            grantAnalyticsConsent();
             var s = document.createElement('script');
             s.async = true;
             s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
             document.head.appendChild(s);
             window.dataLayer = window.dataLayer || [];
-            function gtag() { window.dataLayer.push(arguments); }
-            window.gtag = gtag;
-            gtag('js', new Date());
-            gtag('config', id, { anonymize_ip: true, page_location: pageLocation() });
+            if (typeof window.gtag !== 'function') {
+                function gtag() { window.dataLayer.push(arguments); }
+                window.gtag = gtag;
+            }
+            window.gtag('js', new Date());
+            window.gtag('config', id, {
+                anonymize_ip: true,
+                page_location: pageLocation(true)
+            });
+            bindNavigateTracking();
         }
         return {
             open: false,

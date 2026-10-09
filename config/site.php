@@ -29,9 +29,11 @@ return [
     'operator' => env('SITE_OPERATOR', 'Wicked Sick Ltd'),
 
     // Google Analytics 4. Leave unset to ship no analytics at all. When set,
-    // gtag is only loaded client-side after the visitor accepts analytics
-    // cookies (see resources/views/components/cookie-banner.blade.php).
+    // Consent Mode v2 defaults deny analytics_storage until the visitor accepts
+    // analytics cookies; gtag.js loads only after that opt-in
+    // (see resources/views/components/cookie-banner.blade.php).
+    // Prefer GA4_MEASUREMENT_ID; GA_MEASUREMENT_ID remains as a fallback.
     'analytics' => [
-        'ga_measurement_id' => env('GA_MEASUREMENT_ID'),
+        'ga_measurement_id' => env('GA4_MEASUREMENT_ID', env('GA_MEASUREMENT_ID')),
     ],
 ];

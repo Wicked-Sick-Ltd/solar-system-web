@@ -7,7 +7,7 @@ namespace App\Support;
 use Illuminate\Http\Request;
 
 /**
- * What the site may tell Google Analytics about the address it is on.
+ * What the site may tell Google Analytics 4 about the address it is on.
  *
  * gtag takes page_location from the address bar unless it is told otherwise,
  * so any sensitive query string reaches Google the moment a visitor who has
@@ -15,7 +15,8 @@ use Illuminate\Http\Request;
  * Settings share links carry an observing location in the URL fragment
  * (`#s=…`), which never reaches this request. Older `?s=` links still might,
  * so those query values are replaced here and the cookie banner hands that
- * to gtag instead of the address bar.
+ * to gtag instead of the address bar. After Livewire wire:navigate the banner
+ * recomputes the same redaction client-side for page_view events.
  */
 final class Analytics
 {
