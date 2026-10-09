@@ -105,7 +105,7 @@
         {{-- Clear all --}}
         <section class="surface p-6" aria-labelledby="clear-heading">
             <h2 id="clear-heading" class="font-serif text-xl font-medium">{{ __('Clear display settings') }}</h2>
-            <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Removes the theme, location and preferences above from this browser. The cookie-consent choice is separate and is covered on the privacy page.') }}</p>
+            <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Removes the theme, location and preferences above from this browser. The Google Analytics 4 choice is separate, and only applies when analytics is switched on. It is covered on the privacy page.') }}</p>
             <button type="button" class="mt-3 rounded-lg border px-4 py-2 text-sm" style="border-color: #ffb4b4; color: #ffb4b4;" @click="clearAll()">{{ __('Clear theme, location and display preferences') }}</button>
         </section>
 

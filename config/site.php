@@ -28,10 +28,11 @@ return [
     // Legal entity named in the privacy policy.
     'operator' => env('SITE_OPERATOR', 'Wicked Sick Ltd'),
 
-    // Google Analytics 4. Leave unset to ship no analytics at all. When set,
-    // gtag is only loaded client-side after the visitor accepts analytics
-    // cookies (see resources/views/components/cookie-banner.blade.php).
+    // Google Analytics 4. Leave GA4_MEASUREMENT_ID unset to ship no analytics
+    // and no cookie banner. When set, Consent Mode v2 keeps analytics_storage
+    // denied and gtag.js is injected only after the visitor opts in
+    // (resources/js/analytics-consent.js).
     'analytics' => [
-        'ga_measurement_id' => env('GA_MEASUREMENT_ID'),
+        'ga_measurement_id' => env('GA4_MEASUREMENT_ID'),
     ],
 ];
