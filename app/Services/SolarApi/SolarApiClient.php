@@ -798,6 +798,7 @@ class SolarApiClient
      * {@see SolarApiException} for other non-2xx responses.
      *
      * @param  array<string,mixed>  $query
+     * @return array<mixed>|null
      */
     private function request(string $path, array $query = []): ?array
     {
