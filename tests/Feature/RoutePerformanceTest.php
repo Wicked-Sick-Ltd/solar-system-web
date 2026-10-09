@@ -17,7 +17,9 @@ it('keeps representative request-kernel work within measured structural budgets'
     }
     $this->withVite();
     $this->travelTo(new DateTimeImmutable('2026-10-01T12:00:00Z'));
-    config(['app.debug' => false, 'app.url' => 'https://performance.example.test', 'queue.default' => 'sync', 'services.mailchimp.api_key' => null, 'services.mailchimp.audience_id' => null]);
+    // Analytics markup is config-driven and absent unless GA4_MEASUREMENT_ID is
+    // set, so these structural budgets stay on the no-analytics document.
+    config(['app.debug' => false, 'app.url' => 'https://performance.example.test', 'queue.default' => 'sync', 'services.mailchimp.api_key' => null, 'services.mailchimp.audience_id' => null, 'site.analytics.ga_measurement_id' => null]);
     [$method, $path, $input] = RouteWorkload::scenarios()[$scenario];
     $budget = json_decode(file_get_contents(base_path('tests/fixtures/performance/route-budgets.json')), true, 512, JSON_THROW_ON_ERROR)[$scenario];
     $iterations = getenv('PERFORMANCE_REPORT') ? 7 : 2;

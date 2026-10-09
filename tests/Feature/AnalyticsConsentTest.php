@@ -70,6 +70,67 @@ it('shows a cookie banner that links to the privacy policy when analytics is ena
         ->assertSee('Accept analytics');
 });
 
+it('ignores a measurement id that is not a GA4 id', function () {
+    config(['site.analytics.ga_measurement_id' => 'G-NO<script>']);
+
+    $this->get('/')
+        ->assertOk()
+        ->assertDontSee('googletagmanager.com', escape: false)
+        ->assertDontSee('id="cookie-banner"', escape: false)
+        ->assertDontSee('ga-measurement-id', escape: false);
+});
+
+it('defaults analytics storage to denied and sends page views after Livewire navigation', function () {
+    config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain("gtag('consent', 'default'")
+        ->toContain("analytics_storage: 'denied'")
+        ->toContain("ad_storage: 'denied'")
+        ->toContain("ad_user_data: 'denied'")
+        ->toContain("ad_personalization: 'denied'")
+        ->toContain('wait_for_update: 500')
+        ->toContain('send_page_view: false')
+        ->toContain("addEventListener('livewire:navigated'")
+        ->toContain("gtag('event', 'page_view'")
+        ->not->toContain('<script async src="https://www.googletagmanager.com')
+        ->not->toContain('page_location: location.href');
+
+    $document = new DOMDocument;
+    $previous = libxml_use_internal_errors(true);
+    $document->loadHTML($html);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    foreach ($document->getElementsByTagName('script') as $script) {
+        expect($script->getAttribute('src'))->not->toContain('googletagmanager.com');
+    }
+});
+
+it('explains Google Analytics 4 and Consent Mode, with choices only when it is switched on', function () {
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('Google Analytics 4')
+        ->assertSee('Consent Mode v2')
+        ->assertSee('analytics_storage')
+        ->assertSee('not currently switched on')
+        ->assertDontSee('publicUniverseAnalytics.choose', false);
+
+    config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
+
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('Google Analytics 4')
+        ->assertSee('Consent Mode v2')
+        ->assertSee('analytics storage')
+        ->assertSee('Essential only')
+        ->assertSee('Accept analytics')
+        ->assertSee("publicUniverseAnalytics.choose('essential')", false)
+        ->assertSee("publicUniverseAnalytics.choose('all')", false)
+        ->assertDontSee('not currently switched on');
+});
+
 it('publishes a privacy policy page', function () {
     $this->get('/privacy')
         ->assertOk()
