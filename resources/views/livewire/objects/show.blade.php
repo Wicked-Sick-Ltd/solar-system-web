@@ -262,7 +262,7 @@
                     @php $disc = $object->discovery; @endphp
                     <dl>
                         <x-prop-row :label="__('Discovered by')" :value="$disc?->discoverer ?? $object->discoverer" />
-                        <x-prop-row :label="__('Discovery date')" :value="Format::date($disc?->discoveredOn ?? $object->discoveryDate)" />
+                        <x-prop-row :label="__('Discovery date')" :value="Format::date($object->discoveryDateForDisplay())" />
                         <x-prop-row :label="__('Discovery site')" :value="$disc?->site ?? $disc?->location" />
                     </dl>
                     @if ($disc?->citation)
