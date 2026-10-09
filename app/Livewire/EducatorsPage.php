@@ -26,7 +26,7 @@ final class EducatorsPage extends Component
             ->description(__('Free A4 classroom handouts about the solar system for primary and secondary schools, built on NASA/JPL data. No adverts, no pupil accounts.'))
             ->jsonLd($this->schema($handouts));
 
-        return view('livewire.educators-page', ['handouts' => $handouts]);
+        return view('livewire.educators-page', ['handouts' => $handouts, 'posters' => config('educators.posters', [])]);
     }
 
     /**

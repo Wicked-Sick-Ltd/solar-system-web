@@ -20,6 +20,11 @@ declare(strict_types=1);
  * educationalLevel strings for JSON-LD).
  */
 return [
+    // Add only approved, locally published vector PDFs and raster previews.
+    // Each poster: title, description, credit, licence, pdf, preview, alt, width, height.
+    // Store assets in public/handouts/posters/ so /educators remains an application route.
+    'posters' => [],
+
     'handouts' => [
         [
             'id' => 'primary',
