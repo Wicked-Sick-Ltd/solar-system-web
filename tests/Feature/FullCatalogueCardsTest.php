@@ -7,6 +7,19 @@ use App\Services\SolarApi\Data\VisualProperties;
 
 beforeEach(fn () => fakeSolar());
 
+it('shows the catalogue discovery date rather than an earlier MPC plate date', function () {
+    $this->get('/objects/dwarf-pluto')
+        ->assertOk()
+        ->assertSee('18 February 1930')
+        ->assertDontSee('23 January 1930');
+});
+
+it('shows an MPC discovery date when the catalogue has none', function () {
+    $this->get('/objects/ast-20099942-apophis')
+        ->assertOk()
+        ->assertSee('19 June 2004');
+});
+
 it('shows orbit quality, discovery, aliases and close approaches for a small body', function () {
     $this->get('/objects/ast-20099942-apophis')
         ->assertOk()

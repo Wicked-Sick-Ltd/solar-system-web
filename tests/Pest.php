@@ -240,6 +240,17 @@ function plutoDetail(): array
         'sources' => [
             ['table_name' => 'physical_properties', 'source_name' => 'NASA Planetary Fact Sheet', 'source_url' => 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/'],
         ],
+        // MPC numbered-list circumstances. discovered_on is the first plate
+        // (23 January 1930), not the identification date in discovery_date.
+        'discovery' => [
+            'discovered_on' => '1930-01-23',
+            'discoverer' => 'Tombaugh, C. W.',
+            'site' => 'Flagstaff',
+            'location' => 'Flagstaff',
+            'citation' => null,
+            'reference' => 'MPC numbered list',
+            'source' => 'IAU Minor Planet Center',
+        ],
     ];
 }
 
