@@ -103,8 +103,13 @@ class CloseApproachFlyby
             return null;
         }
 
-        $command = $this->commandsFrom($approach->objectId, $approach->designation, $approach->name)[0] ?? null;
-        $samples = $command !== null ? $this->horizons->arc($command, $at->subDays(3), $at->addDays(3)) : null;
+        $samples = null;
+        foreach (array_slice($this->commandsFrom($approach->objectId, $approach->designation, $approach->name), 0, 2) as $command) {
+            $samples = $this->horizons->arc($command, $at->subDays(3), $at->addDays(3));
+            if ($samples !== null) {
+                break;
+            }
+        }
         if ($samples === null) {
             return null;
         }
@@ -174,7 +179,9 @@ class CloseApproachFlyby
     {
         $candidates = [];
         if ($id !== null && preg_match('/^ast-(\d+)$/', $id, $match) === 1) {
-            $candidates[] = $match[1];
+            // Numbered asteroids answer to the IAU number. Unnumbered SPK ids
+            // (the catalogue's ast-{id}) need Horizons' DES= lookup.
+            $candidates[] = (int) $match[1] > 1_000_000 ? 'DES='.$match[1].';' : $match[1];
         }
         $designation = (string) $designation;
         if (preg_match('/^(\d+)\b/', $designation, $match) === 1) {
@@ -193,7 +200,7 @@ class CloseApproachFlyby
         $commands = [];
         foreach ($candidates as $candidate) {
             $candidate = trim($candidate);
-            if ($candidate === '' || strlen($candidate) > 40 || preg_match('/^[A-Za-z0-9][A-Za-z0-9 .\/+_()-]*$/', $candidate) !== 1) {
+            if ($candidate === '' || strlen($candidate) > 40 || preg_match('/^[A-Za-z0-9][A-Za-z0-9 .\/+_()=;-]*$/', $candidate) !== 1) {
                 continue;
             }
             $commands[$candidate] = $candidate;

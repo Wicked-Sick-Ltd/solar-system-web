@@ -173,7 +173,7 @@ it('chooses the next earth encounter and a horizons command', function () {
         ->and($flyby->select($object->closeApproaches, CarbonImmutable::parse('2040-01-01T00:00:00Z'))?->cdIso)->toBe('2036-03-30T00:00:00Z')
         ->and($flyby->commands(ObjectDetail::fromArray([
             'id' => 'ast-54661369', 'name' => '2026 TP6', 'designation' => '(2026 TP6)',
-        ])))->toBe(['54661369', '2026 TP6']);
+        ])))->toBe(['DES=54661369;', '2026 TP6']);
 
     $moon = new CloseApproach('Moon', '2029-04-13T21:46:00Z', 0.01, null, null, null, null);
     expect($flyby->select([$moon]))->toBeNull();

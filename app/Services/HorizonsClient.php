@@ -177,7 +177,7 @@ class HorizonsClient
     private function command(string $command): ?string
     {
         $command = trim($command);
-        if ($command === '' || strlen($command) > 40 || ! preg_match('/^[A-Za-z0-9][A-Za-z0-9 .\/+_()-]*$/', $command)) {
+        if ($command === '' || strlen($command) > 40 || ! preg_match('/^[A-Za-z0-9][A-Za-z0-9 .\/+_()=;-]*$/', $command)) {
             return null;
         }
 
