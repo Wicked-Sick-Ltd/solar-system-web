@@ -14,7 +14,7 @@
         <div class="mt-6 flex flex-wrap items-center gap-3">
             <a href="{{ route('explore') }}"
                class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
-               style="background-color: var(--accent); color: #07090f;">
+               style="background-color: var(--accent-fill); color: var(--on-accent);">
                 {{ __('Start exploring') }}
             </a>
             <a href="{{ route('api') }}"

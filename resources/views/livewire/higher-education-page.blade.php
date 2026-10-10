@@ -26,7 +26,7 @@
                         @endforeach
                     </ul>
                     <div class="mt-5 flex flex-wrap gap-x-6 gap-y-3">
-                        <a href="{{ route('higher-education.handout', ['activity' => $id]) }}" class="inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold" style="background-color: var(--accent); color: #07090f;">{{ __('Open printable handout') }} <span class="sr-only">: {{ $activity['title'] }}</span></a>
+                        <a href="{{ route('higher-education.handout', ['activity' => $id]) }}" class="inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Open printable handout') }} <span class="sr-only">: {{ $activity['title'] }}</span></a>
                         <a href="{{ route($activity['start_route']) }}" class="inline-flex min-h-11 items-center text-sm underline">{{ $activity['start_label'] }}</a>
                     </div>
                     <details class="mt-5 border-t pt-4" style="border-color: var(--border)">
