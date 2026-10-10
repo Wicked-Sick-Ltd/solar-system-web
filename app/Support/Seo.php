@@ -22,6 +22,8 @@ class Seo
 
     private ?string $image = null;
 
+    private ?string $imageAlt = null;
+
     private string $type = 'website';
 
     private bool $noindex = false;
@@ -60,6 +62,13 @@ class Seo
     public function image(?string $url): static
     {
         $this->image = $url;
+
+        return $this;
+    }
+
+    public function imageAlt(?string $alt): static
+    {
+        $this->imageAlt = $alt !== null && trim($alt) !== '' ? trim($alt) : null;
 
         return $this;
     }
@@ -117,6 +126,11 @@ class Seo
     {
         // Fall back to the site's branded share card when a page sets none.
         return Links::canonical($this->image ?? ShareImage::defaultUrl());
+    }
+
+    public function getImageAlt(): string
+    {
+        return $this->imageAlt ?? __(':name share card', ['name' => config('site.name')]);
     }
 
     public function getType(): string

@@ -33,6 +33,7 @@
     </script>
 
     <x-seo />
+    @stack('head')
     <x-analytics />
 
     @vite(['resources/css/app.css'])

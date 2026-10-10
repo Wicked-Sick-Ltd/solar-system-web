@@ -192,6 +192,15 @@ class SolarApiClient
         return new Paginated($page->items, $page->limit, $page->offset, $page->hasMore, catalogueSnapshot: $snapshot);
     }
 
+    /** Confirmed exoplanets in the catalogue, from the list envelope's `total`; null when not reported. */
+    public function exoplanetCount(): ?int
+    {
+        $data = $this->cachedGet('/exoplanets', ['limit' => 1, 'offset' => 0], $this->ttl['catalog']);
+        $total = is_array($data) && ($data['available'] ?? null) === true ? ($data['total'] ?? null) : null;
+
+        return is_int($total) && $total >= 0 ? $total : null;
+    }
+
     public function exoplanet(string $id): ?Exoplanet
     {
         $d = $this->cachedGet('/exoplanets/'.rawurlencode($id), [], $this->ttl['catalog']);

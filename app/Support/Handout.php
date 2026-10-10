@@ -13,12 +13,16 @@ namespace App\Support;
 final readonly class Handout
 {
     /**
+     * @param  list<string>  $stages
      * @param  list<string>  $previews
      * @param  list<string>  $educationalLevel
      */
     public function __construct(
         public string $id,
+        public string $audience,
         public string $keyStage,
+        public string $keyStageAccessible,
+        public array $stages,
         public string $title,
         public string $description,
         public string $pdf,
@@ -27,6 +31,7 @@ final readonly class Handout
         public int $pages,
         public string $paper,
         public array $educationalLevel,
+        public string $typicalAgeRange,
         public ?int $bytes,
     ) {}
 
@@ -43,20 +48,27 @@ final readonly class Handout
             (array) ($row['previews'] ?? []),
         ));
 
-        /** @var list<string> $levels */
-        $levels = array_values((array) ($row['educational_level'] ?? []));
+        /** @var list<string> $stages */
+        $stages = array_values(array_map(
+            static fn (mixed $stage): string => (string) $stage,
+            (array) ($row['stages'] ?? []),
+        ));
 
         return new self(
             id: (string) $row['id'],
-            keyStage: (string) $row['key_stage'],
+            audience: (string) $row['audience'],
+            keyStage: KeyStage::span($stages),
+            keyStageAccessible: KeyStage::accessible($stages),
+            stages: KeyStage::normalize($stages),
             title: (string) $row['title'],
-            description: (string) $row['description'],
+            description: KeyStage::interpolate((string) $row['description']),
             pdf: $pdf,
             thumbnail: ltrim((string) $row['thumbnail'], '/'),
             previews: $previews,
             pages: (int) $row['pages'],
             paper: (string) $row['paper'],
-            educationalLevel: $levels,
+            educationalLevel: KeyStage::educationalLevels($stages),
+            typicalAgeRange: KeyStage::typicalAgeRange($stages),
             bytes: $bytes,
         );
     }

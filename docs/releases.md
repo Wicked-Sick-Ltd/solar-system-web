@@ -152,6 +152,30 @@ does not prove scheduler, queue worker or email delivery health. Resume drained
 processes after the required smoke checks and verify their logs before marking
 the operational rollout complete; never send real visibility alerts as a test.
 
+## Public changelog
+
+`/releases` (also `/whats-new`, and “What’s new” in the footer) lists changes
+visitors can use. The notes are generated from merged pull requests and stored
+in `resources/changelog/notes.json`. Each entry keeps the pull request number,
+title, UTC merge time and Conventional Commit type. Maintenance (`chore`),
+continuous integration (`ci`) and dependency updates are left out. Notes are
+grouped by the UTC day they merged, or by a published GitHub release when one
+exists. Wording is rewritten for people using the site, and the page links each
+item to its pull request.
+
+Refresh the file locally or in CI. The command reads `GITHUB_TOKEN` or
+`GH_TOKEN` from the environment, or `gh auth token` outside tests. It does not
+write that credential into the notes.
+
+```sh
+php artisan universe:changelog:collect
+php artisan universe:changelog:collect --check
+```
+
+Atom and RSS feeds are `/releases/feed.atom` and `/releases/feed.rss`. Reviewed
+community release JSON under `resources/releases/` is a separate publication
+ledger and is not replaced by this file.
+
 ## Current unreleased editorial packet
 
 The [1.0.0 review packet](RELEASE-1.0.0-REVIEW.md) maps the expanded draft to its

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Services\Og\CatalogueFigures;
 use App\Services\Og\OgImageRenderer;
 use App\Support\ShareImage;
 use Illuminate\Console\Command;
@@ -15,12 +16,22 @@ final class GenerateDefaultShareImage extends Command
 {
     protected $signature = 'og:generate-default';
 
-    protected $description = 'Render the default share image using the configured public name and tagline';
+    protected $description = 'Render the default share image using the configured public name, tagline and current catalogue counts';
 
-    public function handle(OgImageRenderer $renderer): int
+    public function handle(OgImageRenderer $renderer, CatalogueFigures $catalogue): int
     {
         try {
-            $png = $renderer->render((string) config('site.name'), (string) config('site.tagline'));
+            $figures = $catalogue->all();
+            if ($figures === []) {
+                $this->warn('Catalogue counts are unavailable; rendering the card without them.');
+            }
+
+            $png = $renderer->renderSite(
+                name: (string) config('site.name'),
+                tagline: (string) config('site.tagline'),
+                figures: $figures,
+                domain: ShareImage::domain(),
+            );
             $path = public_path(ShareImage::DEFAULT_PATH);
             File::ensureDirectoryExists(dirname($path));
             if (File::put($path, $png) === false) {
