@@ -74,8 +74,8 @@ final class CloseApproachFormat
             ];
         }
 
-        $minText = self::lengthFromKm($minKm);
-        $maxText = self::lengthFromKm($maxKm);
+        $minText = self::approximateLength($minKm);
+        $maxText = self::approximateLength($maxKm);
         $range = $minText === $maxText ? $minText : $minText.'–'.$maxText;
 
         return [
@@ -83,6 +83,16 @@ final class CloseApproachFormat
             'approximate' => true,
             'note' => $note,
         ];
+    }
+
+    /** Whole metres below 1 km; an albedo range is not precise to a tenth of a metre. */
+    private static function approximateLength(float $km): string
+    {
+        if ($km < 1) {
+            return number_format(max(1, (int) round($km * 1000))).' m';
+        }
+
+        return self::lengthFromKm($km);
     }
 
     public static function lengthFromKm(float $km): string

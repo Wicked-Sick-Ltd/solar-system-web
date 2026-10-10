@@ -68,7 +68,8 @@ it('uses a measured diameter and otherwise estimates a range from absolute magni
 
     expect($measured)->toMatchArray(['text' => '100 m', 'approximate' => false, 'note' => null])
         ->and($estimated['approximate'])->toBeTrue()
-        ->and($estimated['text'])->toStartWith('about ')
+        ->and($estimated['text'])->toBe('about 17 m–38 m')
+        ->and(CloseApproachFormat::size(pass(['absolute_magnitude_h' => 27.55]))['text'])->toBe('about 8 m–18 m')
         ->and($estimated['note'])->toContain('H = 26')
         ->and($estimated['note'])->toContain('0.05')
         ->and($absent)->toBeNull()
