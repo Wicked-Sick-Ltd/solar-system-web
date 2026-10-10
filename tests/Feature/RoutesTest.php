@@ -46,6 +46,8 @@ it('renders every public P0 route', function (string $uri) {
     'feedback' => '/feedback',
     'api' => '/api',
     'privacy' => '/privacy',
+    'releases' => '/releases',
+    'whats new' => '/whats-new',
 ]);
 
 it('links the homepage moons card to the filtered catalogue', function () {

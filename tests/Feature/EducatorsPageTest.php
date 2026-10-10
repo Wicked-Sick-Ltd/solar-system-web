@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Support\Format;
 use App\Support\Handout;
+use App\Support\KeyStage;
 
 beforeEach(fn () => fakeSolar());
 
@@ -21,8 +22,19 @@ it('renders a card for every configured handout', function () {
     }
 
     $response
-        ->assertSee('Primary · Years 1–6')
-        ->assertSee('Secondary · KS3–KS5');
+        ->assertSee('Primary')
+        ->assertSee('Secondary')
+        ->assertSee(KeyStage::span(['KS1', 'KS2']))
+        ->assertSee(KeyStage::span(['KS3', 'KS4', 'KS5']))
+        ->assertSee(KeyStage::accessible(['KS2']))
+        ->assertSee('KS2 · US Grades 2–5 · Ages 7–11')
+        ->assertSee('KS1 · US Grades K–1 · Ages 5–7')
+        ->assertSee('KS4 · US Grades 9–10 · Ages 14–16')
+        ->assertSee('KS5 · US Grades 11–12 · Ages 16–18')
+        ->assertSee('href="#primary"', false)
+        ->assertSee('href="#secondary"', false)
+        ->assertDontSee(':ks1')
+        ->assertDontSee(':ks4');
 });
 
 it('offers each PDF as a relative download link to a file that exists', function () {
@@ -75,7 +87,10 @@ it('emits SEO metadata and LearningResource structured data', function () {
         ->assertSee('"learningResourceType":"handout"', escape: false)
         ->assertSee('"encodingFormat":"application/pdf"', escape: false)
         ->assertSee('"isAccessibleForFree":true', escape: false)
-        ->assertSee('"educationalLevel":["Key Stage 1","Key Stage 2"]', escape: false);
+        ->assertSee('"educationalLevel":'.json_encode(KeyStage::educationalLevels(['KS1', 'KS2']), JSON_UNESCAPED_UNICODE), escape: false)
+        ->assertSee('"educationalLevel":'.json_encode(KeyStage::educationalLevels(['KS3', 'KS4', 'KS5']), JSON_UNESCAPED_UNICODE), escape: false)
+        ->assertSee('"typicalAgeRange":"5-11"', escape: false)
+        ->assertSee('"typicalAgeRange":"11-18"', escape: false);
 });
 
 it('is linked from the footer and listed in the sitemap', function () {

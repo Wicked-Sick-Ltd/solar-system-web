@@ -15,6 +15,21 @@
         @endforeach
     </ul>
 
+    @if (count($stageLinks) > 0)
+        <nav class="mb-8" aria-labelledby="key-stages-heading">
+            <h2 id="key-stages-heading" class="mb-2 text-xs font-semibold uppercase tracking-wider" style="color: var(--muted);">{{ __('Key Stages') }}</h2>
+            <ul class="flex flex-wrap gap-2" role="list">
+                @foreach ($stageLinks as $code => $anchor)
+                    <li>
+                        <a href="#{{ $anchor }}" class="inline-flex min-h-11 max-w-full flex-wrap items-center rounded-full border px-3 py-1.5 text-left text-xs leading-snug" style="border-color: var(--border); color: var(--text);">
+                            <x-key-stage :stages="[$code]" />
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </nav>
+    @endif
+
     <nav class="surface mb-8 flex flex-wrap gap-4 p-5" aria-label="{{ __('Teaching resources') }}">
         <a class="underline" href="#primary">{{ __('Primary handout') }}</a>
         <a class="underline" href="#secondary">{{ __('Secondary handout') }}</a>
@@ -27,7 +42,8 @@
     @else
         <ul class="grid gap-6 md:grid-cols-2" role="list">
             @foreach ($handouts as $handout)
-                <li id="{{ $handout->id }}" class="surface flex flex-col overflow-hidden">
+                <li id="{{ $handout->id }}" class="scroll-mt-24">
+                    <div class="surface flex flex-col overflow-hidden">
                     <div class="grid gap-6 p-5 sm:grid-cols-[9rem_1fr] sm:p-6">
                         <a href="{{ $handout->url() }}" download="{{ $handout->filename() }}"
                            class="block w-40 self-start overflow-hidden rounded-lg border sm:w-auto"
@@ -39,7 +55,16 @@
                         </a>
 
                         <div class="flex min-w-0 flex-col">
-                            <div><x-badge tone="amber">{{ $handout->keyStage }}</x-badge></div>
+                            <div>
+                                <x-badge tone="amber" class="h-auto max-w-full min-w-0 flex-wrap whitespace-normal py-1 text-left leading-snug">
+                                    <span class="sr-only">{{ $handout->audience }}. {{ $handout->keyStageAccessible }}</span>
+                                    <span aria-hidden="true" class="min-w-0 max-w-full">
+                                        @foreach (explode(' · ', $handout->audience.' · '.$handout->keyStage) as $part)
+                                            <span class="whitespace-nowrap">{{ $part }}</span>@if (! $loop->last) · @endif
+                                        @endforeach
+                                    </span>
+                                </x-badge>
+                            </div>
                             <h2 class="mt-3 font-serif text-2xl font-medium leading-tight" style="color: var(--text);">{{ $handout->title }}</h2>
                             <p class="mt-2 text-sm leading-relaxed" style="color: var(--muted);">{{ $handout->description }}</p>
 
@@ -71,6 +96,7 @@
                             </ul>
                         </div>
                     @endif
+                    </div>
                 </li>
             @endforeach
         </ul>
