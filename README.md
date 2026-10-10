@@ -160,14 +160,28 @@ Cache TTLs are tunable via `SOLAR_CACHE_*` env vars (see `config/services.php`).
 
 ## Share images
 
-Object share cards are rendered with Imagick and cached with a bounded hash of
-`SITE_NAME`, the site tagline and `OG_VERSION`. Their public URLs carry the same
-version in `?v=...`; configure CDN cache keys to retain that parameter. Name or
-tagline changes invalidate object cards automatically. Bump `OG_VERSION` after
-renderer/font changes.
+Share cards are rendered with Imagick (`app/Services/Og/OgImageRenderer.php`)
+and cached on `OG_DISK` under a bounded hash of `SITE_NAME`, the site tagline
+and `OG_VERSION`. Their public URLs carry the same version in `?v=...`;
+configure CDN cache keys to retain that parameter. Name or tagline changes
+invalidate cards automatically. Bump `OG_VERSION` after renderer/font changes.
 
-The default/fallback card is committed at `public/images/og-public-universe.png`.
-Regenerate it after a brand or design change, then inspect the PNG before committing:
+| Card | URL | Cached as |
+|------|-----|-----------|
+| Site (default for every page) | `/og/site.png` | one file per set of catalogue counts; `max-age` one day |
+| Object | `/og/objects/{id}.png` | immutable |
+| Object of the day | `/og/today/{YYYY-MM-DD}.png` | immutable |
+
+The site card prints live catalogue counts (objects, moons, exoplanets) and a
+solar system with the planets at their mean longitudes on the render date.
+`/today` redirects to the dated permalink `/today/{YYYY-MM-DD}`; the pick is
+deterministic per UTC day (`App\Support\ObjectOfTheDay`) and matches the
+homepage's "Featured today" panel.
+
+The fallback card, served when a live render isn't possible, is committed at
+`public/images/og-public-universe.png`. Regenerate it after a brand or design
+change (it uses live counts when the API is reachable), then inspect the PNG
+before committing:
 
 ```bash
 php artisan og:generate-default

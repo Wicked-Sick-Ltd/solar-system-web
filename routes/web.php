@@ -20,6 +20,7 @@ use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StarterCatalogueController;
 use App\Http\Controllers\SystemsDirectoryController;
+use App\Http\Controllers\TodayRedirectController;
 use App\Http\Controllers\VisibilityAlertController;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
@@ -47,6 +48,7 @@ use App\Livewire\PluginPage;
 use App\Livewire\PrivacyPage;
 use App\Livewire\SearchPage;
 use App\Livewire\SettingsPage;
+use App\Livewire\Today;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
@@ -113,10 +115,18 @@ Route::get('/meteor-showers/{code}', MeteorShowerDetail::class)->name('meteor-sh
 
 Route::get('/random', RandomObjectController::class)->name('random');
 
-// Per-object Open Graph share card (rendered + cached on object detail pages)
-Route::get('/og/objects/{slug}.png', OgImageController::class)
+// Object of the day: /today always points at the current UTC day's dated permalink.
+Route::get('/today', TodayRedirectController::class)->name('today');
+Route::get('/today/{date}', Today::class)->where('date', '\d{4}-\d{2}-\d{2}')->name('today.show');
+
+// Open Graph share cards, rendered once and cached (see OgImageController).
+Route::get('/og/site.png', [OgImageController::class, 'site'])->name('og.site');
+Route::get('/og/objects/{slug}.png', [OgImageController::class, 'object'])
     ->where('slug', $catalogueSlug)
     ->name('og.object');
+Route::get('/og/today/{date}.png', [OgImageController::class, 'today'])
+    ->where('date', '\d{4}-\d{2}-\d{2}')
+    ->name('og.today');
 
 Route::get('/about', AboutPage::class)->name('about');
 // Classroom handouts for teachers (static PDFs under public/handouts/).

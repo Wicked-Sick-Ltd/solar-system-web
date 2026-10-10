@@ -13,7 +13,7 @@ return [
 
     // Bump after a design change; name/tagline changes also invalidate automatically.
     // Hashed with public branding for both disk paths and public URL versions.
-    'version' => env('OG_VERSION', 'v1'),
+    'version' => env('OG_VERSION', 'v2'),
 
     // How long browsers/CDNs may cache a served card, in seconds.
     'ttl' => (int) env('OG_TTL', 2592000), // 30 days

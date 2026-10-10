@@ -31,7 +31,7 @@ final class SetResponseHeaders
      * When Mailchimp is configured the shared footer mounts a Livewire signup
      * form, so these routes need the session too and are skipped at runtime.
      */
-    private const CACHEABLE_ROUTES = ['home', 'planets.index', 'about', 'educators', 'higher-education', 'higher-education.handout', 'plugin', 'api', 'dwarf-planets'];
+    private const CACHEABLE_ROUTES = ['home', 'planets.index', 'about', 'educators', 'higher-education', 'higher-education.handout', 'plugin', 'api', 'dwarf-planets', 'today.show'];
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -114,7 +114,7 @@ final class SetResponseHeaders
         // Catalogue-bearing HTML must not hide a changed observed build behind
         // the previous day's stale edge response. Static API guidance retains
         // its existing longer policy. Already cached responses need rollout purge.
-        $cataloguePage = in_array($request->route()->getName(), ['home', 'planets.index', 'about', 'dwarf-planets'], true);
+        $cataloguePage = in_array($request->route()->getName(), ['home', 'planets.index', 'about', 'dwarf-planets', 'today.show'], true);
         $response->headers->set(
             'Cache-Control',
             $cataloguePage ? 'public, max-age=0, s-maxage=60' : 'public, max-age=0, s-maxage=600, stale-while-revalidate=86400',

@@ -70,10 +70,13 @@
     {{-- Featured object today --}}
     @if ($featured)
         <section class="mt-14" aria-labelledby="featured-heading">
-            <div class="mb-4 flex items-baseline justify-between">
+            <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                 <h2 id="featured-heading" class="text-sm font-semibold uppercase tracking-[0.16em]" style="color: var(--accent);">
                     {{ __('Featured today') }}
                 </h2>
+                <a href="{{ $featuredUrl }}" class="link-quiet text-sm">
+                    {{ __('Object of the day page') }}<span class="sr-only">: {{ $featured->name }}</span><span aria-hidden="true">&nbsp;→</span>
+                </a>
             </div>
             <a href="{{ route('objects.show', $featured->slug()) }}"
                class="surface block overflow-hidden p-6 transition-colors sm:p-8"
@@ -113,6 +116,10 @@
                     </div>
                 </div>
             </a>
+            <x-share-links class="mt-4" :url="$featuredShareUrl"
+                           :title="__('Object of the day: :name', ['name' => $featured->name])"
+                           :text="__(':name is the Public Universe object of the day.', ['name' => $featured->name])"
+                           :label="__('Share today’s object, :name', ['name' => $featured->name])" />
         </section>
     @endif
 

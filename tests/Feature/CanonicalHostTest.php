@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Support\Links;
 use App\Support\ShareImage;
+use Carbon\CarbonImmutable;
 
 /*
  * The site answers on more than one hostname (publicuniverse.net is canonical;
@@ -23,7 +24,7 @@ it('emits the canonical host in <link rel=canonical> and OG tags when served fro
         ->assertOk()
         ->assertSee('<link rel="canonical" href="https://publicuniverse.net/educators">', escape: false)
         ->assertSee('<meta property="og:url" content="https://publicuniverse.net/educators">', escape: false)
-        ->assertSee('<meta property="og:image" content="https://publicuniverse.net/images/og-public-universe.png?v='.ShareImage::version().'">', escape: false);
+        ->assertSee('<meta property="og:image" content="https://publicuniverse.net/og/site.png?v='.ShareImage::version().'">', escape: false);
 });
 
 it('keeps internal navigation on the host that served the request', function () {
@@ -41,6 +42,24 @@ it('puts the canonical host in a detail page canonical, share card and JSON-LD',
         ->assertSee('<link rel="canonical" href="https://publicuniverse.net/objects/planet-saturn">', escape: false)
         ->assertSee('content="https://publicuniverse.net/og/objects/planet-saturn.png?v='.ShareImage::version().'"', escape: false)
         ->assertSee('"url":"https://publicuniverse.net/objects/planet-saturn"', escape: false);
+});
+
+it('shares the canonical object-of-the-day permalink while navigation stays on the alias', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-10-25 10:00:00', 'UTC'));
+    $canonical = 'https://publicuniverse.net/today/2026-10-23';
+
+    $this->get('https://sol.wickedsick.com/today/2026-10-23')
+        ->assertOk()
+        ->assertSee('<link rel="canonical" href="'.$canonical.'">', escape: false)
+        ->assertSee('content="https://publicuniverse.net/og/today/2026-10-23.png?v='.ShareImage::version().'"', escape: false)
+        ->assertSee('share-offsite/?url='.rawurlencode($canonical), escape: false)
+        ->assertSee('value="'.$canonical.'"', escape: false)
+        ->assertSee('href="https://sol.wickedsick.com/today/2026-10-22"', escape: false);
+
+    $this->get('https://sol.wickedsick.com/')
+        ->assertOk()
+        ->assertSee('href="https://sol.wickedsick.com/today/2026-10-25"', escape: false)
+        ->assertSee('share-offsite/?url='.rawurlencode('https://publicuniverse.net/today/2026-10-25'), escape: false);
 });
 
 it('leaves external URLs in JSON-LD alone', function () {

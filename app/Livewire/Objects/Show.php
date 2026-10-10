@@ -190,6 +190,7 @@ final class Show extends Component
             ->type('article')
             ->canonical(route('objects.show', $object->id))
             ->image(ShareImage::objectUrl($object->id))   // per-object share card
+            ->imageAlt(__(':name share card', ['name' => $object->name]))
             ->jsonLd($this->schema($object, $description));
     }
 

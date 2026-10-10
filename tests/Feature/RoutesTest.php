@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Services\SolarApi\CatalogueContext;
 use App\Support\Format;
+use App\Support\ShareImage;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -90,7 +91,8 @@ it('advertises a favicon and a default share image', function () {
         ->assertSee('apple-touch-icon.png', escape: false)
         ->assertSee('site.webmanifest', escape: false)
         ->assertSee('og:image', escape: false)
-        ->assertSee('images/og-public-universe.png', escape: false)
+        ->assertSee('/og/site.png?v='.ShareImage::version(), escape: false)
+        ->assertSee('<meta property="og:image:width" content="1200">', escape: false)
         ->assertSee('twitter:card', escape: false);
 
     $manifest = json_decode(file_get_contents(public_path('site.webmanifest')), true, flags: JSON_THROW_ON_ERROR);
