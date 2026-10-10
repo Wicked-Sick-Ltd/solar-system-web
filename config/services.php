@@ -86,4 +86,12 @@ return [
         'cache_seconds' => (int) env('OPEN_METEO_CACHE_SECONDS', 1800),
     ],
 
+    // JPL Horizons — geocentric vectors for close-approach diagrams. No API key.
+    // Reads are cached; a failure falls back to a labelled two-body path.
+    'horizons' => [
+        'base_url' => env('HORIZONS_BASE_URL', 'https://ssd.jpl.nasa.gov/api/horizons.api'),
+        'timeout' => (int) env('HORIZONS_TIMEOUT', 6),
+        'cache_seconds' => (int) env('HORIZONS_CACHE_SECONDS', 43200),
+    ],
+
 ];

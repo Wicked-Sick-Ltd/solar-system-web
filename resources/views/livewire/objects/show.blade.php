@@ -293,6 +293,7 @@
             @include('livewire.objects.partials.close-approaches', [
                 'closeApproaches' => $object->closeApproaches,
                 'closeApproachCount' => $object->closeApproachCount,
+                'flyby' => $flyby,
             ])
         @endif
 

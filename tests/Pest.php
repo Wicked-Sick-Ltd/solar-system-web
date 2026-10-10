@@ -229,6 +229,8 @@ function apophisDetail(): array
         'id' => 'ast-20099942-apophis', 'name' => 'Apophis', 'designation' => '99942 Apophis (2004 MN4)', 'object_type' => 'asteroid', 'parent_id' => 'sun',
         'orbital' => [
             'semi_major_axis_au' => 0.9227, 'eccentricity' => 0.1914, 'inclination_deg' => 3.34, 'orbital_period_days' => 323.7,
+            'longitude_ascending_node_deg' => 203.894, 'argument_periapsis_deg' => 126.680, 'mean_anomaly_deg' => 175.330,
+            'mean_motion_deg_per_day' => 1.112638, 'epoch_jd' => 2461200.5,
             'perihelion_au' => 0.746, 'aphelion_au' => 1.099, 'epoch' => '2461200.5', 'frame' => 'J2000',
             'orbit_class_code' => 'APO', 'orbit_class_name' => 'Apollo', 'moid_au' => 0.000254, 'tisserand_jupiter' => 6.464,
             'condition_code' => 0, 'data_arc_days' => 7412.0, 'first_obs' => '2004-03-15', 'last_obs' => '2024-06-30',
