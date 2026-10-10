@@ -21,6 +21,8 @@ it('searches both catalogues from a shared URL and links objects planets and hos
         ->assertSee(route('exoplanets.show', 'exo-proxima-b'), false)
         ->assertSee(route('systems.show', 'host-proxima'), false)
         ->assertSee('value="Proxima"', false)->assertSee('role="search"', false)
+        ->assertSee('aria-label="Find an object"', false)
+        ->assertSee('aria-label="Site search"', false)
         ->assertSee('name="q"', false)->assertSee('aria-live="polite"', false);
 
     foreach (['/search', '/exoplanets'] as $path) {
