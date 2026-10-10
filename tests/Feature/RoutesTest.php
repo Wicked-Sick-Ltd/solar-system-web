@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Services\SolarApi\CatalogueContext;
+use App\Support\Format;
 use App\Support\ShareImage;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
@@ -85,10 +86,17 @@ it('advertises a favicon and a default share image', function () {
     $this->get('/')
         ->assertOk()
         ->assertSee('favicon.svg', escape: false)
+        ->assertSee('apple-touch-icon.png', escape: false)
+        ->assertSee('site.webmanifest', escape: false)
         ->assertSee('og:image', escape: false)
         ->assertSee('/og/site.png?v='.ShareImage::version(), escape: false)
         ->assertSee('<meta property="og:image:width" content="1200">', escape: false)
         ->assertSee('twitter:card', escape: false);
+
+    $manifest = json_decode(file_get_contents(public_path('site.webmanifest')), true, flags: JSON_THROW_ON_ERROR);
+    expect(is_file(public_path('apple-touch-icon.png')))->toBeTrue()
+        ->and($manifest['name'])->toBe('Public Universe')
+        ->and($manifest['icons'])->not->toBeEmpty();
 });
 
 it('returns a branded 404 for an unknown object when the backend is healthy', function () {
@@ -149,6 +157,26 @@ it('picks the featured object from the frozen UTC day', function () {
     $this->get('/')
         ->assertOk()
         ->assertSee('href="'.route('objects.show', 'dwarf-pluto').'"', false);
+});
+
+it('labels a featured moon by the radius of its orbit in kilometres', function () {
+    $this->travelTo(new DateTimeImmutable('2026-10-01T12:00:00Z'));
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('Orbit radius')
+        ->assertSee(Format::orbitRadiusKm(0.01))
+        ->assertDontSee('0.01 AU');
+});
+
+it('keeps a featured heliocentric distance in astronomical units', function () {
+    $this->travelTo(new DateTimeImmutable('2026-02-06T12:00:00Z'));
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('Distance')
+        ->assertSee('9.537 AU')
+        ->assertDontSee('Orbit radius');
 });
 
 it('renders the observing starter catalogue and exact source detail routes', function (string $uri) {

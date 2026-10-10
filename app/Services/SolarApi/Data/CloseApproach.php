@@ -13,6 +13,9 @@ final readonly class CloseApproach
 
     public const float AU_PER_LUNAR_DISTANCE = 0.002569555;
 
+    /** The catalogue footnote uses this mean Earth–Moon distance. */
+    public const int KM_PER_LUNAR_DISTANCE = 384_400;
+
     public function __construct(
         public ?string $body,
         public ?string $cdIso,
@@ -25,6 +28,9 @@ final readonly class CloseApproach
         public ?string $objectId = null,
         public ?string $name = null,
         public ?float $massKg = null,
+        public ?string $designation = null,
+        public ?float $radiusKm = null,
+        public ?float $absoluteMagnitudeH = null,
     ) {}
 
     /** @param array<string,mixed> $d */
@@ -41,11 +47,43 @@ final readonly class CloseApproach
             objectId: self::str($d, 'object_id'),
             name: self::str($d, 'name') ?? self::str($d, 'designation'),
             massKg: self::float($d, 'mass_kg'),
+            designation: self::str($d, 'designation'),
+            radiusKm: self::positive($d, 'radius_km'),
+            absoluteMagnitudeH: self::finite($d, 'absolute_magnitude_h'),
         );
     }
 
     public function lunarDistances(): ?float
     {
         return $this->distAu === null ? null : $this->distAu / self::AU_PER_LUNAR_DISTANCE;
+    }
+
+    public function distanceKm(): ?float
+    {
+        $lunar = $this->lunarDistances();
+
+        return $lunar === null ? null : $lunar * self::KM_PER_LUNAR_DISTANCE;
+    }
+
+    /** Catalogue diameter, twice a recorded radius. */
+    public function diameterKm(): ?float
+    {
+        return $this->radiusKm === null ? null : $this->radiusKm * 2;
+    }
+
+    /** @param array<string,mixed> $data */
+    private static function finite(array $data, string $key): ?float
+    {
+        $value = self::float($data, $key);
+
+        return $value !== null && is_finite($value) ? $value : null;
+    }
+
+    /** @param array<string,mixed> $data */
+    private static function positive(array $data, string $key): ?float
+    {
+        $value = self::finite($data, $key);
+
+        return $value !== null && $value > 0 ? $value : null;
     }
 }

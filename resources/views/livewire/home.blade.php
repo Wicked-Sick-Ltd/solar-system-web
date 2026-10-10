@@ -14,7 +14,7 @@
         <div class="mt-6 flex flex-wrap items-center gap-3">
             <a href="{{ route('explore') }}"
                class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
-               style="background-color: var(--accent); color: #07090f;">
+               style="background-color: var(--accent-fill); color: var(--on-accent);">
                 {{ __('Start exploring') }}
             </a>
             <a href="{{ route('api') }}"
@@ -30,6 +30,8 @@
         <a class="surface p-5" href="{{ route('learn') }}"><strong class="block">{{ __('Learn') }}</strong><span class="mt-2 block text-sm" style="color: var(--muted)">{{ __('Ask questions and investigate real data.') }}</span></a>
         <a class="surface p-5" href="{{ route('api') }}"><strong class="block">{{ __('Use the data') }}</strong><span class="mt-2 block text-sm" style="color: var(--muted)">{{ __('Follow sources or build something new.') }}</span></a>
     </nav>
+
+    <livewire:next-close-approach />
 
     {{-- Stats strip --}}
     <section class="mt-12" aria-label="{{ __('Catalogue statistics') }}">
@@ -99,7 +101,9 @@
                             @if ($d = Format::km($featured->physical?->diameterKm()))
                                 <div><dt class="text-xs uppercase tracking-wide">{{ __('Diameter') }}</dt><dd style="color: var(--text);">{{ $d }}</dd></div>
                             @endif
-                            @if ($a = Format::au($featured->orbital?->semiMajorAxisAu))
+                            @if ($featured->objectType === 'moon' && ($radius = Format::orbitRadiusKm($featured->orbital?->semiMajorAxisAu)))
+                                <div><dt class="text-xs uppercase tracking-wide">{{ __('Orbit radius') }}</dt><dd style="color: var(--text);">{{ $radius }}</dd></div>
+                            @elseif ($a = Format::au($featured->orbital?->semiMajorAxisAu))
                                 <div><dt class="text-xs uppercase tracking-wide">{{ __('Distance') }}</dt><dd style="color: var(--text);">{{ $a }}</dd></div>
                             @endif
                             @if ($p = Format::periodDays($featured->orbital?->orbitalPeriodDays))
