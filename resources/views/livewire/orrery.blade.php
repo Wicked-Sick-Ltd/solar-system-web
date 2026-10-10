@@ -6,7 +6,7 @@
     <form action="{{ route('orrery') }}" method="get" wire:submit="$refresh" aria-label="{{ __('Orrery date') }}" class="mb-6 flex flex-wrap items-center gap-3">
         @foreach ([-30 => __('Back 30 days'), -1 => __('Back one day')] as $days => $label)
             @if ($stepDates[$days] !== null)
-                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);" aria-label="{{ $label }}">{{ $days }}d</a>
+                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);"><span aria-hidden="true">{{ $days }}d</span><span class="sr-only">{{ $label }}</span></a>
             @endif
         @endforeach
         <label class="sr-only" for="orrery-date">{{ __('Date (UTC)') }}</label>
@@ -17,10 +17,10 @@
         <button type="submit" class="min-h-11 rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border);">{{ __('Apply date') }}</button>
         @foreach ([1 => __('Forward one day'), 30 => __('Forward 30 days')] as $days => $label)
             @if ($stepDates[$days] !== null)
-                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);" aria-label="{{ $label }}">+{{ $days }}d</a>
+                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);"><span aria-hidden="true">+{{ $days }}d</span><span class="sr-only">{{ $label }}</span></a>
             @endif
         @endforeach
-        <a href="{{ route('orrery') }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium" style="background-color: var(--accent); color: #07090f;">{{ __('Today') }}</a>
+        <a href="{{ route('orrery') }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Today') }}</a>
         @if ($prettyDate)<span class="ml-auto text-sm tabular-nums" style="color: var(--muted);">{{ $prettyDate }} UTC</span>@endif
     </form>
     <p wire:loading role="status" class="mb-4 text-sm">{{ __('Updating positions…') }}</p>

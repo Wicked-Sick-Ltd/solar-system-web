@@ -56,7 +56,7 @@
                 </div>
                 <p class="mt-3 text-xs" style="color: var(--muted);">{{ __('A Barlow factor is 1 or greater; a reducer factor is between 0.01 and 1. The actual factor can depend on spacing and the optical setup.') }}</p>
                 <div class="mt-4 flex flex-wrap gap-3">
-                    <button type="submit" class="min-h-11 rounded-lg px-4 py-2 text-sm font-medium" style="background: var(--accent); color: #07090f;">{{ __('Save equipment') }}</button>
+                    <button type="submit" class="min-h-11 rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Save equipment') }}</button>
                     <button type="button" data-workspace-action="cancel-equipment" class="min-h-11 rounded-lg border px-4 py-2 text-sm" style="border-color: var(--border);">{{ __('Cancel editing') }}</button>
                 </div>
             </fieldset>
@@ -96,7 +96,7 @@
                 <p class="mt-2 text-xs" id="workspace-horizon-help" style="color: var(--muted);">{{ __('Leave blank for an unknown horizon. Enter 2–72 directions: north is 0°, east 90°, south 180°, west 270°. 360° is the same as 0°. Altitudes may range from −90° to 90°; a depressed horizon can be negative. Coarse masks interpolate linearly between your points, including across north, and can miss obstructions. The independent minimum-altitude preference remains a lower bound. Copy this saved site in the night planner to apply its horizon mask to a calculation.') }}</p>
                 <p class="mt-3 text-xs" id="workspace-timezone-help" style="color: var(--muted);">{{ __('Use a timezone such as Europe/London, America/New_York, Australia/Sydney or UTC. Site names and coordinates are private records: include them in a backup only if you are comfortable storing that file.') }}</p>
                 <div class="mt-4 flex flex-wrap gap-3">
-                    <button type="submit" class="min-h-11 rounded-lg px-4 py-2 text-sm font-medium" style="background: var(--accent); color: #07090f;">{{ __('Save site') }}</button>
+                    <button type="submit" class="min-h-11 rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Save site') }}</button>
                     <button type="button" data-workspace-action="cancel-site" class="min-h-11 rounded-lg border px-4 py-2 text-sm" style="border-color: var(--border);">{{ __('Cancel editing') }}</button>
                 </div>
             </fieldset>
@@ -120,7 +120,7 @@
             <p data-workspace-preview-summary class="mt-2 text-sm"></p>
             <pre data-workspace-preview-details class="mt-3 whitespace-pre-wrap break-words font-sans text-sm"></pre>
             <div class="mt-4 flex flex-wrap gap-3">
-                <button type="button" disabled data-workspace-enabled data-workspace-action="apply-import" class="min-h-11 rounded-lg px-4 py-2 text-sm font-medium" style="background: var(--accent); color: #07090f;">{{ __('Replace workspace with this file') }}</button>
+                <button type="button" disabled data-workspace-enabled data-workspace-action="apply-import" class="min-h-11 rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Replace workspace with this file') }}</button>
                 <button type="button" disabled data-workspace-enabled data-workspace-action="cancel-import" class="min-h-11 rounded-lg border px-4 py-2 text-sm" style="border-color: var(--border);">{{ __('Cancel import') }}</button>
             </div>
         </div>

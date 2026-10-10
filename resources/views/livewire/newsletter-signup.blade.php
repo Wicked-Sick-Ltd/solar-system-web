@@ -35,7 +35,7 @@
                 @endif
             </div>
             <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium" wire:loading.attr="disabled"
-                    style="background-color: var(--accent); color: #07090f;">
+                    style="background-color: var(--accent-fill); color: var(--on-accent);">
                 <span wire:loading.remove>{{ __('Subscribe') }}</span>
                 <span wire:loading>{{ __('Sending…') }}</span>
             </button>

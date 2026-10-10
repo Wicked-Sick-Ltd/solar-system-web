@@ -37,7 +37,7 @@
             <div class="mt-3 flex flex-wrap gap-3">
                 <a href="{{ $docsUrl }}" rel="noopener" target="_blank"
                    class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
-                   style="background-color: var(--accent); color: #07090f;">{{ __('Interactive docs ↗') }}</a>
+                   style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Interactive docs ↗') }}</a>
                 <a href="{{ $openApiUrl }}" rel="noopener" target="_blank"
                    class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium"
                    style="border-color: var(--border); color: var(--text);">{{ __('OpenAPI JSON ↗') }}</a>

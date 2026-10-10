@@ -30,7 +30,7 @@
             </template>
         </dl>
         <div class="mt-4 flex flex-wrap gap-3">
-            <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent); color: #07090f;" @click="applyImport()">{{ __('Apply these settings') }}</button>
+            <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);" @click="applyImport()">{{ __('Apply these settings') }}</button>
             <button type="button" class="rounded-lg border px-4 py-2 text-sm" style="border-color: var(--border); color: var(--text);" @click="dismissImport()">{{ __('Ignore') }}</button>
         </div>
     </section>
