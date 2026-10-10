@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Services\SolarApi\CatalogueContext;
+use App\Support\ShareImage;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -85,7 +86,8 @@ it('advertises a favicon and a default share image', function () {
         ->assertOk()
         ->assertSee('favicon.svg', escape: false)
         ->assertSee('og:image', escape: false)
-        ->assertSee('images/og-public-universe.png', escape: false)
+        ->assertSee('/og/site.png?v='.ShareImage::version(), escape: false)
+        ->assertSee('<meta property="og:image:width" content="1200">', escape: false)
         ->assertSee('twitter:card', escape: false);
 });
 

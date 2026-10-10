@@ -23,7 +23,7 @@ it('emits the canonical host in <link rel=canonical> and OG tags when served fro
         ->assertOk()
         ->assertSee('<link rel="canonical" href="https://publicuniverse.net/educators">', escape: false)
         ->assertSee('<meta property="og:url" content="https://publicuniverse.net/educators">', escape: false)
-        ->assertSee('<meta property="og:image" content="https://publicuniverse.net/images/og-public-universe.png?v='.ShareImage::version().'">', escape: false);
+        ->assertSee('<meta property="og:image" content="https://publicuniverse.net/og/site.png?v='.ShareImage::version().'">', escape: false);
 });
 
 it('keeps internal navigation on the host that served the request', function () {

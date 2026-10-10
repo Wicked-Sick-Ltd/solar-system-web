@@ -22,6 +22,10 @@
 <meta property="og:locale" content="en_GB">
 @if ($image)
     <meta property="og:image" content="{{ $image }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="{{ \App\Support\ShareImage::WIDTH }}">
+    <meta property="og:image:height" content="{{ \App\Support\ShareImage::HEIGHT }}">
+    <meta property="og:image:alt" content="{{ $seo->getImageAlt() }}">
 @endif
 
 {{-- Twitter --}}
@@ -30,6 +34,7 @@
 <meta name="twitter:description" content="{{ $seo->getDescription() }}">
 @if ($image)
     <meta name="twitter:image" content="{{ $image }}">
+    <meta name="twitter:image:alt" content="{{ $seo->getImageAlt() }}">
 @endif
 
 {{-- JSON-LD structured data --}}

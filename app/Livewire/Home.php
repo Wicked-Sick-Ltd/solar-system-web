@@ -7,6 +7,7 @@ namespace App\Livewire;
 use App\Services\SolarApi\Data\Stats;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\ObjectOfTheDay;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -15,19 +16,6 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 final class Home extends Component
 {
-    /**
-     * A curated pool of well-known bodies for the "featured today" panel. The
-     * pick is deterministic per UTC day so a shared link stays stable, but
-     * rotates so the homepage feels alive.
-     */
-    private const FEATURED_POOL = [
-        'planet-mercury', 'planet-venus', 'planet-earth', 'planet-mars',
-        'planet-jupiter', 'planet-saturn', 'planet-uranus', 'planet-neptune',
-        'dwarf-ceres', 'dwarf-pluto', 'dwarf-eris', 'dwarf-makemake', 'dwarf-haumea',
-        'moon-luna', 'moon-titan', 'moon-europa', 'moon-io', 'moon-ganymede',
-        'moon-triton', 'moon-enceladus', 'moon-phobos', 'comet-1p-halley',
-    ];
-
     public function render(SolarApiClient $api): View
     {
         app(Seo::class)
@@ -37,11 +25,12 @@ final class Home extends Component
 
         $stats = null;
         $featured = null;
+        $today = ObjectOfTheDay::today();
         $apiDown = false;
 
         try {
             $stats = $api->stats();
-            $featured = $api->object($this->featuredSlug());
+            $featured = $api->object(ObjectOfTheDay::slugFor($today));
         } catch (SolarApiException) {
             $apiDown = true;
         }
@@ -49,19 +38,10 @@ final class Home extends Component
         return view('livewire.home', [
             'stats' => $stats,
             'featured' => $featured,
+            'featuredUrl' => ObjectOfTheDay::url($today),
             'apiDown' => $apiDown,
             'sections' => $this->sections($stats),
         ]);
-    }
-
-    private function featuredSlug(): string
-    {
-        // UTC day-of-year via the application clock, so a frozen test instant
-        // picks a stable featured object.
-        $day = now()->utc()->format('Y-z');
-        $index = crc32($day) % count(self::FEATURED_POOL);
-
-        return self::FEATURED_POOL[$index];
     }
 
     /** @return list<array{label:string,route:string,params?:array<string,string>,count:?int,blurb:string}> */
