@@ -21,6 +21,6 @@
                 }
             ">{{ __('Copy') }}</button>
     </div>
-    <pre id="{{ $id }}" tabindex="0" aria-labelledby="{{ $id }}-label" class="overflow-x-auto rounded-lg p-4 text-sm" style="background: var(--bg); color: var(--text);"><code class="block whitespace-pre font-mono">{!! trim($slot) !!}</code></pre>
+    <pre id="{{ $id }}" tabindex="0" role="region" aria-labelledby="{{ $id }}-label" class="overflow-x-auto rounded-lg p-4 text-sm" style="background: var(--bg); color: var(--text);"><code class="block whitespace-pre font-mono">{!! trim($slot) !!}</code></pre>
     <p class="sr-only" aria-live="polite" x-text="notice"></p>
 </div>

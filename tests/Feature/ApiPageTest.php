@@ -245,7 +245,8 @@ function labelledCodeBlocks(string $html): void
 
     expect($blocks->length)->toBeGreaterThan(0);
     foreach ($blocks as $block) {
-        expect($block->getAttribute('tabindex'))->toBe('0');
+        expect($block->getAttribute('tabindex'))->toBe('0')
+            ->and($block->getAttribute('role'))->toBe('region');
         $labelId = $block->getAttribute('aria-labelledby');
         expect($labelId)->not->toBe('')
             ->and(trim($xpath->evaluate("string(//*[@id='$labelId'])")))->not->toBe('');

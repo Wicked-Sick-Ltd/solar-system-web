@@ -47,7 +47,7 @@
                 <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
             </div>
             <p class="text-sm" style="color: var(--muted);">{{ __('Messages are sent to hello@publicuniverse.net, not posted publicly. We use the details you provide to handle your enquiry. We do not add you to a mailing list.') }} <a class="underline" href="{{ route('privacy') }}#feedback">{{ __('How we handle feedback') }}</a></p>
-            <button type="submit" @disabled(! $canSend) class="rounded-lg px-5 py-3 font-semibold disabled:opacity-50" style="background: var(--accent); color: #07090f;">{{ __('Send message') }}</button>
+            <button type="submit" @disabled(! $canSend) class="rounded-lg px-5 py-3 font-semibold disabled:opacity-50" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Send message') }}</button>
         </form>
         <p class="mt-5 text-sm" style="color: var(--muted);">{{ __('Prefer email?') }} <a class="underline" href="mailto:hello@publicuniverse.net">hello@publicuniverse.net</a></p>
     </div>

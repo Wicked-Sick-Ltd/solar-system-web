@@ -25,6 +25,7 @@ final readonly class CloseApproach
         public ?string $objectId = null,
         public ?string $name = null,
         public ?float $massKg = null,
+        public ?string $designation = null,
     ) {}
 
     /** @param array<string,mixed> $d */
@@ -41,6 +42,7 @@ final readonly class CloseApproach
             objectId: self::str($d, 'object_id'),
             name: self::str($d, 'name') ?? self::str($d, 'designation'),
             massKg: self::float($d, 'mass_kg'),
+            designation: self::str($d, 'designation'),
         );
     }
 

@@ -35,7 +35,7 @@
                 <x-code-block id="featured-curl" :label="__('curl example for :summary', ['summary' => $featured['summary']])">{{ $featured['snippets']['curl'] }}</x-code-block>
             @endif
             <div class="mt-4 flex flex-wrap gap-3">
-                <a href="{{ $docsUrl }}" rel="noopener" target="_blank" class="inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold" style="background-color: var(--accent); color: #07090f;">{{ __('Interactive docs ↗') }}</a>
+                <a href="{{ $docsUrl }}" rel="noopener" target="_blank" class="inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Interactive docs ↗') }}</a>
                 <a href="{{ $openApiUrl }}" rel="noopener" target="_blank" class="inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium" style="border-color: var(--border); color: var(--text);">{{ __('OpenAPI JSON ↗') }}</a>
             </div>
         </section>
@@ -166,7 +166,7 @@
                                                 <p class="text-sm" style="color: var(--muted);">{{ __('Calls from this form send at most :cap for limit. A direct request can use up to :max.', ['cap' => \App\Services\CatalogueDocs\CatalogueCall::LIMIT_CAP, 'max' => $param['maximum']]) }}</p>
                                             @endif
                                         @endforeach
-                                        <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 text-sm font-semibold sm:w-auto" style="background-color: var(--accent); color: #07090f;">{{ __('Run read-only request') }}</button>
+                                        <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 text-sm font-semibold sm:w-auto" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Run read-only request') }}</button>
                                     </form>
 
                                     @if (data_get($call, 'id') === $operation['id'])
