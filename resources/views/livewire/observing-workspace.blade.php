@@ -67,6 +67,9 @@
         <h2 id="sites-heading" tabindex="-1" class="font-serif text-2xl">{{ __('Your observing sites') }}</h2>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('Coordinates are rounded to two decimal places, about a kilometre. Choose Use on a saved site to make it the location used by sky calculations. Those calculations send approximate coordinates to our astronomy API and weather service as explained on the privacy page.') }}</p>
         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('The night planner can explicitly copy a saved site’s timezone, minimum altitude and horizon mask into its calculation form. Activating a site only selects its approximate location for other sky views. A saved horizon is user-entered data, not surveyed terrain or a guarantee of a clear view.') }}</p>
+        @if ($what3words)
+            <p class="mt-2 text-sm" style="color: var(--muted);">{{ __('You can locate a site from a what3words address as well as from latitude and longitude. A saved site may show an approximate what3words address for its rounded coordinates.') }}</p>
+        @endif
         <p class="mt-4 text-sm" data-workspace-sites-empty>{{ __('No observing sites saved yet.') }}</p>
         <ul class="mt-4 space-y-3" data-workspace-sites-list aria-label="{{ __('Saved observing sites') }}"></ul>
         <form data-workspace-site-form aria-describedby="workspace-error" class="mt-6">
@@ -86,6 +89,18 @@
                     <label class="block text-sm">{{ __('Longitude (−180 to 180°)') }}
                         <input type="number" name="longitude" required step="any" min="-180" max="180" class="mt-1 block min-h-11 w-full rounded-lg border px-3 py-2" style="background: var(--bg); border-color: var(--border); color: var(--text);">
                     </label>
+                    @if ($what3words)
+                        <div class="sm:col-span-2" data-workspace-what3words data-endpoint="{{ route('observatory.what3words') }}" data-reverse-endpoint="{{ route('observatory.what3words.coordinates') }}" data-csrf="{{ csrf_token() }}">
+                            <label class="block text-sm" for="site-what3words">{{ __('what3words address (optional)') }}</label>
+                            <div class="mt-1 flex flex-col gap-2 sm:flex-row">
+                                <input id="site-what3words" data-workspace-what3words-input type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="200" enterkeyhint="search" placeholder="///filled.count.soap" aria-describedby="site-what3words-help site-what3words-result site-what3words-error" class="block min-h-11 w-full rounded-lg border px-3 py-2" style="background: var(--bg); border-color: var(--border); color: var(--text);">
+                                <button type="button" data-workspace-action="locate-site" data-workspace-what3words-locate class="min-h-11 w-full shrink-0 rounded-lg border px-4 py-2 text-sm sm:w-auto" style="border-color: var(--border); color: var(--text);">{{ __('Locate address') }}</button>
+                            </div>
+                            <p class="mt-2 text-xs" id="site-what3words-help" style="color: var(--muted);">{{ __('Optional. Enter three words such as ///filled.count.soap, or a what3words.com link, then choose Locate address. The three words are sent to what3words by our server, which is the only place the API key is used. We show the coordinates and nearest place for confirmation, then fill in latitude and longitude rounded to about a kilometre. A successful lookup is cached so the same address is not requested again, and it is not saved to an account. You can still type coordinates yourself.') }}</p>
+                            <p class="mt-2 text-sm" id="site-what3words-result" data-workspace-what3words-result role="status" aria-live="polite"></p>
+                            <p class="mt-2 text-sm" id="site-what3words-error" data-workspace-what3words-error role="alert" style="color: var(--error);"></p>
+                        </div>
+                    @endif
                     <label class="block text-sm">{{ __('Preferred minimum altitude (degrees)') }}
                         <input type="number" name="minAltitudeDeg" required step="any" min="0" max="90" value="20" class="mt-1 block min-h-11 w-full rounded-lg border px-3 py-2" style="background: var(--bg); border-color: var(--border); color: var(--text);">
                     </label>

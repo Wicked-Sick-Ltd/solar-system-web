@@ -1,4 +1,16 @@
 import { parseHorizonText, horizonText } from './horizon.js';
+
+const WHAT3WORDS_TLDS = new Set(['com', 'net', 'org', 'edu', 'gov', 'mil', 'int', 'io', 'co', 'uk', 'us', 'eu', 'de', 'fr', 'es', 'it', 'nl', 'ca', 'au', 'nz', 'app', 'dev', 'info', 'biz', 'me', 'tv', 'ai']);
+
+/** Three-word address, lower-cased and without slashes, or null. Mirrors LocationParser. */
+export function what3wordsAddress(text) {
+    const value = String(text ?? '').trim();
+    const match = value.match(/^(?:https?:\/\/(?:www\.)?what3words\.com\/|\/\/\/)?(\p{L}+)\.(\p{L}+)\.(\p{L}+)$/u);
+    if (!match) return null;
+    const bare = !value.startsWith('///') && !value.includes('what3words.com/');
+    if (bare && (match[1].toLowerCase() === 'www' || WHAT3WORDS_TLDS.has(match[3].toLowerCase()))) return null;
+    return `${match[1]}.${match[2]}.${match[3]}`.toLowerCase();
+}
 import { mountOptics } from './optics-ui.js';
 import {
     WORKSPACE_KEY, LOCATION_KEY, MAX_BYTES, emptyWorkspace, loadWorkspace, saveWorkspace,
@@ -104,6 +116,8 @@ export function mountWorkspace(root, options = {}) {
     const confirm = options.confirm ?? (message => view.confirm(message));
     const listeners = [];
     let disposed = false;
+    let wordsGeneration = 0;
+    const fetcher = options.fetch ?? (typeof view.fetch === 'function' ? view.fetch.bind(view) : null);
     let optics = null;
     let preview = null;
     let importGeneration = 0;
@@ -128,11 +142,38 @@ export function mountWorkspace(root, options = {}) {
             group.querySelectorAll('input').forEach(input => { input.disabled = !shown; });
         });
     }
+    function markInvalid(input, invalid) {
+        if (!input) return;
+        input.ariaInvalid = invalid ? 'true' : 'false';
+        if (typeof input.setAttribute !== 'function') return;
+        if (invalid) input.setAttribute('aria-invalid', 'true');
+        else input.removeAttribute('aria-invalid');
+    }
+    function markBusy(busy) {
+        const button = get('what3words-locate');
+        if (!button) return;
+        button.disabled = busy;
+        button.ariaBusy = busy ? 'true' : 'false';
+        if (typeof button.setAttribute !== 'function') return;
+        if (busy) button.setAttribute('aria-busy', 'true');
+        else button.removeAttribute('aria-busy');
+    }
+    function clearWhat3words() {
+        const input = get('what3words-input');
+        const result = get('what3words-result');
+        const error = get('what3words-error');
+        if (input) input.value = '';
+        if (result) result.textContent = '';
+        if (error) error.textContent = '';
+        markInvalid(input, false);
+        markBusy(false);
+    }
     function resetForm(form) {
         form.reset();
         form.elements.namedItem('entryId').value = '';
         form.querySelector('[type="submit"]').textContent = form === equipmentForm ? 'Save equipment' : 'Save site';
         if (form === equipmentForm) kindFields();
+        if (form === siteForm) clearWhat3words();
     }
     function edit(collection, entryId) {
         const entry = controller.value[collection].find(item => item.id === entryId);
@@ -176,6 +217,11 @@ export function mountWorkspace(root, options = {}) {
                 details.style.color = 'var(--muted)';
                 details.textContent = collection === 'equipment' ? equipmentSummary(entry)
                     : `${entry.latitude.toFixed(2)}, ${entry.longitude.toFixed(2)} · ${entry.timezone} · minimum altitude ${entry.minAltitudeDeg}° · ${entry.horizonMask === null ? 'horizon unknown' : `${entry.horizonMask.length} user-entered horizon points`}`;
+                if (collection === 'sites') {
+                    details.dataset.latitude = entry.latitude.toFixed(2);
+                    details.dataset.longitude = entry.longitude.toFixed(2);
+                    details.dataset.summary = details.textContent;
+                }
                 const actions = doc.createElement('div');
                 actions.className = 'mt-3 flex flex-wrap gap-2';
                 actions.append(button(`Edit ${entry.name}`, 'edit', collection, entry.id), button(`Delete ${entry.name}`, 'delete', collection, entry.id));
@@ -183,6 +229,108 @@ export function mountWorkspace(root, options = {}) {
                 item.append(heading, details, actions);
                 list.append(item);
             }
+        }
+        scheduleWords();
+    }
+    function applyWords(results) {
+        if (!Array.isArray(results)) return;
+        const list = get('sites-list');
+        for (const item of list.children) {
+            const details = item.children[1];
+            if (!details?.dataset?.summary) continue;
+            const match = results.find(row => row && Number(row.latitude).toFixed(2) === details.dataset.latitude && Number(row.longitude).toFixed(2) === details.dataset.longitude && typeof row.words === 'string' && row.words);
+            if (!match) continue;
+            const near = typeof match.nearestPlace === 'string' && match.nearestPlace ? ` · near ${match.nearestPlace}` : '';
+            details.textContent = `${details.dataset.summary} · approximate what3words ///${match.words}${near}`;
+        }
+    }
+    function scheduleWords() {
+        const panel = get('what3words');
+        if (!panel || !fetcher || disposed) return;
+        const sites = controller.value.sites;
+        if (!sites.length) return;
+        const generation = ++wordsGeneration;
+        const coordinates = sites.map(site => ({ latitude: site.latitude, longitude: site.longitude }));
+        void (async () => {
+            try {
+                const response = await fetcher(panel.dataset.reverseEndpoint, {
+                    method: 'POST',
+                    headers: jsonHeaders(panel),
+                    body: JSON.stringify({ coordinates }),
+                });
+                if (!response.ok || disposed || generation !== wordsGeneration) return;
+                const body = await response.json();
+                if (disposed || generation !== wordsGeneration) return;
+                applyWords(body.results);
+            } catch { /* A missing address must not block the site list. */ }
+        })();
+    }
+    function jsonHeaders(panel) {
+        return {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': panel.dataset.csrf || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        };
+    }
+    async function locateSite() {
+        const panel = get('what3words');
+        const input = get('what3words-input');
+        if (!panel || !input || disposed) return;
+        const result = get('what3words-result');
+        const error = get('what3words-error');
+        const fail = (text) => {
+            if (error) error.textContent = text;
+            if (result) result.textContent = '';
+            markInvalid(input, true);
+        };
+        const words = what3wordsAddress(input.value);
+        if (!words) {
+            fail('Enter a what3words address as three words, such as ///filled.count.soap.');
+            return;
+        }
+        if (!fetcher) {
+            fail('what3words lookup is unavailable in this browser. Enter latitude and longitude instead.');
+            return;
+        }
+        markInvalid(input, false);
+        if (error) error.textContent = '';
+        markBusy(true);
+        try {
+            const response = await fetcher(panel.dataset.endpoint, {
+                method: 'POST',
+                headers: jsonHeaders(panel),
+                body: JSON.stringify({ words }),
+            });
+            const body = await response.json().catch(() => ({}));
+            if (disposed) return;
+            if (!response.ok) {
+                fail(typeof body.message === 'string' && body.message ? body.message : 'what3words is unavailable right now — enter coordinates instead.');
+                return;
+            }
+            const latitude = Number(body.roundedLatitude);
+            const longitude = Number(body.roundedLongitude);
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                fail('what3words is unavailable right now — enter coordinates instead.');
+                return;
+            }
+            siteForm.elements.namedItem('latitude').value = String(latitude);
+            siteForm.elements.namedItem('longitude').value = String(longitude);
+            markInvalid(input, false);
+            if (error) error.textContent = '';
+            if (result) {
+                const place = typeof body.nearestPlace === 'string' && body.nearestPlace ? ` Near ${body.nearestPlace}.` : '';
+                const preciseLat = Number(body.latitude);
+                const preciseLon = Number(body.longitude);
+                const precise = Number.isFinite(preciseLat) && Number.isFinite(preciseLon)
+                    ? `${preciseLat}, ${preciseLon}`
+                    : `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+                result.textContent = `Resolved ///${body.words || words} to ${precise}.${place} Latitude and longitude are filled with ${latitude.toFixed(2)}, ${longitude.toFixed(2)} (about a kilometre), ready to save.`;
+            }
+        } catch {
+            if (!disposed) fail('what3words is unavailable right now — enter coordinates instead.');
+        } finally {
+            markBusy(false);
         }
     }
     function download(text, filename) {
@@ -224,11 +372,18 @@ export function mountWorkspace(root, options = {}) {
         });
     });
     listen(equipmentForm.elements.namedItem('kind'), 'change', kindFields);
+    const w3wInput = get('what3words-input');
+    if (w3wInput) listen(w3wInput, 'keydown', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        void locateSite();
+    });
     listen(root, 'click', event => {
         const control = event.target.closest('[data-workspace-action]');
         if (!control || !root.contains(control) || disposed) return;
         attempt(() => {
             const { workspaceAction: action, collection, entryId } = control.dataset;
+            if (action === 'locate-site') void locateSite();
             if (action === 'edit') edit(collection, entryId);
             if (action === 'cancel-equipment') resetForm(equipmentForm);
             if (action === 'cancel-site') resetForm(siteForm);
@@ -282,6 +437,7 @@ export function mountWorkspace(root, options = {}) {
     return {
         dispose() {
             disposed = true;
+            wordsGeneration++;
             optics?.dispose();
             importGeneration++;
             listeners.forEach(remove => remove());

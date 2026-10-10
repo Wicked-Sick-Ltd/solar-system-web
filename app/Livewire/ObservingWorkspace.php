@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Services\What3Words\What3WordsClient;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -19,6 +20,8 @@ final class ObservingWorkspace extends Component
             ->description(__('Keep observing equipment and sites in this browser, without an account.'))
             ->noindex();
 
-        return view('livewire.observing-workspace');
+        return view('livewire.observing-workspace', [
+            'what3words' => app(What3WordsClient::class)->enabled(),
+        ]);
     }
 }
