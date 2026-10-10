@@ -36,7 +36,7 @@
      }">
     <div class="flex flex-wrap items-center gap-2">
         <button type="button" x-cloak x-show="canShare" @click="share()" class="{{ $button }}"
-                style="background-color: var(--accent); border-color: var(--accent); color: #07090f;">
+                style="background-color: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent);">
             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M10 13V3m0 0L6.5 6.5M10 3l3.5 3.5M5 10H4a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1h-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
