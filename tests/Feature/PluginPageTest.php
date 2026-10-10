@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Support\KeyStage;
+
 beforeEach(fn () => fakeSolar());
 
 it('explains setup for every supported client and distinguishes tools from skills', function () {
@@ -27,6 +29,10 @@ it('provides working subsection anchors and all seven workflows', function () {
     foreach (['tonight-sky', 'lesson-builder', 'space-fact-check', 'object-explainer', 'close-approach-watch', 'sky-this-week', 'solar-data-audit'] as $skill) {
         $response->assertSee($skill);
     }
+
+    $response
+        ->assertSee(KeyStage::compact('KS3'))
+        ->assertSee('with the matching US grades');
 });
 
 it('keeps connection instructions tied to the configured backend through a domain move', function () {

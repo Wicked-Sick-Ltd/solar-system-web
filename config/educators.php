@@ -14,10 +14,11 @@ declare(strict_types=1);
  * declared rather than read from the PDF so the page costs nothing to render;
  * the file size is read from disk at render time.
  *
- * Keys: `id` (stable slug, used for anchors), `key_stage` (badge label),
- * `title`, `description`, `pdf`, `thumbnail`, `previews` (optional further
- * page images), `pages`, `paper`, `educational_level` (schema.org
- * educationalLevel strings for JSON-LD).
+ * Keys: `id` (stable slug, used for anchors), `audience` (Primary, Secondary),
+ * `stages` (Key Stage codes resolved by App\Support\KeyStage — the only place
+ * US grades and ages are defined), `title`, `description` (`:ks1` … `:ks5`
+ * and `:eyfs` are replaced with the compact label), `pdf`, `thumbnail`,
+ * `previews` (optional further page images), `pages`, `paper`.
  */
 return [
     // Add only approved, locally published vector PDFs and raster previews.
@@ -28,11 +29,12 @@ return [
     'handouts' => [
         [
             'id' => 'primary',
-            'key_stage' => 'Primary · Years 1–6',
+            'audience' => 'Primary',
+            'stages' => ['KS1', 'KS2'],
             'title' => 'Where are the planets today?',
             'description' => 'A friendly introduction to the real Solar System for primary classes: a '
                 .'map of where the planets are, the planets drawn to size, and short hands-on '
-                .'activities for Key Stage 1, Lower KS2 and Upper KS2 linked to the National Curriculum.',
+                .'activities for :ks1 and :ks2 (Lower and Upper KS2) linked to the National Curriculum.',
             'pdf' => 'handouts/solar-handout-primary-y1-6.pdf',
             'thumbnail' => 'handouts/primary-1.webp',
             'previews' => [
@@ -42,15 +44,15 @@ return [
             ],
             'pages' => 4,
             'paper' => 'A4',
-            'educational_level' => ['Key Stage 1', 'Key Stage 2'],
         ],
         [
             'id' => 'secondary',
-            'key_stage' => 'Secondary · KS3–KS5',
+            'audience' => 'Secondary',
+            'stages' => ['KS3', 'KS4', 'KS5'],
             'title' => 'The Solar System, as live data',
             'description' => 'For secondary schools and colleges: the Solar System as a live dataset, '
-                .'with Kepler\'s third law straight from the catalogue, suggested uses for KS3, GCSE '
-                .'and A-level, STEM club projects, and a first look at the open REST API.',
+                .'with Kepler\'s third law straight from the catalogue, suggested uses for :ks3, GCSE '
+                .'(:ks4) and A-level (:ks5), STEM club projects, and a first look at the open REST API.',
             'pdf' => 'handouts/solar-handout-secondary-ks3-ks5.pdf',
             'thumbnail' => 'handouts/secondary-1.webp',
             'previews' => [
@@ -60,7 +62,6 @@ return [
             ],
             'pages' => 4,
             'paper' => 'A4',
-            'educational_level' => ['Key Stage 3', 'Key Stage 4', 'Key Stage 5'],
         ],
     ],
 ];
