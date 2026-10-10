@@ -68,29 +68,16 @@ it('reuses the cached close-approach catalogue on the next home view', function 
         ->and($sent)->toBe(1);
 });
 
-it('links the name only when an object page exists', function () {
+it('links the catalogue object id from the close-approach row', function () {
     fakeHomePasses([
-        passRow(['object_id' => 'missing-object', 'name' => 'Uncatalogued']),
-    ], missingIds: ['missing-object']);
+        passRow(['object_id' => 'ast-example', 'name' => 'Catalogued rock']),
+    ]);
 
     $this->get('/')
         ->assertOk()
-        ->assertSee('Uncatalogued')
-        ->assertSee('No object page is published for this record.')
-        ->assertDontSee(route('objects.show', 'missing-object'), false);
-});
-
-it('keeps the pass visible when the object page cannot be checked', function () {
-    fakeHomePasses([
-        passRow(['object_id' => 'ast-broken', 'name' => 'Unchecked']),
-    ], brokenIds: ['ast-broken']);
-
-    $this->get('/')
-        ->assertOk()
-        ->assertSee('Unchecked')
-        ->assertSee('The object page could not be checked just now.')
-        ->assertDontSee('temporarily unavailable')
-        ->assertDontSee(route('objects.show', 'ast-broken'), false);
+        ->assertSee('href="'.route('objects.show', 'ast-example').'"', false)
+        ->assertSee('Catalogued rock')
+        ->assertDontSee('No object page is published');
 });
 
 it('shows measured size and omits speed when it was not reported', function () {

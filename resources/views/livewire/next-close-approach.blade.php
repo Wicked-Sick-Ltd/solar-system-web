@@ -35,11 +35,9 @@
                     {{ $approach->name }}
                 @endif
             </h3>
-            @if ($objectState === 'missing')
+            @unless ($objectUrl)
                 <p class="mt-1 text-sm" style="color: var(--muted);">{{ __('No object page is published for this record.') }}</p>
-            @elseif ($objectState === 'unknown')
-                <p class="mt-1 text-sm" style="color: var(--muted);">{{ __('The object page could not be checked just now.') }}</p>
-            @endif
+            @endunless
 
             <p class="mt-3 font-serif text-2xl tabular-nums leading-tight sm:text-3xl" style="color: var(--text);"
                role="status" aria-live="polite" aria-atomic="true" data-pass-countdown>

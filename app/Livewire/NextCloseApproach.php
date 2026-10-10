@@ -37,25 +37,14 @@ final class NextCloseApproach extends Component
 
         $approach = $apiDown ? null : UpcomingCloseApproach::select($approaches, $now);
         $when = UpcomingCloseApproach::instant($approach?->cdIso);
-        $objectState = 'missing';
-        $objectUrl = null;
-
-        if ($approach?->objectId) {
-            try {
-                if ($api->object($approach->objectId) !== null) {
-                    $objectState = 'linked';
-                    $objectUrl = route('objects.show', $approach->objectId);
-                }
-            } catch (SolarApiException) {
-                $objectState = 'unknown';
-            }
-        }
+        // The date-window row's object id is the catalogue key for its page.
+        // Checking the detail endpoint as well would add a second homepage request.
+        $objectUrl = $approach?->objectId ? route('objects.show', $approach->objectId) : null;
 
         return view('livewire.next-close-approach', [
             'apiDown' => $apiDown,
             'approach' => $approach,
             'objectUrl' => $objectUrl,
-            'objectState' => $objectState,
             'countdown' => $when ? UpcomingCloseApproach::countdown($now, $when) : null,
             'utcLabel' => $when ? UpcomingCloseApproach::utcLabel($when) : null,
             'phrases' => UpcomingCloseApproach::clockStrings(),
