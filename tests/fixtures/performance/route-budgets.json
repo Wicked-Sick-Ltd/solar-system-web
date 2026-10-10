@@ -1,8 +1,8 @@
 {
     "home": {
-        "cold_calls": 3,
+        "cold_calls": 4,
         "warm_calls": 0,
-        "upstream_bytes": 1000,
+        "upstream_bytes": 1500,
         "response_bytes": 55000,
         "gzip_bytes": 12000,
         "dom_elements": 330
