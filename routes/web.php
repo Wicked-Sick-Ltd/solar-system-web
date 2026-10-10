@@ -10,6 +10,7 @@ use App\Http\Controllers\HigherEducationHandoutController;
 use App\Http\Controllers\NightPlannerController;
 use App\Http\Controllers\NightWeatherController;
 use App\Http\Controllers\ObservingShortlistController;
+use App\Http\Controllers\ObservingSiteLocationController;
 use App\Http\Controllers\ObservingSyncController;
 use App\Http\Controllers\ObservingSyncPageController;
 use App\Http\Controllers\OgImageController;
@@ -63,6 +64,12 @@ Route::get('/whats-new/{version}', ReleaseController::class);
 Route::get('/explore', ExplorePage::class)->name('explore');
 Route::get('/observe', ObservePage::class)->name('observe');
 Route::get('/observatory', ObservingWorkspace::class)->name('observatory');
+Route::post('/observatory/what3words', [ObservingSiteLocationController::class, 'locate'])
+    ->middleware('throttle:20,1')
+    ->name('observatory.what3words');
+Route::post('/observatory/what3words/coordinates', [ObservingSiteLocationController::class, 'coordinates'])
+    ->middleware('throttle:30,1')
+    ->name('observatory.what3words.coordinates');
 Route::get('/observing-journal', ObservingJournal::class)->name('observing.journal');
 Route::get('/observe/shortlist', ObservingShortlistController::class)->name('observe.shortlist');
 Route::post('/observe/shortlist', ObservingShortlistController::class)->middleware('throttle:6,1')->name('observe.shortlist.calculate');

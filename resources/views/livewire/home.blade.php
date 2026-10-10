@@ -31,42 +31,6 @@
         <a class="surface p-5" href="{{ route('api') }}"><strong class="block">{{ __('Use the data') }}</strong><span class="mt-2 block text-sm" style="color: var(--muted)">{{ __('Follow sources or build something new.') }}</span></a>
     </nav>
 
-    <livewire:next-close-approach />
-
-    {{-- Stats strip --}}
-    <section class="mt-12" aria-label="{{ __('Catalogue statistics') }}">
-        @if ($apiDown || ! $stats)
-            <x-api-down :section="__('Live catalogue counts')" />
-        @else
-            <div class="surface grid grid-cols-2 divide-x divide-y sm:grid-cols-4 lg:grid-cols-5"
-                 style="--tw-divide-opacity: 1; border-color: var(--border);">
-                @php
-                    $strip = [
-                        ['n' => $stats->totalObjects, 'label' => __('solar-system objects')],
-                        ['n' => $stats->planets(), 'label' => __('planets')],
-                        ['n' => $stats->moons(), 'label' => __('moons')],
-                        ['n' => $stats->asteroids(), 'label' => __('asteroids')],
-                        ['n' => $stats->comets(), 'label' => __('comets')],
-                    ];
-                @endphp
-                @foreach ($strip as $stat)
-                    <div class="p-5" style="border-color: var(--border);">
-                        <div class="font-serif text-2xl font-medium tabular-nums" style="color: var(--text);">
-                            {{ Format::count($stat['n']) }}
-                        </div>
-                        <div class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ $stat['label'] }}</div>
-                    </div>
-                @endforeach
-            </div>
-            @if ($stats->lastRefreshed())
-                <p class="mt-3 text-xs" style="color: var(--color-faint);">
-                    {{ __('Catalogue last refreshed :when.', ['when' => $stats->lastRefreshed()->diffForHumans()]) }}
-                    <time datetime="{{ $stats->lastRefreshed()->toIso8601String() }}"></time>
-                </p>
-            @endif
-        @endif
-    </section>
-
     {{-- Featured object today --}}
     @if ($featured)
         <section class="mt-14" aria-labelledby="featured-heading">
@@ -122,6 +86,42 @@
                            :label="__('Share today’s object, :name', ['name' => $featured->name])" />
         </section>
     @endif
+
+    <livewire:next-close-approach />
+
+    {{-- Stats strip --}}
+    <section class="mt-12" aria-label="{{ __('Catalogue statistics') }}">
+        @if ($apiDown || ! $stats)
+            <x-api-down :section="__('Live catalogue counts')" />
+        @else
+            <div class="surface grid grid-cols-2 divide-x divide-y sm:grid-cols-4 lg:grid-cols-5"
+                 style="--tw-divide-opacity: 1; border-color: var(--border);">
+                @php
+                    $strip = [
+                        ['n' => $stats->totalObjects, 'label' => __('solar-system objects')],
+                        ['n' => $stats->planets(), 'label' => __('planets')],
+                        ['n' => $stats->moons(), 'label' => __('moons')],
+                        ['n' => $stats->asteroids(), 'label' => __('asteroids')],
+                        ['n' => $stats->comets(), 'label' => __('comets')],
+                    ];
+                @endphp
+                @foreach ($strip as $stat)
+                    <div class="p-5" style="border-color: var(--border);">
+                        <div class="font-serif text-2xl font-medium tabular-nums" style="color: var(--text);">
+                            {{ Format::count($stat['n']) }}
+                        </div>
+                        <div class="text-xs uppercase tracking-wide" style="color: var(--muted);">{{ $stat['label'] }}</div>
+                    </div>
+                @endforeach
+            </div>
+            @if ($stats->lastRefreshed())
+                <p class="mt-3 text-xs" style="color: var(--color-faint);">
+                    {{ __('Catalogue last refreshed :when.', ['when' => $stats->lastRefreshed()->diffForHumans()]) }}
+                    <time datetime="{{ $stats->lastRefreshed()->toIso8601String() }}"></time>
+                </p>
+            @endif
+        @endif
+    </section>
 
     {{-- Quick-browse sections --}}
     <section class="mt-14" aria-labelledby="browse-heading">

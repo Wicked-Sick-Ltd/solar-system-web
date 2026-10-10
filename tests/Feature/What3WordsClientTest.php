@@ -54,3 +54,41 @@ it('reports an outage distinctly from an unknown address', function () {
     expect(fn () => app(What3WordsClient::class)->toCoordinates('filled.count.soap'))
         ->toThrow(What3WordsException::class, 'unavailable');
 });
+
+it('caches an observatory locate and still leaves the sky-panel lookup uncached', function () {
+    Http::fake(['api.what3words.com/*' => Http::response([
+        'words' => 'filled.count.soap',
+        'nearestPlace' => 'Bayswater, London',
+        'coordinates' => ['lng' => -0.195521, 'lat' => 51.520847],
+    ])]);
+    $client = app(What3WordsClient::class);
+
+    $place = $client->locate('///filled.count.soap');
+    expect($client->locate('filled.count.soap'))->toBe($place)
+        ->and($place['nearestPlace'])->toBe('Bayswater, London')
+        ->and($place['roundedLatitude'])->toBe(51.52);
+
+    $client->toCoordinates('filled.count.soap');
+    $client->toCoordinates('filled.count.soap');
+
+    Http::assertSentCount(3);
+});
+
+it('reads a cached reverse address without a second request', function () {
+    Http::fake(['api.what3words.com/*' => Http::response([
+        'words' => 'index.home.raft',
+        'nearestPlace' => 'Bayswater, London',
+        'coordinates' => ['lat' => 51.52, 'lng' => -0.2],
+    ])]);
+    $client = app(What3WordsClient::class);
+
+    expect($client->wordsFor(51.521, -0.195, false))->toBeNull();
+    expect($client->wordsFor(51.521, -0.195))->toMatchArray([
+        'words' => 'index.home.raft',
+        'latitude' => 51.52,
+        'longitude' => -0.2,
+    ]);
+    expect($client->wordsFor(51.52, -0.2, false)['words'])->toBe('index.home.raft');
+
+    Http::assertSentCount(1);
+});

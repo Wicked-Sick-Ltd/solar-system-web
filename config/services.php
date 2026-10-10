@@ -73,10 +73,15 @@ return [
         'audience_id' => env('MAILCHIMP_AUDIENCE_ID'),
     ],
 
-    // what3words v3 API — converts "///filled.count.soap" to coordinates for the
-    // observer panel. Leave unset to hide the what3words option entirely.
+    // what3words v3 API. The sky panel converts a pasted address and does not
+    // cache it. The observatory can also locate a site, and caches a successful
+    // result. Leave the key unset to hide both options.
     'what3words' => [
         'key' => env('W3W_API_KEY'),
+        'cache_seconds' => (int) env('W3W_CACHE_SECONDS', 604800),
+        // Fresh reverse lookups of saved-site coordinates per request. Cached
+        // coordinates are free and do not count against this.
+        'reverse_budget' => 8,
     ],
 
     // Open-Meteo forecast API — observer panel weather outlook. No API key.
