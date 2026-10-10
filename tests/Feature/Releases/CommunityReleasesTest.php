@@ -155,7 +155,9 @@ it('never publishes the bootstrap sentinel or exposes draft files', function () 
     config(['releases.version' => '0.0.0']);
     fakeReleaseReady();
     $this->artisan('universe:releases:publish', ['--commit' => str_repeat('a', 40)])->assertSuccessful();
+    config(['changelog.path' => $this->notesPath.'/absent-changelog.json']);
     $this->get('/whats-new')->assertOk()->assertSee('Community preview')->assertDontSee('Explore Public Universe');
+    $this->get('/releases')->assertOk()->assertSee('Community preview')->assertDontSee('Explore Public Universe');
     $this->get('/whats-new/1.0.0')->assertNotFound();
     expect(CommunityRelease::count())->toBe(0);
     Http::assertSentCount(1);

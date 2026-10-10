@@ -8,6 +8,8 @@
 
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="mask-icon" href="{{ asset('favicon.svg') }}" color="#e0b872">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
     {{-- Set the theme before first paint to avoid a flash. Default: dark.
          Every control that changes the theme goes through applyTheme so the header toggle,
@@ -31,6 +33,7 @@
     </script>
 
     <x-seo />
+    @stack('head')
     <x-analytics />
 
     @vite(['resources/css/app.css'])
@@ -39,7 +42,7 @@
 <body class="min-h-screen antialiased" style="background-color: var(--bg); color: var(--text);">
     <a href="#main"
        class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:m-3 focus:rounded-lg focus:px-4 focus:py-2 focus:font-medium"
-       style="background-color: var(--accent); color: #07090f;">
+       style="background-color: var(--accent-fill); color: var(--on-accent);">
         {{ __('Skip to content') }}
     </a>
 

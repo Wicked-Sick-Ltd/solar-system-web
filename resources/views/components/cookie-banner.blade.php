@@ -21,7 +21,7 @@
             <button type="button" class="rounded-lg border px-4 py-2 text-sm font-medium" @click="choose('essential')"
                     style="border-color: var(--border); color: var(--text);">{{ __('Essential only') }}</button>
             <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium" @click="choose('all')"
-                    style="background-color: var(--accent); color: #07090f;">{{ __('Accept analytics') }}</button>
+                    style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Accept analytics') }}</button>
         </div>
     </div>
 </div>
