@@ -15,6 +15,9 @@ use Carbon\CarbonInterface;
  */
 final class Format
 {
+    /** IAU nominal astronomical unit, for satellite orbits stored in AU. */
+    public const float KILOMETRES_PER_AU = 149_597_870.7;
+
     public static function lightYears(?float $parsecs): string
     {
         return $parsecs === null ? __('Distance unknown') : self::unit($parsecs * 3.261563777, 'light-years');
@@ -49,6 +52,19 @@ final class Format
         }
 
         return self::trimZeros(number_format($au, $places)).' AU';
+    }
+
+    /**
+     * A satellite's orbital radius. Catalogue semi-major axes are stored in AU
+     * even when the orbit is around a planet, so moons are labelled in kilometres.
+     */
+    public static function orbitRadiusKm(?float $semiMajorAxisAu): ?string
+    {
+        if ($semiMajorAxisAu === null) {
+            return null;
+        }
+
+        return self::km($semiMajorAxisAu * self::KILOMETRES_PER_AU);
     }
 
     /** A length in km, switching to scientific notation for large/small values. */

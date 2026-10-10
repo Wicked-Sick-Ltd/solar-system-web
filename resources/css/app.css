@@ -34,7 +34,8 @@
     --color-border: #232c42;
     --color-text: #e8eaf0;
     --color-muted: #9aa3b8;
-    --color-faint: #6b7280;
+    /* >= 4.5:1 on ink, surface and surface-2. Light theme overrides below. */
+    --color-faint: #8b93a7;
     --color-amber: #e0b872;
     --color-amber-soft: #f0d4a0;
     --color-blue: #7ab8ff;
@@ -67,6 +68,8 @@
         --border: #dcd5c6;
         --text: #1b2030;
         --muted: #5b6478;
+        /* #8b93a7 is too light on the paper surfaces; this still clears 4.5:1. */
+        --color-faint: #5f687c;
         --link: #1f6fd6;
         --accent: #9a6b14;
         --error: #b42318;

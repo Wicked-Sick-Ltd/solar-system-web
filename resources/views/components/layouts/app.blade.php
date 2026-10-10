@@ -8,6 +8,8 @@
 
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="mask-icon" href="{{ asset('favicon.svg') }}" color="#e0b872">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
     {{-- Set the theme before first paint to avoid a flash. Default: dark.
          Every control that changes the theme goes through applyTheme so the header toggle,

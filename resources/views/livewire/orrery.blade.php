@@ -40,7 +40,7 @@
         </p>
         <div class="surface overflow-hidden p-2 sm:p-4" wire:loading.class="opacity-60">
             <svg viewBox="0 0 600 600" class="mx-auto h-auto w-full" style="max-width: 640px;"
-                 role="img" aria-label="{{ __('Solar system positions for :date', ['date' => $prettyDate]) }}">
+                 role="group" aria-label="{{ __('Solar system positions for :date', ['date' => $prettyDate]) }}">
                 {{-- Orbit rings --}}
                 @foreach ($bodies as $body)
                     <circle cx="300" cy="300" r="{{ $body['r'] }}" fill="none"
