@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { mountWorkspace } from '../../resources/js/observing/workspace-ui.js';
+import { mountWorkspace, what3wordsAddress } from '../../resources/js/observing/workspace-ui.js';
 import { WORKSPACE_KEY } from '../../resources/js/observing/workspace-store.js';
 
 class Element {
@@ -165,4 +165,126 @@ test('camera form saves unknown pixels and edits the same profile without collec
     assert.equal(edited.length, 1);
     assert.equal(edited[0].id, camera.id);
     assert.equal(edited[0].pixelSizeUm, 5);
+});
+
+function attachWhat3words(h) {
+    const panel = new Element();
+    panel.dataset = { endpoint: '/observatory/what3words', reverseEndpoint: '/observatory/what3words/coordinates', csrf: 'csrf-token' };
+    h.elements.what3words = panel;
+    h.elements['what3words-input'] = new Element();
+    h.elements['what3words-result'] = new Element();
+    h.elements['what3words-error'] = new Element();
+    h.elements['what3words-locate'] = new Element();
+}
+async function flush() {
+    for (let step = 0; step < 6; step++) await Promise.resolve();
+}
+
+test('what3words addresses are three words, with or without the slashes', () => {
+    assert.equal(what3wordsAddress('  ///Filled.Count.Soap '), 'filled.count.soap');
+    assert.equal(what3wordsAddress('https://what3words.com/filled.count.soap'), 'filled.count.soap');
+    assert.equal(what3wordsAddress('https://www.what3words.com/filled.count.soap'), 'filled.count.soap');
+    assert.equal(what3wordsAddress('https://evil.example/what3words.com/filled.count.soap'), null);
+    assert.equal(what3wordsAddress('https://what3words.com.evil.example/filled.count.soap'), null);
+    assert.equal(what3wordsAddress('www.google.com'), null);
+    assert.equal(what3wordsAddress('not a location'), null);
+    assert.equal(what3wordsAddress('///filled.count'), null);
+});
+
+test('locating a what3words address fills rounded coordinates and confirms the nearest place', async () => {
+    const h = harness();
+    attachWhat3words(h);
+    const calls = [];
+    mountWorkspace(h.root, {
+        uuid: () => '00000000-0000-4000-8000-000000000009',
+        confirm: () => true,
+        fetch: async (url, options) => {
+            calls.push({ url, options });
+            return { ok: true, json: async () => ({ words: 'filled.count.soap', latitude: 51.520847, longitude: -0.195521, roundedLatitude: 51.52, roundedLongitude: -0.2, nearestPlace: 'Bayswater, London' }) };
+        },
+    });
+    const input = h.elements['what3words-input'];
+    input.value = '///Filled.Count.Soap';
+    let prevented = false;
+    input.emit('keydown', { key: 'Enter', preventDefault() { prevented = true; } });
+    await flush();
+    assert.equal(prevented, true);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, '/observatory/what3words');
+    assert.equal(JSON.parse(calls[0].options.body).words, 'filled.count.soap');
+    assert.equal(calls[0].options.headers['X-CSRF-TOKEN'], 'csrf-token');
+    assert.equal(calls[0].options.headers['X-Api-Key'], undefined);
+    assert.equal(h.elements['site-form'].elements.namedItem('latitude').value, '51.52');
+    assert.equal(h.elements['site-form'].elements.namedItem('longitude').value, '-0.2');
+    assert.match(h.elements['what3words-result'].textContent, /Bayswater, London/);
+    assert.match(h.elements['what3words-result'].textContent, /51\.520847, -0\.195521/);
+    assert.equal(h.elements['what3words-error'].textContent, '');
+    assert.equal(input.ariaInvalid, 'false');
+    assert.equal(h.elements['what3words-locate'].disabled, false);
+});
+
+test('an invalid or failed what3words lookup does not change coordinates', async () => {
+    const h = harness();
+    attachWhat3words(h);
+    let calls = 0;
+    mountWorkspace(h.root, {
+        uuid: () => '00000000-0000-4000-8000-000000000009',
+        confirm: () => true,
+        fetch: async () => {
+            calls++;
+            return { ok: false, json: async () => ({ message: 'That what3words address wasn\'t recognised — check the three words.' }) };
+        },
+    });
+    const form = h.elements['site-form'];
+    form.elements.namedItem('latitude').value = '1';
+    form.elements.namedItem('longitude').value = '2';
+    h.elements['what3words-input'].value = 'hello';
+    h.action('locate-site');
+    assert.equal(calls, 0);
+    assert.match(h.elements['what3words-error'].textContent, /three words/);
+    assert.equal(h.elements['what3words-input'].ariaInvalid, 'true');
+    assert.equal(form.elements.namedItem('latitude').value, '1');
+
+    h.elements['what3words-input'].value = '///not.real.words';
+    h.action('locate-site');
+    await flush();
+    assert.equal(calls, 1);
+    assert.match(h.elements['what3words-error'].textContent, /recognised/);
+    assert.equal(form.elements.namedItem('latitude').value, '1');
+    assert.equal(form.elements.namedItem('longitude').value, '2');
+});
+
+test('saved sites show an approximate what3words address when the lookup succeeds', async () => {
+    const saved = JSON.stringify({
+        schemaVersion: 2, equipment: [], activeSiteId: null,
+        sites: [{ id: '00000000-0000-4000-8000-000000000006', name: 'Garden', latitude: 51.52, longitude: -0.2, timezone: 'UTC', minAltitudeDeg: 20, horizonMask: null }],
+    });
+    const h = harness(saved);
+    attachWhat3words(h);
+    mountWorkspace(h.root, {
+        uuid: () => '00000000-0000-4000-8000-000000000009',
+        confirm: () => true,
+        fetch: async () => ({ ok: true, json: async () => ({ results: [{ latitude: 51.52, longitude: -0.2, words: 'index.home.raft', nearestPlace: 'Bayswater, London' }] }) }),
+    });
+    await flush();
+    assert.match(h.elements['sites-list'].children[0].children[1].textContent, /approximate what3words \/\/\/index\.home\.raft/);
+    assert.match(h.elements['sites-list'].children[0].children[1].textContent, /near Bayswater, London/);
+});
+
+test('a failed what3words decoration leaves the saved site usable', async () => {
+    const saved = JSON.stringify({
+        schemaVersion: 2, equipment: [], activeSiteId: null,
+        sites: [{ id: '00000000-0000-4000-8000-000000000006', name: 'Garden', latitude: 51.52, longitude: -0.2, timezone: 'UTC', minAltitudeDeg: 20, horizonMask: null }],
+    });
+    const h = harness(saved);
+    attachWhat3words(h);
+    mountWorkspace(h.root, {
+        uuid: () => '00000000-0000-4000-8000-000000000009',
+        confirm: () => true,
+        fetch: async () => { throw new Error('offline'); },
+    });
+    await flush();
+    const details = h.elements['sites-list'].children[0].children[1].textContent;
+    assert.match(details, /51\.52, -0\.20/);
+    assert.doesNotMatch(details, /what3words/);
 });

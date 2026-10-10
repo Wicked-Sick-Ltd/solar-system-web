@@ -41,7 +41,7 @@ final class SetResponseHeaders
         // Shared caches must select the anonymous representation before lookup,
         // and account pages must not remain in the browser cache after logout.
         $response->setVary('Cookie', false);
-        if ($request->is('feedback', 'observe/night', PrivateNightWeather::PATH, PrivateObservingShortlist::PATH)) {
+        if ($request->is('feedback', 'observe/night', PrivateNightWeather::PATH, PrivateObservingShortlist::PATH, 'observatory/what3words', 'observatory/what3words/*')) {
             // Include validation, throttle and exception responses for this private form.
             $response->headers->set('Cache-Control', 'private, no-store');
             $response->headers->set('Referrer-Policy', 'no-referrer');
