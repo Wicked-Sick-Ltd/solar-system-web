@@ -117,7 +117,7 @@ final readonly class FlybyFrame
         $distanceLabel = (number_format($lunar, $lunar < 10 ? 2 : 1)).' LD · '.(Format::km($distanceKm) ?? '');
         $timeLabel = $approachAt->format('Y-m-d H:i').' UTC';
 
-        $label = self::labelPosition($closestPoint, $earthX, $earthY);
+        $label = self::labelPosition($closestPoint, $path, $width, $height, $compact);
         $ticks = self::ticks($samples, $approachAt, $project, $closestPoint);
         $arrow = self::arrow($samples, $closest, $project, $scale);
         $sunRay = self::sunRay($sun ?? LowPrecisionEphemeris::sun($approachAt), $earthX, $earthY, $plotRadius, $width - 24.0);
@@ -245,20 +245,40 @@ final readonly class FlybyFrame
     }
 
     /**
+     * Park the miss-distance label in the corner furthest from the trajectory
+     * so it does not sit on the time ticks. The inset occupies the top-right
+     * of the full figure.
+     *
      * @param  array{x: float, y: float}  $closest
+     * @param  list<array{x: float, y: float}>  $path
      * @return array{x: float, y: float, anchor: string}
      */
-    private static function labelPosition(array $closest, float $earthX, float $earthY): array
+    private static function labelPosition(array $closest, array $path, float $width, float $height, bool $compact): array
     {
-        $nearEarth = hypot($closest['x'] - $earthX, $closest['y'] - $earthY) < 36.0;
-        if ($nearEarth) {
-            return ['x' => $earthX + 56.0, 'y' => $earthY - 48.0, 'anchor' => 'start'];
+        $candidates = [
+            ['x' => 20.0, 'y' => $compact ? 52.0 : 56.0, 'anchor' => 'start'],
+            ['x' => $width - 20.0, 'y' => $height - 40.0, 'anchor' => 'end'],
+            ['x' => 20.0, 'y' => $height - 40.0, 'anchor' => 'start'],
+        ];
+        if ($compact) {
+            $candidates[] = ['x' => $width - 20.0, 'y' => 52.0, 'anchor' => 'end'];
         }
 
-        $anchor = $closest['x'] >= $earthX ? 'start' : 'end';
-        $x = $closest['x'] + ($anchor === 'start' ? 14.0 : -14.0);
+        $best = $candidates[0];
+        $bestScore = -1.0;
+        foreach ($candidates as $candidate) {
+            $score = INF;
+            foreach ($path as $point) {
+                $score = min($score, hypot($candidate['x'] - $point['x'], $candidate['y'] - $point['y']));
+            }
+            $score = min($score, hypot($candidate['x'] - $closest['x'], $candidate['y'] - $closest['y']));
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $candidate;
+            }
+        }
 
-        return ['x' => $x, 'y' => $closest['y'] - 16.0, 'anchor' => $anchor];
+        return $best;
     }
 
     /**
@@ -282,18 +302,20 @@ final readonly class FlybyFrame
                 continue;
             }
             $point = $project($sample->xKm, $sample->yKm);
-            if (hypot($point['x'] - $closestPoint['x'], $point['y'] - $closestPoint['y']) < 28.0) {
+            if (hypot($point['x'] - $closestPoint['x'], $point['y'] - $closestPoint['y']) < 72.0) {
+                continue;
+            }
+            $crowded = false;
+            foreach ($ticks as $kept) {
+                if (hypot($point['x'] - $kept['x'], $point['y'] - $kept['y']) < 64.0) {
+                    $crowded = true;
+                    break;
+                }
+            }
+            if ($crowded) {
                 continue;
             }
             $ticks[] = ['x' => $point['x'], 'y' => $point['y'], 'label' => $day->format('j M')];
-        }
-
-        if (count($ticks) > 5) {
-            $ticks = array_values(array_filter(
-                $ticks,
-                fn (array $tick, int $index): bool => $index % 2 === 0,
-                ARRAY_FILTER_USE_BOTH,
-            ));
         }
 
         return $ticks;

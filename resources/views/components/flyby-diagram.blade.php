@@ -32,7 +32,7 @@
 
         @foreach ($frame->ticks as $tick)
             <circle cx="{{ $tick['x'] }}" cy="{{ $tick['y'] }}" r="2.4" class="flyby-tick" />
-            <text x="{{ $tick['x'] }}" y="{{ $tick['y'] - 8 }}" class="flyby-tick-label" font-size="12" text-anchor="middle">{{ $tick['label'] }}</text>
+            <text x="{{ $tick['x'] }}" y="{{ $tick['y'] - 14 }}" class="flyby-tick-label" font-size="12" text-anchor="middle">{{ $tick['label'] }}</text>
         @endforeach
 
         <line x1="{{ $frame->closestX }}" y1="{{ $frame->closestY }}" x2="{{ $frame->labelX }}" y2="{{ $frame->labelY + 4 }}"
