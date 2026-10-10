@@ -120,8 +120,15 @@ it('serves a robots.txt that points at the sitemap', function () {
         ->assertSee('Disallow: /search');
 });
 
-it('serves an XML sitemap including object URLs', function () {
+it('serves an XML sitemap index that points at the object urlset', function () {
     $this->get('/sitemap.xml')
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
+        ->assertSee('<sitemapindex', escape: false)
+        ->assertSee('/sitemaps/objects.xml', escape: false)
+        ->assertDontSee('<urlset', escape: false);
+
+    $this->get('/sitemaps/objects.xml')
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
         ->assertSee('<urlset', escape: false)

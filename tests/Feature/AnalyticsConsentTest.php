@@ -143,5 +143,5 @@ it('publishes a privacy policy page', function () {
 
 it('links the privacy policy from the footer and lists it in the sitemap', function () {
     $this->get('/')->assertSee('href="'.route('privacy').'"', escape: false);
-    $this->get('/sitemap.xml')->assertSee(route('privacy'), escape: false);
+    $this->get('/sitemaps/pages.xml')->assertSee(route('privacy'), escape: false);
 });

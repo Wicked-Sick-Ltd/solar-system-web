@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Services\Sitemap\SitemapBuilder;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 /**
  * Pre-warms the API response caches for the hot paths, so the first visitor
@@ -57,8 +59,15 @@ final class WarmCache extends Command
             }
         }
 
-        // Force the sitemap to rebuild from the freshly-warmed data on next hit.
-        Cache::forget('sitemap.xml');
+        // Rebuild the sitemap from the freshly-warmed catalogue so the next
+        // hit, including a search-engine fetch, does not pay for a cold walk.
+        try {
+            Cache::forget('sitemap.xml');
+            Cache::forget(SitemapBuilder::CACHE_KEY);
+            app(SitemapBuilder::class)->remember();
+        } catch (Throwable $e) {
+            $this->warn('  ! sitemap: '.$e->getMessage());
+        }
 
         $this->info("Warmed {$ok} cache entries".($failed ? ", {$failed} failed" : '').'.');
 

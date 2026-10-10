@@ -145,7 +145,10 @@ Route::get('/api/v1/{path}', CataloguePathRedirect::class)
 Route::get('/privacy', PrivacyPage::class)->name('privacy');
 Route::get('/settings', SettingsPage::class)->name('settings');
 
-Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemaps/{name}.xml', [SitemapController::class, 'child'])
+    ->where('name', '[a-z]+(?:-[0-9]+)?')
+    ->name('sitemap.child');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 
 Route::middleware('guest')->group(function (): void {

@@ -69,14 +69,29 @@ it('leaves external URLs in JSON-LD alone', function () {
 });
 
 it('writes every sitemap <loc> on the canonical host whichever alias asked', function () {
-    $this->get('https://sol.wickedsick.com/sitemap.xml')
+    $index = $this->get('https://sol.wickedsick.com/sitemap.xml')
         ->assertOk()
-        ->assertSee('<loc>https://publicuniverse.net</loc>', escape: false)
-        ->assertSee('<loc>https://publicuniverse.net/educators</loc>', escape: false)
-        ->assertSee('<loc>https://publicuniverse.net/explore</loc>', escape: false)
-        ->assertSee('<loc>https://publicuniverse.net/observe</loc>', escape: false)
-        ->assertSee('<loc>https://publicuniverse.net/objects/', escape: false)
-        ->assertDontSee('sol.wickedsick.com');
+        ->getContent();
+
+    expect($index)->not->toContain('sol.wickedsick.com')
+        ->and($index)->toContain('https://publicuniverse.net/sitemaps/');
+
+    preg_match_all('#<loc>([^<]+)</loc>#', $index, $children);
+    expect($children[1])->not->toBeEmpty();
+
+    $combined = '';
+    foreach ($children[1] as $loc) {
+        expect($loc)->toStartWith('https://publicuniverse.net/sitemaps/');
+        $path = parse_url(html_entity_decode($loc), PHP_URL_PATH);
+        $combined .= $this->get($path)->assertOk()->getContent();
+    }
+
+    expect($combined)->toContain('<loc>https://publicuniverse.net</loc>')
+        ->and($combined)->toContain('<loc>https://publicuniverse.net/educators</loc>')
+        ->and($combined)->toContain('<loc>https://publicuniverse.net/explore</loc>')
+        ->and($combined)->toContain('<loc>https://publicuniverse.net/observe</loc>')
+        ->and($combined)->toContain('https://publicuniverse.net/objects/')
+        ->and($combined)->not->toContain('sol.wickedsick.com');
 });
 
 it('points robots.txt at the canonical sitemap', function () {

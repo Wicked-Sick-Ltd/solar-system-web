@@ -99,7 +99,7 @@ it('is linked from the footer and listed in the sitemap', function () {
         ->assertSee('href="'.route('educators').'"', escape: false)
         ->assertSee('For educators');
 
-    $this->get('/sitemap.xml')
+    $this->get('/sitemaps/pages.xml')
         ->assertOk()
         ->assertSee('<loc>'.url('/educators').'</loc>', escape: false);
 });

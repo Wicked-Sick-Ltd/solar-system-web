@@ -153,7 +153,43 @@ class SolarApiClient
         $limit = max(1, min(100, $limit));
         $offset = max(0, min(100000, $offset));
         $filters = array_filter(array_intersect_key($filters, array_flip(['q', 'discovery_method', 'max_distance_pc'])), static fn ($value) => $value !== null && $value !== '');
-        $data = $this->cachedGet('/exoplanets', $filters + ['limit' => $limit + 1, 'offset' => $offset], $this->ttl['catalog']);
+
+        // One extra row tells us whether another page exists without trusting a
+        // cursor field the interactive list has never required.
+        return $this->exoplanetPage(
+            $this->cachedGet('/exoplanets', $filters + ['limit' => $limit + 1, 'offset' => $offset], $this->ttl['catalog']),
+            $limit,
+            $offset,
+            true,
+        );
+    }
+
+    /**
+     * One page of the full exoplanet catalogue for bulk reads such as the sitemap.
+     *
+     * Interactive lists stay capped at 100. The catalogue accepts up to 1000
+     * rows per response, so a full walk of several thousand planets stays a
+     * handful of cached reads. `has_more` is the cursor: asking for 1001 is
+     * rejected, so the interactive list's extra-row trick cannot be used here.
+     *
+     * @return Paginated<Exoplanet>
+     */
+    public function exoplanetCataloguePage(int $offset, int $limit = 1000): Paginated
+    {
+        $limit = max(1, min(1000, $limit));
+        $offset = max(0, min(100000, $offset));
+
+        return $this->exoplanetPage(
+            $this->cachedGet('/exoplanets', ['limit' => $limit, 'offset' => $offset], $this->ttl['catalog']),
+            $limit,
+            $offset,
+            false,
+        );
+    }
+
+    /** @return Paginated<Exoplanet> */
+    private function exoplanetPage(mixed $data, int $limit, int $offset, bool $overfetched): Paginated
+    {
         if (! is_array($data) || ($data['available'] ?? null) !== true) {
             throw new SolarApiException('Exoplanet catalogue is not available yet.');
         }
@@ -187,9 +223,30 @@ class SolarApiClient
 
         $snapshot = array_key_exists('catalogue_snapshot', $data)
             ? CatalogueSnapshot::fromArray($data['catalogue_snapshot']) : null;
-        $page = $this->paginate($rows, $limit, $offset, Exoplanet::fromArray(...));
 
-        return new Paginated($page->items, $page->limit, $page->offset, $page->hasMore, catalogueSnapshot: $snapshot);
+        if ($overfetched) {
+            $page = $this->paginate($rows, $limit, $offset, Exoplanet::fromArray(...));
+
+            return new Paginated($page->items, $page->limit, $page->offset, $page->hasMore, catalogueSnapshot: $snapshot);
+        }
+
+        $hasMore = $data['has_more'] ?? null;
+        if ($hasMore === null) {
+            $hasMore = count($rows) >= $limit;
+        } elseif (! is_bool($hasMore)) {
+            throw new SolarApiException('Exoplanet catalogue returned an invalid page cursor.');
+        }
+        if ($hasMore && $rows === []) {
+            throw new SolarApiException('Exoplanet catalogue returned an empty page with a next page.');
+        }
+
+        return new Paginated(
+            array_map(Exoplanet::fromArray(...), $rows),
+            $limit,
+            $offset,
+            $hasMore,
+            catalogueSnapshot: $snapshot,
+        );
     }
 
     /** Confirmed exoplanets in the catalogue, from the list envelope's `total`; null when not reported. */
