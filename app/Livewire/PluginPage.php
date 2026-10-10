@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Support\KeyStage;
 use App\Support\Links;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
@@ -25,7 +26,9 @@ final class PluginPage extends Component
             'connectionReady' => (bool) config('plugin.connection_ready'),
             'skills' => [
                 'tonight-sky' => __('Plan an evening of stargazing for a place and date.'),
-                'lesson-builder' => __('Prepare a lesson or worksheet for a UK school key stage.'),
+                'lesson-builder' => __('Prepare a lesson or worksheet for a UK Key Stage, with the matching US grades (for example :example).', [
+                    'example' => KeyStage::compact('KS3'),
+                ]),
                 'space-fact-check' => __('Check an astronomy claim against catalogue sources.'),
                 'object-explainer' => __('Explore an object at your preferred reading level.'),
                 'close-approach-watch' => __('Put upcoming asteroid and comet flybys in context.'),

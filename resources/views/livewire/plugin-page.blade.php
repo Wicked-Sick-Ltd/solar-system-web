@@ -112,7 +112,7 @@ copilot plugin list</code></pre>
             <ul class="mt-3 list-disc space-y-2 pl-6">
                 <li>{{ __('“Explain Saturn’s rings to a curious eight-year-old, and cite the source of each number.”') }}</li>
                 <li>{{ __('“Plan a stargazing evening from Bristol on 15 December 2026, Europe/London timezone. Say which results are calculated and what the weather could change.”') }}</li>
-                <li>{{ __('“Create a Key Stage 3 lesson comparing rocky planets and gas giants. Include a worksheet and source links.”') }}</li>
+                <li>{{ __('“Create a :stage lesson comparing rocky planets and gas giants. Include a worksheet and source links.”', ['stage' => \App\Support\KeyStage::compact('KS3')]) }}</li>
             </ul>
         </section>
 
