@@ -27,7 +27,8 @@
             </p>
         </div>
     @else
-        <div class="mt-5 min-w-0">
+        <div class="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <div class="min-w-0">
             <h3 class="break-words font-serif text-3xl font-medium leading-tight" style="color: var(--text);">
                 @if ($objectUrl)
                     <a href="{{ $objectUrl }}" class="underline decoration-1 underline-offset-4" style="color: var(--link);">{{ $approach->name }}</a>
@@ -94,6 +95,10 @@
                     <span id="pass-size-note" class="mt-1 block">{{ $size['note'] }}</span>
                 @endif
             </p>
+            </div>
+            @if ($flyby)
+                <x-flyby-diagram :frame="$flyby" class="mx-auto w-full max-w-sm lg:mx-0" />
+            @endif
         </div>
 
         @script

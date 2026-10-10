@@ -97,6 +97,58 @@ it('uses a cached horizons arc and does not call the path approximate', function
     expect($arcCalls)->toHaveCount(1);
 });
 
+it('draws a compact flyby on the next-pass card from a horizons arc', function () {
+    $this->travelTo(new DateTimeImmutable('2026-10-10T12:00:00Z'));
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    $rows = [
+        '2461325.5, A.D. 2026-Oct-12 00:00:00.0000, 1.0E+06, 5.0E+05, -1.0E+05, -8.0, -5.0, 1.0,',
+        '2461328.5, A.D. 2026-Oct-15 00:00:00.0000, -2.5E+03, -6.8E+04, -2.08E+05, -8.4, -5.6, 1.9,',
+        '2461331.5, A.D. 2026-Oct-18 00:00:00.0000, -1.2E+06, -8.0E+05, 1.0E+05, -8.2, -5.5, 2.0,',
+    ];
+    Http::fake(function ($request) use ($rows) {
+        $path = parse_url($request->url(), PHP_URL_PATH) ?? '';
+        if (str_contains($request->url(), 'horizons.api')) {
+            return Http::response(['result' => "\$\$SOE\n".implode("\n", $rows)."\n\$\$EOE\n"]);
+        }
+        if (str_ends_with($path, '/close-approaches')) {
+            return Http::response(['results' => [[
+                'object_id' => 'ast-sooner', 'name' => '2022 UP6', 'designation' => '(2022 UP6)',
+                'body' => 'Earth', 'cd_iso' => '2026-10-15T20:59:00Z', 'dist_au' => 0.00672, 'v_rel_km_s' => 9.02,
+            ]]]);
+        }
+        if (str_ends_with($path, '/stats')) {
+            return Http::response(statsPayload());
+        }
+        if (str_contains($path, '/objects/')) {
+            return Http::response(objectDetail('featured'));
+        }
+
+        return Http::response(['results' => []]);
+    });
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('data-flyby-compact', false)
+        ->assertSee('Flyby geometry')
+        ->assertSee('The Moon’s position is approximate', false)
+        ->assertSee('JPL Horizons')
+        ->assertDontSee('The path is approximate', false)
+        ->assertDontSee('Heliocentric, approximate', false);
+});
+
+it('caches a horizons miss', function () {
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    Http::fake(fn () => Http::response(['result' => 'No matches found']));
+    $client = app(HorizonsClient::class);
+    $start = CarbonImmutable::parse('2026-10-12T00:00:00Z');
+
+    expect($client->arc('2022 UP6', $start, $start->addDays(6)))->toBeNull()
+        ->and($client->arc('2022 UP6', $start, $start->addDays(6)))->toBeNull()
+        ->and(Http::recorded())->toHaveCount(1);
+});
+
 it('parses a horizons vector block and ignores a miss', function () {
     $parsed = HorizonsClient::parse(<<<'TEXT'
 $$SOE

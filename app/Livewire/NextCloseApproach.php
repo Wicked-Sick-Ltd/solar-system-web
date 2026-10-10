@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Services\CloseApproachFlyby;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
 use App\Support\CloseApproachFormat;
 use App\Support\UpcomingCloseApproach;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Throwable;
 
 /** Homepage card for the next Earth pass within 10 lunar distances. */
 final class NextCloseApproach extends Component
@@ -36,6 +39,14 @@ final class NextCloseApproach extends Component
         }
 
         $approach = $apiDown ? null : UpcomingCloseApproach::select($approaches, $now);
+        $flyby = null;
+        if ($approach !== null) {
+            try {
+                $flyby = app(CloseApproachFlyby::class)->forListing($approach);
+            } catch (Throwable $e) {
+                Log::notice('Close-approach flyby could not be drawn', ['error' => $e->getMessage()]);
+            }
+        }
         $when = UpcomingCloseApproach::instant($approach?->cdIso);
         // The date-window row's object id is the catalogue key for its page.
         // Checking the detail endpoint as well would add a second homepage request.
@@ -57,6 +68,7 @@ final class NextCloseApproach extends Component
             'capped' => ! $apiDown && count($approaches) >= UpcomingCloseApproach::LIMIT,
             'days' => UpcomingCloseApproach::WINDOW_DAYS,
             'limit' => UpcomingCloseApproach::LIMIT,
+            'flyby' => $flyby,
         ]);
     }
 }

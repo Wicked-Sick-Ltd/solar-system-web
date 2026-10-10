@@ -84,6 +84,46 @@ class CloseApproachFlyby
     }
 
     /**
+     * Compact diagram for a catalogue row that has no orbital elements.
+     * One Horizons request; the Moon and Sun use the low-precision ephemeris.
+     * Returns null rather than a straight line when the ephemeris is missing.
+     */
+    public function forListing(CloseApproach $approach): ?FlybyFrame
+    {
+        if ($approach->cdIso === null || $approach->distAu === null || $approach->distAu < 0.0) {
+            return null;
+        }
+        if ($approach->body !== null && strcasecmp($approach->body, 'Earth') !== 0) {
+            return null;
+        }
+
+        try {
+            $at = CarbonImmutable::parse($approach->cdIso)->utc();
+        } catch (Throwable) {
+            return null;
+        }
+
+        $command = $this->commandsFrom($approach->objectId, $approach->designation, $approach->name)[0] ?? null;
+        $samples = $command !== null ? $this->horizons->arc($command, $at->subDays(3), $at->addDays(3)) : null;
+        if ($samples === null) {
+            return null;
+        }
+
+        return FlybyFrame::compose(
+            $approach->name ?? $approach->designation ?? __('Object'),
+            $at,
+            $approach->distAu,
+            $samples,
+            LowPrecisionEphemeris::moon($at),
+            LowPrecisionEphemeris::sun($at),
+            trajectoryApproximate: false,
+            moonApproximate: true,
+            objectElements: null,
+            compact: true,
+        );
+    }
+
+    /**
      * The next Earth encounter, or the most recent one when none lie ahead.
      *
      * @param  list<CloseApproach>  $approaches
@@ -124,11 +164,19 @@ class CloseApproachFlyby
      */
     public function commands(ObjectDetail $object): array
     {
+        return $this->commandsFrom($object->id, $object->designation, $object->name);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function commandsFrom(?string $id, ?string $designation, ?string $name): array
+    {
         $candidates = [];
-        if (preg_match('/^ast-(\d+)$/', $object->id, $match) === 1) {
+        if ($id !== null && preg_match('/^ast-(\d+)$/', $id, $match) === 1) {
             $candidates[] = $match[1];
         }
-        $designation = (string) $object->designation;
+        $designation = (string) $designation;
         if (preg_match('/^(\d+)\b/', $designation, $match) === 1) {
             $candidates[] = $match[1];
         }
@@ -138,8 +186,8 @@ class CloseApproachFlyby
         if (preg_match('/^(\d+P)\b/i', $designation, $match) === 1) {
             $candidates[] = strtoupper($match[1]);
         }
-        if ($object->name !== '') {
-            $candidates[] = $object->name;
+        if ($name !== null && $name !== '') {
+            $candidates[] = $name;
         }
 
         $commands = [];

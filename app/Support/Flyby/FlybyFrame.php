@@ -54,6 +54,9 @@ final readonly class FlybyFrame
         public ?array $arrow,
         public ?array $inset,
         public ?string $planeNote,
+        public float $width,
+        public float $height,
+        public bool $compact,
     ) {}
 
     /**
@@ -69,6 +72,7 @@ final readonly class FlybyFrame
         bool $trajectoryApproximate,
         bool $moonApproximate,
         ?OrbitalElements $objectElements,
+        bool $compact = false,
     ): ?self {
         $samples = array_values(array_filter($samples, fn (VectorSample $sample): bool => $sample->finite()));
         if (count($samples) < 2 || ! is_finite($distanceAu) || $distanceAu < 0.0) {
@@ -82,9 +86,11 @@ final readonly class FlybyFrame
             return null;
         }
 
-        $earthX = 270.0;
-        $earthY = 292.0;
-        $plotRadius = 230.0;
+        $earthX = $compact ? 188.0 : 270.0;
+        $earthY = $compact ? 168.0 : 292.0;
+        $plotRadius = $compact ? 132.0 : 230.0;
+        $width = $compact ? 400.0 : self::WIDTH;
+        $height = $compact ? 320.0 : self::HEIGHT;
         $reachKm = TwoBody::MOON_ORBIT_KM;
         foreach ($samples as $sample) {
             $reachKm = max($reachKm, hypot($sample->xKm, $sample->yKm));
@@ -114,8 +120,8 @@ final readonly class FlybyFrame
         $label = self::labelPosition($closestPoint, $earthX, $earthY);
         $ticks = self::ticks($samples, $approachAt, $project, $closestPoint);
         $arrow = self::arrow($samples, $closest, $project, $scale);
-        $sunRay = self::sunRay($sun ?? LowPrecisionEphemeris::sun($approachAt), $earthX, $earthY, $plotRadius);
-        $inset = self::inset($objectElements, $approachAt);
+        $sunRay = self::sunRay($sun ?? LowPrecisionEphemeris::sun($approachAt), $earthX, $earthY, $plotRadius, $width - 24.0);
+        $inset = $compact ? null : self::inset($objectElements, $approachAt);
         $planeNote = self::planeNote($closest);
 
         $summary = self::summary(
@@ -127,6 +133,7 @@ final readonly class FlybyFrame
             $moonApproximate,
             $planeNote,
             $inset !== null,
+            $compact,
         );
 
         return new self(
@@ -153,6 +160,9 @@ final readonly class FlybyFrame
             arrow: $arrow,
             inset: $inset,
             planeNote: $planeNote,
+            width: $width,
+            height: $height,
+            compact: $compact,
         );
     }
 
@@ -337,15 +347,15 @@ final readonly class FlybyFrame
     /**
      * @return array{x1: float, y1: float, x2: float, y2: float, labelX: float, labelY: float}
      */
-    private static function sunRay(VectorSample $sun, float $earthX, float $earthY, float $plotRadius): array
+    private static function sunRay(VectorSample $sun, float $earthX, float $earthY, float $plotRadius, float $maxX): array
     {
         $angle = atan2($sun->yKm, $sun->xKm);
         $x1 = $earthX + cos($angle) * $plotRadius * 0.62;
         $y1 = $earthY - sin($angle) * $plotRadius * 0.62;
         $x2 = $earthX + cos($angle) * $plotRadius * 0.88;
         $y2 = $earthY - sin($angle) * $plotRadius * 0.88;
-        $labelX = min(500.0, max(24.0, $x2 + cos($angle) * 14));
-        $labelY = min(530.0, max(24.0, $y2 - sin($angle) * 14));
+        $labelX = min($maxX, max(24.0, $x2 + cos($angle) * 14));
+        $labelY = min($plotRadius + $earthY, max(24.0, $y2 - sin($angle) * 14));
 
         return [
             'x1' => round($x1, 1),
@@ -435,6 +445,7 @@ final readonly class FlybyFrame
         bool $moonApproximate,
         ?string $planeNote,
         bool $hasInset,
+        bool $compact,
     ): string {
         $start = TwoBody::carbonFromJd($samples[0]->jd)->utc()->format('Y-m-d');
         $end = TwoBody::carbonFromJd($samples[array_key_last($samples)]->jd)->utc()->format('Y-m-d');
@@ -450,6 +461,12 @@ final readonly class FlybyFrame
             ]),
             __('The labelled distance is the full separation. The drawn radius is the part that lies in the ecliptic plane.'),
         ];
+        if ($compact) {
+            $parts[2] = __('The curve is the geocentric path from :start to :end. The circle is the Moon’s mean orbit and a ray shows the Sun’s direction.', [
+                'start' => $start,
+                'end' => $end,
+            ]);
+        }
         if ($planeNote !== null) {
             $parts[] = $planeNote;
         }

@@ -49,6 +49,9 @@ class HorizonsClient
         $stopText = $stop->utc()->format('Y-m-d H:i');
         $key = 'horizons:v1:'.sha1($command.'|'.$startText.'|'.$stopText.'|'.$step);
         $cached = Cache::get($key);
+        if ($cached === 'miss') {
+            return null;
+        }
         if (is_array($cached)) {
             $samples = $this->hydrate($cached);
 
@@ -57,6 +60,9 @@ class HorizonsClient
 
         $samples = $this->fetch($command, $startText, $stopText, $step);
         if ($samples === null) {
+            // A short miss cache keeps a dead ephemeris from delaying every page view.
+            Cache::put($key, 'miss', now()->addMinutes(10));
+
             return null;
         }
         Cache::put($key, array_map(fn (VectorSample $sample): array => [

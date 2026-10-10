@@ -34,7 +34,8 @@ it('shows the next pass within 10 lunar distances on the home page', function ()
         ->assertSee('upcomingPassClock', false)
         ->assertDontSee('2019 XF2')
         ->assertDontSee('No object page is published')
-        ->assertDontSee('Approximate size');
+        ->assertDontSee('Approximate size')
+        ->assertDontSee('data-flyby', false);
 
     $html = $response->getContent();
     $clock = substr($html, (int) strpos($html, 'upcomingPassClock'), 2200);
