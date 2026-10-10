@@ -31,6 +31,8 @@
         <a class="surface p-5" href="{{ route('api') }}"><strong class="block">{{ __('Use the data') }}</strong><span class="mt-2 block text-sm" style="color: var(--muted)">{{ __('Follow sources or build something new.') }}</span></a>
     </nav>
 
+    <livewire:next-close-approach />
+
     {{-- Stats strip --}}
     <section class="mt-12" aria-label="{{ __('Catalogue statistics') }}">
         @if ($apiDown || ! $stats)
