@@ -17,7 +17,7 @@
             @else
                 <p class="mt-3">{{ __('The catalogue publishes planets, moons, dwarf planets, asteroids, comets and related observing data for astronomy and science education.') }}</p>
             @endif
-            <p class="mt-3">{{ __('This reference lists the public GET operations from the live OpenAPI document and caches that document on the server. Calls you run from the forms below are read-only GETs made by this site.') }}</p>
+            <p class="mt-3">{{ __('This reference lists the public GET operations from the live OpenAPI document and caches that document on the server. Calls you run from the forms below are read-only GETs made by this site. Example URLs start with the catalogue base URL.') }}</p>
             <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-[auto_1fr] sm:gap-x-5">
                 <dt class="font-semibold">{{ __('Base URL') }}</dt>
                 <dd class="min-w-0 break-all font-mono">{{ $baseUrl }}</dd>
@@ -63,7 +63,7 @@
                                     @foreach ($operations as $operation)
                                         <li class="min-w-0">
                                             <a class="inline-flex min-h-11 items-center break-all underline" href="#{{ $operation['html_id'] }}">
-                                                <span class="mr-2 font-mono text-xs">GET</span>{{ $operation['path'] }}
+                                                <span class="mr-2 shrink-0 font-mono text-xs">GET</span>{{ $operation['catalogue_url'] ?? ($catalogue['origin'].$operation['path']) }}
                                             </a>
                                         </li>
                                     @endforeach
@@ -84,7 +84,7 @@
                                         <span class="text-xs font-semibold" style="color: var(--error);">{{ __('Deprecated') }}</span>
                                     @endif
                                     <span class="text-lg">{{ $operation['summary'] }}</span>
-                                    <span class="mt-1 block break-all font-mono text-sm" style="color: var(--muted);">{{ $operation['path'] }}</span>
+                                    <a class="mt-1 block break-all font-mono text-sm underline" href="{{ $operation['catalogue_url'] ?? ($catalogue['origin'].$operation['path']) }}" rel="noopener">{{ $operation['catalogue_url'] ?? ($catalogue['origin'].$operation['path']) }}</a>
                                 </summary>
                                 <div class="mt-4">
                                     @if ($operation['description'] !== '')

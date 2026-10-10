@@ -42,6 +42,15 @@ final class Links
         return $url;
     }
 
+    /** Host of the catalogue API, without the /api/v1 suffix. */
+    public static function catalogueOrigin(): string
+    {
+        $base = (string) config('services.solar.base_url');
+        $host = preg_replace('#/api/v\d+/?$#', '', $base) ?? $base;
+
+        return rtrim($host, '/');
+    }
+
     /** The backend's interactive OpenAPI docs (Swagger UI at /docs). */
     public static function apiDocs(): string
     {
@@ -49,28 +58,18 @@ final class Links
             return $explicit;
         }
 
-        // Strip the /api/v1 suffix from the base URL and point at /docs.
-        $base = (string) config('services.solar.base_url');
-        $host = preg_replace('#/api/v\d+/?$#', '', $base);
-
-        return rtrim($host, '/').'/docs';
+        return self::catalogueOrigin().'/docs';
     }
 
     /** The raw OpenAPI JSON. */
     public static function openApi(): string
     {
-        $base = (string) config('services.solar.base_url');
-        $host = preg_replace('#/api/v\d+/?$#', '', $base);
-
-        return rtrim($host, '/').'/openapi.json';
+        return self::catalogueOrigin().'/openapi.json';
     }
 
     /** The backend's streamable HTTP MCP endpoint. */
     public static function mcp(): string
     {
-        $base = (string) config('services.solar.base_url');
-        $host = preg_replace('#/api/v\d+/?$#', '', $base);
-
-        return rtrim($host, '/').'/mcp';
+        return self::catalogueOrigin().'/mcp';
     }
 }

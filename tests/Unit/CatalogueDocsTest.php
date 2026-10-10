@@ -68,6 +68,14 @@ it('parses public GET operations and drops writes and credentialed routes', func
         ->and($document['operations'][0]['parameters'][0]['description'])->toBe('Search query');
 });
 
+it('waits longer for night planning than for a catalogue read', function () {
+    config(['services.solar.timeout' => 8, 'services.solar.planner_timeout' => 40]);
+    $call = app(CatalogueCall::class);
+
+    expect($call->timeoutFor('https://catalogue.test/api/v1/search?q=Halley'))->toBe(8)
+        ->and($call->timeoutFor('https://catalogue.test/api/v1/observing/night?date=2026-10-10'))->toBe(40);
+});
+
 it('keeps read-only calls on the configured origin and caps limit', function () {
     $call = app(CatalogueCall::class);
     $operation = [
