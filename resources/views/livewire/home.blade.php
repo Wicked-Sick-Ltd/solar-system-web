@@ -14,7 +14,7 @@
         <div class="mt-6 flex flex-wrap items-center gap-3">
             <a href="{{ route('explore') }}"
                class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
-               style="background-color: var(--accent); color: #07090f;">
+               style="background-color: var(--accent-fill); color: var(--on-accent);">
                 {{ __('Start exploring') }}
             </a>
             <a href="{{ route('api') }}"
@@ -96,7 +96,9 @@
                             @if ($d = Format::km($featured->physical?->diameterKm()))
                                 <div><dt class="text-xs uppercase tracking-wide">{{ __('Diameter') }}</dt><dd style="color: var(--text);">{{ $d }}</dd></div>
                             @endif
-                            @if ($a = Format::au($featured->orbital?->semiMajorAxisAu))
+                            @if ($featured->objectType === 'moon' && ($radius = Format::orbitRadiusKm($featured->orbital?->semiMajorAxisAu)))
+                                <div><dt class="text-xs uppercase tracking-wide">{{ __('Orbit radius') }}</dt><dd style="color: var(--text);">{{ $radius }}</dd></div>
+                            @elseif ($a = Format::au($featured->orbital?->semiMajorAxisAu))
                                 <div><dt class="text-xs uppercase tracking-wide">{{ __('Distance') }}</dt><dd style="color: var(--text);">{{ $a }}</dd></div>
                             @endif
                             @if ($p = Format::periodDays($featured->orbital?->orbitalPeriodDays))

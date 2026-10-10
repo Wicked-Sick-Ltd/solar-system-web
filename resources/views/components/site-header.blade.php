@@ -43,7 +43,7 @@
 
         <div class="ml-auto flex shrink-0 items-center gap-2">
             {{-- Search (compact) --}}
-            <form action="{{ route('search') }}" method="GET" role="search"
+            <form action="{{ route('search') }}" method="GET" role="search" aria-label="{{ __('Site search') }}"
                   class="hidden items-center md:flex">
                 <label for="header-search" class="sr-only">{{ __('Search the catalogue') }}</label>
                 <div class="flex items-center rounded-lg border px-2.5"
