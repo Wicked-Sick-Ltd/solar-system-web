@@ -103,6 +103,14 @@ final class SetResponseHeaders
             $response->headers->removeCookie($cookie->getName(), $cookie->getPath(), $cookie->getDomain());
         }
 
+        // Interactive catalogue calls echo the visitor's parameters, including
+        // an observer location, so that response stays private.
+        if ($request->routeIs('api') && $request->filled('try')) {
+            $response->headers->set('Cache-Control', 'private, no-store');
+
+            return;
+        }
+
         // Catalogue-bearing HTML must not hide a changed observed build behind
         // the previous day's stale edge response. Static API guidance retains
         // its existing longer policy. Already cached responses need rollout purge.
