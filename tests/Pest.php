@@ -51,9 +51,12 @@ function fakeSolar(): void
             str_contains($path, '/objects/ast-20099942-apophis') => Http::response(apophisDetail()),
             str_contains($path, '/objects/dwarf-pluto') => Http::response(plutoDetail()),
             str_contains($path, '/objects/moon-luna') => Http::response(lunaDetail()),
-            // Any other single-object detail request echoes a valid record back,
-            // so the date-deterministic "featured today" pick always resolves.
-            (bool) preg_match('#/objects/[^/]+$#', $path) => Http::response(objectDetail(basename($path))),
+            // Detail ids may contain a slash (provisional satellites: moon-s/2019-s-1).
+            // The featured-today pick and any other single-object request still resolve.
+            (bool) preg_match('#/objects/(.+)$#', $path, $objectPath) => Http::response(objectDetail(rawurldecode($objectPath[1]))),
+            str_ends_with($path, '/objects') && ($request['type'] ?? null) === 'moon' => Http::response([
+                'results' => provisionalMoonRows(), 'limit' => 100, 'offset' => 0,
+            ]),
             str_ends_with($path, '/objects') => Http::response([
                 'results' => objectRows(25), 'limit' => 25, 'offset' => 0,
             ]),
@@ -116,6 +119,43 @@ function statsPayload(): array
     ];
 }
 
+/**
+ * Moons whose catalogue ids mirror production: a plain id, a hyphenated
+ * provisional designation, and provisional ids that still contain the
+ * designation slash (S/2019 S 1 → moon-s/2019-s-1).
+ *
+ * @return list<array<string,mixed>>
+ */
+function provisionalMoonRows(): array
+{
+    $rows = [
+        ['id' => 'moon-titan', 'name' => 'Titan', 'object_type' => 'moon'],
+    ];
+
+    foreach (provisionalMoonNames() as $id => $name) {
+        $rows[] = [
+            'id' => $id,
+            'name' => $name,
+            'designation' => $name,
+            'object_type' => 'moon',
+        ];
+    }
+
+    return $rows;
+}
+
+/** @return array<string, string> */
+function provisionalMoonNames(): array
+{
+    return [
+        'moon-s-2019-s-22' => 'S/2019 S 22',
+        'moon-s/2019-s-1' => 'S/2019 S 1',
+        'moon-s/2003-j-12' => 'S/2003 J 12',
+        'moon-s/2020-s-11' => 'S/2020 S 11',
+        'moon-s/2020-s-17' => 'S/2020 S 17',
+    ];
+}
+
 /** @return list<array<string,mixed>> */
 function objectRows(int $n): array
 {
@@ -140,7 +180,7 @@ function objectDetail(string $id): array
 {
     return [
         'id' => $id,
-        'name' => ucfirst(str_replace('-', ' ', $id)),
+        'name' => provisionalMoonNames()[$id] ?? ucfirst(str_replace('-', ' ', $id)),
         'object_type' => 'moon',
         'orbital' => ['semi_major_axis_au' => 0.01, 'eccentricity' => 0.001, 'orbital_period_days' => 1.5],
         'physical' => ['radius_km' => 200],

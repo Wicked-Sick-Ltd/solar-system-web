@@ -63,13 +63,23 @@ Route::post('/observe/night', NightPlannerController::class)->middleware('thrott
 Route::post('/observe/night/weather', NightWeatherController::class)->middleware('throttle:12,1')->name('observe.night.weather');
 Route::get('/learn', LearnPage::class)->name('learn');
 
+// Provisional satellite ids keep the designation slash (S/2019 S 1 → moon-s/2019-s-1).
+// `{slug}` otherwise stops at the first slash, so the sitemap's /objects/moon-s/…
+// URLs never reached the detail lookup. The class excludes "." so the OG route's
+// ".png" suffix stays a literal.
+$catalogueSlug = '[A-Za-z0-9][A-Za-z0-9\-/]*';
+
 Route::get('/objects', ObjectsIndex::class)->name('objects.index');
-Route::get('/objects/{slug}', ObjectsShow::class)->name('objects.show');
+Route::get('/objects/{slug}', ObjectsShow::class)
+    ->where('slug', $catalogueSlug)
+    ->name('objects.show');
 
 // Planets get a dedicated, more editorial landing; detail reuses the object
 // template (with moons promoted to a sortable table + a rings section).
 Route::get('/planets', PlanetsIndex::class)->name('planets.index');
-Route::get('/planets/{slug}', ObjectsShow::class)->name('planets.show');
+Route::get('/planets/{slug}', ObjectsShow::class)
+    ->where('slug', $catalogueSlug)
+    ->name('planets.show');
 
 // Category landing pages — filtered views over the catalogue.
 Route::get('/dwarf-planets', Category::class)->defaults('kind', 'dwarf_planet')->name('dwarf-planets');
@@ -100,7 +110,7 @@ Route::get('/random', RandomObjectController::class)->name('random');
 
 // Per-object Open Graph share card (rendered + cached on object detail pages)
 Route::get('/og/objects/{slug}.png', OgImageController::class)
-    ->where('slug', '[A-Za-z0-9\-]+')   // keep the .png suffix literal
+    ->where('slug', $catalogueSlug)
     ->name('og.object');
 
 Route::get('/about', AboutPage::class)->name('about');
