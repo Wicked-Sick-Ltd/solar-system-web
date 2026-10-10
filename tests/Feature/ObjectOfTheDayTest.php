@@ -102,6 +102,29 @@ it('gives the homepage featured object a dated permalink and share controls', fu
         ->and($document->evaluate("string(//section[@aria-labelledby='featured-heading']//a[contains(@href, 'linkedin.com')]/@href)"))->toContain(rawurlencode($permalink));
 });
 
+it('places featured today and its share controls above the next close approach', function () {
+    $document = todayDocument($this->get('/')->assertOk()->getContent());
+    $featured = $document->query("//section[@aria-labelledby='featured-heading']")->item(0);
+    $share = $document->query("//section[@aria-labelledby='featured-heading']//*[@role='group']")->item(0);
+    $pass = $document->query("//section[@aria-labelledby='next-pass-heading']")->item(0);
+    $headings = [];
+    foreach ($document->query('//main//h2') as $heading) {
+        $headings[] = $heading->getAttribute('id');
+    }
+
+    expect($featured)->toBeInstanceOf(DOMElement::class)
+        ->and($share)->toBeInstanceOf(DOMElement::class)
+        ->and($pass)->toBeInstanceOf(DOMElement::class)
+        ->and($featured->compareDocumentPosition($pass) & DOMNode::DOCUMENT_POSITION_FOLLOWING)->toBeGreaterThan(0)
+        ->and($featured->compareDocumentPosition($pass) & DOMNode::DOCUMENT_POSITION_CONTAINED_BY)->toBe(0)
+        ->and($share->compareDocumentPosition($pass) & DOMNode::DOCUMENT_POSITION_FOLLOWING)->toBeGreaterThan(0)
+        ->and($headings)->toBe(['featured-heading', 'next-pass-heading', 'browse-heading'])
+        ->and($featured->getAttribute('tabindex'))->toBe('')
+        ->and($pass->getAttribute('tabindex'))->toBe('')
+        ->and($featured->getAttribute('class'))->not->toContain('order-')
+        ->and($pass->getAttribute('class'))->not->toContain('order-');
+});
+
 it('features the same object on the homepage and the permalink for that day', function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-23 23:59:00', 'UTC'));
 

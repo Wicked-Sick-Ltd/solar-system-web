@@ -127,14 +127,25 @@ it('draws a compact flyby on the next-pass card from a horizons arc', function (
         return Http::response(['results' => []]);
     });
 
-    $this->get('/')
+    $html = $this->get('/')
         ->assertOk()
         ->assertSee('data-flyby-compact', false)
         ->assertSee('Flyby geometry')
         ->assertSee('The Moon’s position is approximate', false)
         ->assertSee('JPL Horizons')
         ->assertDontSee('The path is approximate', false)
-        ->assertDontSee('Heliocentric, approximate', false);
+        ->assertDontSee('Heliocentric, approximate', false)
+        ->getContent();
+
+    $document = new DOMDocument;
+    $document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING);
+    $xpath = new DOMXPath($document);
+    $share = $xpath->query("//section[@aria-labelledby='featured-heading']//*[@role='group']")->item(0);
+    $flyby = $xpath->query("//section[@aria-labelledby='next-pass-heading']//*[@data-flyby-compact]")->item(0);
+
+    expect($share)->toBeInstanceOf(DOMElement::class)
+        ->and($flyby)->toBeInstanceOf(DOMElement::class)
+        ->and($share->compareDocumentPosition($flyby) & DOMNode::DOCUMENT_POSITION_FOLLOWING)->toBeGreaterThan(0);
 });
 
 it('caches a horizons miss', function () {
