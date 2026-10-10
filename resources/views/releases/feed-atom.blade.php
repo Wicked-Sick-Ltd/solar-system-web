@@ -6,6 +6,13 @@
     <link rel="alternate" type="text/html" href="{{ $pageUrl }}"/>
     <link rel="self" type="application/atom+xml" href="{{ $feedUrl }}"/>
     <updated>{{ $updatedAtom }}</updated>
+    <author>
+        <name>{{ config('site.name') }}</name>
+        <uri>{{ $pageUrl }}</uri>
+        @if (is_string(config('site.contact_email')) && filter_var(config('site.contact_email'), FILTER_VALIDATE_EMAIL))
+            <email>{{ config('site.contact_email') }}</email>
+        @endif
+    </author>
     @foreach ($entries as $entry)
         <entry>
             <title>{{ $entry['summary'] }}</title>

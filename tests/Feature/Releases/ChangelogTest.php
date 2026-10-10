@@ -61,6 +61,8 @@ it('renders grouped release notes with dates, pull request links and feeds', fun
     $this->get('/releases/feed.atom')->assertOk()
         ->assertHeader('Content-Type', 'application/atom+xml; charset=UTF-8')
         ->assertSee('<feed xmlns="http://www.w3.org/2005/Atom">', false)
+        ->assertSee('<author>', false)
+        ->assertSee('<name>'.config('site.name').'</name>', false)
         ->assertSee('https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/51', false)
         ->assertDontSee('tidy comments');
     $this->get('/releases/feed.rss')->assertOk()
