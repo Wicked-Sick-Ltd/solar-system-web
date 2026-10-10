@@ -9,6 +9,11 @@
             <span class="text-base font-normal" style="color: var(--muted);">{{ __(':count on record', ['count' => Format::count($closeApproachCount)]) }}</span>
         @endif
     </h2>
+    @if (! empty($flyby ?? null))
+        <div class="surface mb-6 p-4 sm:p-6">
+            <x-flyby-diagram :frame="$flyby" />
+        </div>
+    @endif
     <div class="surface overflow-x-auto">
         <table class="w-full text-sm">
             <thead>

@@ -29,7 +29,8 @@ all real 5,000-host responses have this byte size or planet multiplicity.
 Changing a fixture or dependency can justify a budget update, but run the
 benchmark, examine the change and update the recorded explanation first.
 
-The homepage cold-call ceiling is 4: catalogue identity, stats, the featured
-object, and the cached close-approach window for the next-pass card. The warm
-ceiling stays 0 because that window is served from the application cache. The
-upstream body ceiling is 1,500 bytes to include the small close-approach fixture.
+The homepage cold-call ceiling is 5: catalogue identity, stats, the featured
+object, the cached close-approach window for the next-pass card, and one
+Horizons vector request for that card’s flyby diagram. A miss is cached, so
+the warm ceiling stays 0. The upstream body ceiling is 1,500 bytes to include
+the small close-approach fixture.

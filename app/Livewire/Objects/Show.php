@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Objects;
 
+use App\Services\CloseApproachFlyby;
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Data\ObjectSummary;
 use App\Services\SolarApi\Exceptions\SolarApiException;
@@ -12,9 +13,11 @@ use App\Services\SolarApi\SolarApiClient;
 use App\Support\Seo;
 use App\Support\ShareImage;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Throwable;
 
 /**
  * The single canonical detail template for any object, whatever its type. For
@@ -130,6 +133,16 @@ final class Show extends Component
             }
         }
 
+        $flyby = null;
+        if ($object->closeApproaches !== []) {
+            try {
+                $flyby = app(CloseApproachFlyby::class)->forObject($object);
+            } catch (Throwable $e) {
+                Log::notice('Close-approach flyby could not be drawn', ['error' => $e->getMessage()]);
+                $flyby = null;
+            }
+        }
+
         return view('livewire.objects.show', [
             'object' => $object,
             'apiDown' => false,
@@ -141,6 +154,7 @@ final class Show extends Component
             'moons' => $moons,
             'rings' => $rings,
             'parent' => $parent,
+            'flyby' => $flyby,
         ]);
     }
 

@@ -173,6 +173,40 @@ main[id], main [id], :focus-visible {
     scroll-margin-top: 6rem;
 }
 
+/*
+ * Close-approach flyby. Strokes meet WCAG 2.2 non-text contrast (3:1) on both
+ * theme surfaces: dark #111726 and light #ffffff. The figure itself does not
+ * animate.
+ */
+.flyby-diagram { color: var(--text); }
+.flyby-frame { fill: var(--bg-elevated); stroke: var(--border); }
+.flyby-path { fill: none; stroke: #e6c98a; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.flyby-arrow, .flyby-closest { fill: #e6c98a; stroke: none; }
+.flyby-moon-orbit { fill: none; stroke: #b7c0d0; stroke-width: 1.25; stroke-dasharray: 5 4; }
+.flyby-earth { fill: #9db7dc; stroke: none; }
+.flyby-moon { fill: #d5dbe6; stroke: none; }
+.flyby-sun { fill: none; stroke: #e0b872; stroke-width: 1.5; }
+.flyby-sun-disc { fill: #e0b872; stroke: none; }
+.flyby-tick { fill: var(--text); stroke: none; }
+.flyby-leader { stroke: var(--muted); stroke-width: 0.8; }
+.flyby-label, .flyby-tick-label, .flyby-note { fill: var(--text); font-family: var(--font-sans); }
+.flyby-inset { fill: var(--bg-elevated-2); stroke: var(--border); }
+.flyby-inset-earth { fill: none; stroke: #9db7dc; stroke-width: 1; }
+.flyby-inset-object { fill: none; stroke: #e6c98a; stroke-width: 1; }
+[data-theme='light'] .flyby-path,
+[data-theme='light'] .flyby-arrow,
+[data-theme='light'] .flyby-closest,
+[data-theme='light'] .flyby-inset-object { stroke: #7a5200; }
+[data-theme='light'] .flyby-arrow,
+[data-theme='light'] .flyby-closest { fill: #7a5200; }
+[data-theme='light'] .flyby-moon-orbit { stroke: #3e4654; }
+[data-theme='light'] .flyby-earth { fill: #1d4e89; }
+[data-theme='light'] .flyby-inset-earth { fill: none; stroke: #1d4e89; }
+[data-theme='light'] .flyby-moon { fill: #2c3344; }
+[data-theme='light'] .flyby-sun,
+[data-theme='light'] .flyby-sun-disc { stroke: #8a5a10; fill: #8a5a10; }
+[data-theme='light'] .flyby-sun { fill: none; }
+
 /* The disclosure stays usable on short landscape screens and at browser zoom. */
 .mobile-nav {
     max-height: calc(100vh - 5rem);
