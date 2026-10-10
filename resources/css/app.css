@@ -56,10 +56,16 @@
         --muted: var(--color-muted);
         --link: var(--color-blue);
         --accent: var(--color-amber);
+        --accent-fill: var(--color-amber);
+        --on-accent: #07090f;
+        --accent-soft-bg: color-mix(in srgb, var(--color-amber) 16%, transparent);
+        --accent-soft-text: var(--color-amber-soft);
+        --accent-soft-border: color-mix(in srgb, var(--color-amber) 35%, transparent);
         --error: #ffb4b4;
         color-scheme: dark;
     }
 
+    /* Every text/fill pair here meets WCAG AA (4.5:1) on all three surfaces. */
     [data-theme='light'] {
         --bg: #f7f5ef;
         --bg-elevated: #ffffff;
@@ -67,8 +73,14 @@
         --border: #dcd5c6;
         --text: #1b2030;
         --muted: #5b6478;
-        --link: #1f6fd6;
-        --accent: #9a6b14;
+        --color-faint: #636977;
+        --link: #1a62c4;
+        --accent: #7a5410;
+        --accent-fill: #7a5410;
+        --on-accent: #ffffff;
+        --accent-soft-bg: #f5e2bb;
+        --accent-soft-text: #6b480c;
+        --accent-soft-border: color-mix(in srgb, #7a5410 35%, transparent);
         --error: #b42318;
         color-scheme: light;
     }

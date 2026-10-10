@@ -46,7 +46,7 @@
             </div>
 
             <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium"
-                    style="background-color: var(--accent); color: #07090f;">
+                    style="background-color: var(--accent-fill); color: var(--on-accent);">
                 {{ __('Create account') }}
             </button>
         </form>

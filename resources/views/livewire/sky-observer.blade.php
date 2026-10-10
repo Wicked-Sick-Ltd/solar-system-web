@@ -112,7 +112,7 @@
         @endif
         <noscript><p class="mt-3 text-sm">{{ __('Your location calculation needs JavaScript. The object’s general sky coordinates remain available above.') }}</p></noscript>
         <div class="mt-4 flex flex-wrap items-center gap-3">
-            <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent); color: #07090f;"
+            <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);"
                     @click="locate()" :disabled="busy" x-bind:aria-busy="busy">
                 <span x-show="!busy">{{ __('Calculate sky positions for my location') }}</span>
                 <span x-show="busy" x-cloak>{{ __('Locating…') }}</span>
