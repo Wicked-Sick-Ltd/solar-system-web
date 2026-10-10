@@ -1,21 +1,31 @@
 import { parseHorizonText, horizonText } from './horizon.js';
+import { mountOptics } from './optics-ui.js';
+import {
+    WORKSPACE_KEY, LOCATION_KEY, MAX_BYTES, emptyWorkspace, loadWorkspace, saveWorkspace,
+    parseWorkspace, validateWorkspace, putEntry, removeEntry, activateSite, activeLocationMatches,
+} from './workspace-store.js';
 
 const WHAT3WORDS_TLDS = new Set(['com', 'net', 'org', 'edu', 'gov', 'mil', 'int', 'io', 'co', 'uk', 'us', 'eu', 'de', 'fr', 'es', 'it', 'nl', 'ca', 'au', 'nz', 'app', 'dev', 'info', 'biz', 'me', 'tv', 'ai']);
 
 /** Three-word address, lower-cased and without slashes, or null. Mirrors LocationParser. */
 export function what3wordsAddress(text) {
     const value = String(text ?? '').trim();
-    const match = value.match(/^(?:https?:\/\/(?:www\.)?what3words\.com\/|\/\/\/)?(\p{L}+)\.(\p{L}+)\.(\p{L}+)$/u);
+    let words = value;
+    if (/^https?:\/\//i.test(value)) {
+        let url;
+        try { url = new URL(value); } catch { return null; }
+        const host = url.hostname.toLowerCase();
+        if (host !== 'what3words.com' && host !== 'www.what3words.com') return null;
+        words = decodeURIComponent(url.pathname).replace(/^\/+|\/+$/g, '');
+    } else if (value.startsWith('///')) {
+        words = value.slice(3);
+    }
+    const match = words.match(/^(\p{L}+)\.(\p{L}+)\.(\p{L}+)$/u);
     if (!match) return null;
-    const bare = !value.startsWith('///') && !value.includes('what3words.com/');
+    const bare = !value.startsWith('///') && !/^https?:\/\//i.test(value);
     if (bare && (match[1].toLowerCase() === 'www' || WHAT3WORDS_TLDS.has(match[3].toLowerCase()))) return null;
     return `${match[1]}.${match[2]}.${match[3]}`.toLowerCase();
 }
-import { mountOptics } from './optics-ui.js';
-import {
-    WORKSPACE_KEY, LOCATION_KEY, MAX_BYTES, emptyWorkspace, loadWorkspace, saveWorkspace,
-    parseWorkspace, validateWorkspace, putEntry, removeEntry, activateSite, activeLocationMatches,
-} from './workspace-store.js';
 
 // A browser-only controller: no fetch, Livewire actions or account identifiers.
 export function workspaceController(storage) {

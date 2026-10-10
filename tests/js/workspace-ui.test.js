@@ -183,6 +183,9 @@ async function flush() {
 test('what3words addresses are three words, with or without the slashes', () => {
     assert.equal(what3wordsAddress('  ///Filled.Count.Soap '), 'filled.count.soap');
     assert.equal(what3wordsAddress('https://what3words.com/filled.count.soap'), 'filled.count.soap');
+    assert.equal(what3wordsAddress('https://www.what3words.com/filled.count.soap'), 'filled.count.soap');
+    assert.equal(what3wordsAddress('https://evil.example/what3words.com/filled.count.soap'), null);
+    assert.equal(what3wordsAddress('https://what3words.com.evil.example/filled.count.soap'), null);
     assert.equal(what3wordsAddress('www.google.com'), null);
     assert.equal(what3wordsAddress('not a location'), null);
     assert.equal(what3wordsAddress('///filled.count'), null);
