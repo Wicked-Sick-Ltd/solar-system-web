@@ -112,7 +112,7 @@
                     </div>
                 </div>
             </a>
-            <x-share-links class="mt-4" :url="$featuredUrl"
+            <x-share-links class="mt-4" :url="$featuredShareUrl"
                            :title="__('Object of the day: :name', ['name' => $featured->name])"
                            :text="__(':name is the Public Universe object of the day.', ['name' => $featured->name])"
                            :label="__('Share today’s object, :name', ['name' => $featured->name])" />

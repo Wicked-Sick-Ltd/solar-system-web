@@ -8,6 +8,7 @@ use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Links;
 use App\Support\ObjectHighlights;
 use App\Support\ObjectOfTheDay;
 use App\Support\Seo;
@@ -77,7 +78,7 @@ final class Today extends Component
             'apiDown' => false,
             'fact' => $fact,
             'stats' => ObjectHighlights::keyStats($object),
-            'shareUrl' => $url,
+            'shareUrl' => Links::canonical($url),
         ]);
     }
 

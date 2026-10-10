@@ -7,6 +7,7 @@ namespace App\Livewire;
 use App\Services\SolarApi\Data\Stats;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Links;
 use App\Support\ObjectOfTheDay;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
@@ -39,6 +40,7 @@ final class Home extends Component
             'stats' => $stats,
             'featured' => $featured,
             'featuredUrl' => ObjectOfTheDay::url($today),
+            'featuredShareUrl' => Links::canonical(ObjectOfTheDay::url($today)),
             'apiDown' => $apiDown,
             'sections' => $this->sections($stats),
         ]);
