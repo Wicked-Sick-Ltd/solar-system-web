@@ -10,7 +10,7 @@ beforeEach(function () {
 });
 
 it('resolves every object url published in the sitemap', function () {
-    $xml = $this->get('/sitemap.xml')->assertOk()->getContent();
+    $xml = $this->get('/sitemaps/objects.xml')->assertOk()->getContent();
 
     preg_match_all('#<loc>([^<]+)</loc>#', $xml, $matches);
     $paths = [];

@@ -62,6 +62,9 @@ it('makes the sitemap and robots.txt publicly cacheable', function () {
     expect($this->get('/sitemap.xml')->assertOk()->headers->get('Cache-Control'))
         ->toContain('public');
 
+    expect($this->get('/sitemaps/pages.xml')->assertOk()->headers->get('Cache-Control'))
+        ->toContain('public');
+
     expect($this->get('/robots.txt')->assertOk()->headers->get('Cache-Control'))
         ->toContain('public');
 });
