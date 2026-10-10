@@ -55,9 +55,9 @@ final class Today extends Component
 
         app(Seo::class)
             ->title(__('Object of the day: :name', ['name' => $object->name]))
-            ->description(trim(($fact ?? '').' '.__(':name was the Public Universe object of the day on :date.', [
-                'name' => $object->name,
+            ->description(trim(($fact ?? '').' '.__('Object of the day for :date on :site.', [
                 'date' => $day->format('j F Y'),
+                'site' => config('site.name'),
             ])))
             ->type('article')
             ->canonical($url)

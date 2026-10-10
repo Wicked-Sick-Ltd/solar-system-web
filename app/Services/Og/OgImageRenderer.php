@@ -244,11 +244,11 @@ final class OgImageRenderer
             $stripes = new ImagickDraw;
             for ($band = $radius * 0.18; $band < $d; $band += $radius * (0.1 + $random->getInt(0, 12) / 100)) {
                 $tone = $random->getInt(0, 1) === 0 ? '#ffffff' : '#000000';
-                $stripes->setFillColor(new ImagickPixel($this->rgba($tone, 0.04 + $random->getInt(0, 8) / 100)));
+                $stripes->setFillColor(new ImagickPixel($this->rgba($tone, 0.02 + $random->getInt(0, 5) / 100)));
                 $stripes->rectangle(0, $band, $d, $band + $radius * (0.03 + $random->getInt(0, 7) / 100));
             }
             $shade->drawImage($stripes);
-            $shade->blurImage(0, max(1.0, $radius / 70));
+            $shade->blurImage(0, max(1.0, $radius / 35));
         }
 
         $mask = new Imagick;
