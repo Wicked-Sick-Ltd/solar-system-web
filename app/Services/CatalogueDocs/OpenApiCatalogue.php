@@ -159,6 +159,7 @@ final class OpenApiCatalogue
             $operation['example_input'] = $input;
             $built = $this->calls->build($origin, $operation, $input);
             $operation['example_url'] = $built['url'];
+            $operation['catalogue_url'] = $built['url'] ?? ($origin.$operation['path']);
             $operation['snippets'] = $built['url'] === null ? null : [
                 'curl' => Snippets::curl($built['url']),
                 'javascript' => Snippets::javascript($built['url'], (bool) $operation['json']),
@@ -451,10 +452,7 @@ final class OpenApiCatalogue
 
     private function origin(): string
     {
-        $base = (string) config('services.solar.base_url');
-        $host = preg_replace('#/api/v\d+/?$#', '', $base) ?? $base;
-
-        return rtrim($host, '/');
+        return Links::catalogueOrigin();
     }
 
     private function timeout(): int

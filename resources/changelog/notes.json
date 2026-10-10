@@ -1,11 +1,83 @@
 {
     "repository": "Wicked-Sick-Ltd/solar-system-web",
-    "generated_at": "2026-10-10T15:06:32Z",
+    "generated_at": "2026-10-10T16:37:44Z",
     "groups": [
         {
             "date": "2026-10-10",
             "version": null,
             "entries": [
+                {
+                    "number": 118,
+                    "title": "feat(objects): add an ecliptic flyby diagram for close approaches",
+                    "type": "feat",
+                    "scope": "objects",
+                    "summary": "An ecliptic flyby diagram for close approaches.",
+                    "merged_at": "2026-10-10T16:25:29Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/118"
+                },
+                {
+                    "number": 117,
+                    "title": "feat(share): redesign share cards and add a shareable object of the day",
+                    "type": "feat",
+                    "scope": "share",
+                    "summary": "Redesign share cards and add a shareable object of the day.",
+                    "merged_at": "2026-10-10T16:13:39Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/117"
+                },
+                {
+                    "number": 116,
+                    "title": "feat(educators): show US grades beside UK Key Stages",
+                    "type": "feat",
+                    "scope": "educators",
+                    "summary": "Show US grades beside UK Key Stages. The screens include accessible controls.",
+                    "merged_at": "2026-10-10T16:09:33Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/116"
+                },
+                {
+                    "number": 115,
+                    "title": "feat(releases): publish notes from merged pull requests",
+                    "type": "feat",
+                    "scope": "releases",
+                    "summary": "Publish notes from merged pull requests. The screens include accessible controls.",
+                    "merged_at": "2026-10-10T16:05:40Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/115"
+                },
+                {
+                    "number": 113,
+                    "title": "feat(api): public catalogue developer docs",
+                    "type": "feat",
+                    "scope": "api",
+                    "summary": "Public catalogue developer docs.",
+                    "merged_at": "2026-10-10T15:59:49Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/113"
+                },
+                {
+                    "number": 111,
+                    "title": "feat(home): show the next close approach within 10 lunar distances",
+                    "type": "feat",
+                    "scope": "home",
+                    "summary": "Show the next close approach within 10 lunar distances.",
+                    "merged_at": "2026-10-10T15:46:52Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/111"
+                },
+                {
+                    "number": 114,
+                    "title": "fix(a11y): meet WCAG AA contrast for the light-theme amber accent",
+                    "type": "fix",
+                    "scope": "a11y",
+                    "summary": "Meet WCAG AA contrast for the light-theme amber accent.",
+                    "merged_at": "2026-10-10T15:29:18Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/114"
+                },
+                {
+                    "number": 112,
+                    "title": "fix(a11y): clear launch contrast, duplicates, and landmarks",
+                    "type": "fix",
+                    "scope": "a11y",
+                    "summary": "Clear launch contrast, duplicates, and landmarks.",
+                    "merged_at": "2026-10-10T15:09:29Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/112"
+                },
                 {
                     "number": 110,
                     "title": "fix(objects): serve provisional moon ids that contain a slash",

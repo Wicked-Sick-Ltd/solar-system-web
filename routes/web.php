@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CataloguePathRedirect;
 use App\Http\Controllers\ExoplanetExportController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GalaxyDataController;
@@ -137,6 +138,10 @@ Route::get('/higher-education/{activity}/handout', HigherEducationHandoutControl
 Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback');
 Route::post('/feedback', [FeedbackController::class, 'store'])->middleware('throttle:3,10,feedback')->name('feedback.store');
 Route::get('/api', ApiPage::class)->name('api');
+// Catalogue paths are not pages on this host. GET follows them to the API.
+Route::get('/api/v1/{path}', CataloguePathRedirect::class)
+    ->where('path', '.*')
+    ->name('api.catalogue');
 Route::get('/privacy', PrivacyPage::class)->name('privacy');
 Route::get('/settings', SettingsPage::class)->name('settings');
 

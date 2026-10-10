@@ -42,6 +42,7 @@ it('renders the reference, snippets and read-only MCP tools from the fetched doc
     $html = $response->getContent();
 
     $response
+        ->assertSee('https://catalogue.test/api/v1/search?q=Halley&limit=3')
         ->assertSee('Fuzzy text search')
         ->assertSee('Get full record for one object')
         ->assertSee('SQLite schema DDL')
@@ -111,6 +112,21 @@ it('stops a visitor from making unlimited interactive calls', function () {
         ->assertSee('Too many interactive calls');
 
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'Query11'));
+});
+
+it('follows catalogue paths on this website to the catalogue host', function () {
+    config(['services.solar.base_url' => 'https://catalogue.test/api/v1']);
+
+    $location = $this->get('/api/v1/search?q=Halley&limit=1')->assertRedirect()->headers->get('Location');
+    expect($location)->toStartWith('https://catalogue.test/api/v1/search?')
+        ->and($location)->toContain('q=Halley')
+        ->and($location)->toContain('limit=1');
+
+    $this->get('/api/v1/exoplanets/Proxima%20Cen%20b')
+        ->assertRedirect('https://catalogue.test/api/v1/exoplanets/Proxima%20Cen%20b');
+
+    $this->post('/api/v1/observing/discover')->assertStatus(405);
+    $this->get('/api')->assertOk();
 });
 
 function fakeDocs(): void

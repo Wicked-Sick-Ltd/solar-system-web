@@ -204,11 +204,26 @@ final class CatalogueCall
 
     public function send(string $url): Response
     {
-        return Http::timeout($this->timeout())
+        return Http::timeout($this->timeoutFor($url))
             ->connectTimeout(5)
             ->withOptions(['allow_redirects' => false])
             ->accept('application/json, text/plain;q=0.9, */*;q=0.1')
             ->get($url);
+    }
+
+    /**
+     * Night planning regularly takes longer than a catalogue read. Give that
+     * call the planner budget so try-it can show the response.
+     */
+    public function timeoutFor(string $url): int
+    {
+        $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
+        $reads = $this->timeout();
+        if (str_contains($path, '/observing/night')) {
+            return max($reads, (int) config('services.solar.planner_timeout', 40));
+        }
+
+        return $reads;
     }
 
     /**
