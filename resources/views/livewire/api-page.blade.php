@@ -5,21 +5,21 @@
     <div class="space-y-8 text-base leading-relaxed" style="color: var(--text);">
         <section>
             <h2 class="mb-2 font-serif text-2xl font-medium">{{ __('Base URL') }}</h2>
-            <pre class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>{{ $baseUrl }}</code></pre>
+            <pre tabindex="0" role="region" aria-label="{{ __('API base URL') }}" class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>{{ $baseUrl }}</code></pre>
         </section>
 
         <section>
             <h2 class="mb-2 font-serif text-2xl font-medium">{{ __('MCP endpoint') }}</h2>
             <p class="mb-3" style="color: var(--muted);">{{ __('For AI agents that support Model Context Protocol, use the streamable HTTP endpoint:') }}</p>
-            <pre class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>{{ $mcpUrl }}</code></pre>
+            <pre tabindex="0" role="region" aria-label="{{ __('MCP endpoint URL') }}" class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>{{ $mcpUrl }}</code></pre>
         </section>
 
         <section>
             <h2 class="mb-2 font-serif text-2xl font-medium">{{ __('A worked example') }}</h2>
             <p class="mb-3" style="color: var(--muted);">{{ __('Fetch the full record for Saturn:') }}</p>
-            <pre class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>curl {{ $baseUrl }}/objects/planet-saturn</code></pre>
+            <pre tabindex="0" role="region" aria-label="{{ __('Example request for Saturn') }}" class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>curl {{ $baseUrl }}/objects/planet-saturn</code></pre>
             <p class="mt-3" style="color: var(--muted);">{{ __('Or search across names, designations and discoverers:') }}</p>
-            <pre class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>curl "{{ $baseUrl }}/search?q=halley&limit=5"</code></pre>
+            <pre tabindex="0" role="region" aria-label="{{ __('Example search request') }}" class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>curl "{{ $baseUrl }}/search?q=halley&limit=5"</code></pre>
         </section>
 
         <section>
@@ -47,7 +47,7 @@
         <section>
             <h2 class="mb-2 font-serif text-2xl font-medium">{{ __('Use in Claude') }}</h2>
             <p class="mb-3" style="color: var(--muted);">{{ __('Add the MCP server to Claude Desktop (or another MCP client) by URL:') }}</p>
-            <pre class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>{
+            <pre tabindex="0" role="region" aria-label="{{ __('Claude Desktop MCP configuration') }}" class="surface overflow-x-auto p-4 text-sm" style="color: var(--text);"><code>{
   "mcpServers": {
     "solar-system-db": {
       "url": "{{ $mcpUrl }}"
