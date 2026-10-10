@@ -23,7 +23,7 @@
     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
         <a href="{{ route('home') }}"
            class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
-           style="background-color: var(--accent); color: #07090f;">{{ __('Back to home') }}</a>
+           style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Back to home') }}</a>
         <a href="{{ route('objects.index') }}"
            class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium"
            style="border-color: var(--border); color: var(--text);">{{ __('Browse the catalogue') }}</a>

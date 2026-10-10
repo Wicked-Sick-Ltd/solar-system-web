@@ -28,3 +28,8 @@ all real 5,000-host responses have this byte size or planet multiplicity.
 `route-budgets.json` and `asset-budgets.json` are reviewed regression ceilings.
 Changing a fixture or dependency can justify a budget update, but run the
 benchmark, examine the change and update the recorded explanation first.
+
+The homepage cold-call ceiling is 4: catalogue identity, stats, the featured
+object, and the cached close-approach window for the next-pass card. The warm
+ceiling stays 0 because that window is served from the application cache. The
+upstream body ceiling is 1,500 bytes to include the small close-approach fixture.

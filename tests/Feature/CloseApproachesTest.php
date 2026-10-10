@@ -69,7 +69,7 @@ it('describes empty results without claiming there are no physical encounters', 
 it('discloses that a capped nearest subset may omit other encounters', function () {
     Http::swap(new Factory);
     Http::fake(['*' => Http::response(['results' => array_map(
-        fn ($index) => approachRow(['object_id' => 'ast-'.$index, 'name' => 'Object '.$index]),
+        fn ($index) => approachRow(['object_id' => 'ast-'.$index, 'name' => 'Object '.$index, 'designation' => '2026 '.$index]),
         range(1, 200),
     )])]);
     $this->get('/close-approaches')->assertOk()->assertSee('limit of 200 closest encounters')
@@ -80,9 +80,9 @@ it('discloses that a capped nearest subset may omit other encounters', function 
 it('keeps missing measurements distinct from true zero and tiny positive values', function () {
     Http::swap(new Factory);
     Http::fake(['*' => Http::response(['results' => [
-        approachRow(['object_id' => 'missing', 'name' => 'Missing', 'dist_au' => null, 'v_rel_km_s' => null]),
-        approachRow(['object_id' => 'zero', 'name' => 'Zero', 'dist_au' => 0, 'v_rel_km_s' => 0]),
-        approachRow(['object_id' => 'tiny', 'name' => 'Tiny', 'dist_au' => 0.00001, 'v_rel_km_s' => 0.01]),
+        approachRow(['object_id' => 'missing', 'name' => 'Missing', 'designation' => 'Missing', 'dist_au' => null, 'v_rel_km_s' => null]),
+        approachRow(['object_id' => 'zero', 'name' => 'Zero', 'designation' => 'Zero', 'dist_au' => 0, 'v_rel_km_s' => 0]),
+        approachRow(['object_id' => 'tiny', 'name' => 'Tiny', 'designation' => 'Tiny', 'dist_au' => 0.00001, 'v_rel_km_s' => 0.01]),
     ]])]);
     $response = $this->get('/close-approaches')->assertOk()->assertSee('<0.0001 AU')->assertSee('<0.1 LD')->assertSee('<0.1 km/s');
     $document = new DOMDocument;
@@ -104,9 +104,41 @@ it('retains designation fallback and numeric source strings', function (?string 
     $this->get('/close-approaches')->assertOk()->assertSee('2026 AA')->assertSee('2.6 LD');
 })->with([null, '', '   ']);
 
+it('collapses the same designation within ten minutes and keeps the fuller row', function () {
+    Http::swap(new Factory);
+    Http::fake(['*' => Http::response(['results' => [
+        approachRow(['object_id' => 'ast-tl6', 'name' => '2026 TL6', 'designation' => '2026 TL6', 'cd_iso' => '2026-10-12T05:40:00Z', 'dist_min_au' => null, 'dist_max_au' => null, 'mass_kg' => null, 't_sigma' => null]),
+        approachRow(['object_id' => 'ast-tl6', 'name' => '2026 TL6', 'designation' => '2026 TL6', 'cd_iso' => '2026-10-12T05:41:00Z', 'dist_min_au' => 0.006, 'dist_max_au' => 0.007, 'mass_kg' => 1.2e9, 't_sigma' => '< 00:01']),
+        approachRow(['object_id' => 'ast-tb6', 'name' => '2026 TB6', 'designation' => '2026 TB6', 'cd_iso' => '2026-10-12T06:00:00Z', 'dist_min_au' => 0.004, 'v_rel_km_s' => null]),
+        approachRow(['object_id' => 'ast-tb6', 'name' => '2026 TB6', 'designation' => '2026 TB6', 'cd_iso' => '2026-10-12T06:01:00Z', 'dist_min_au' => 0.004, 'dist_max_au' => 0.005, 'v_rel_km_s' => 4.2]),
+        approachRow(['object_id' => 'ast-tc6', 'name' => '2026 TC6', 'designation' => '2026 TC6', 'cd_iso' => '2026-10-12T07:00:00Z']),
+        approachRow(['object_id' => 'ast-tc6', 'name' => '2026 TC6', 'designation' => '2026 TC6', 'cd_iso' => '2026-10-12T07:10:00Z', 'dist_min_au' => 0.005, 't_sigma' => '00:02']),
+        approachRow(['object_id' => 'ast-tx3-early', 'name' => '2026 TX3', 'designation' => '2026 TX3', 'cd_iso' => '2026-10-12T08:00:00Z']),
+        approachRow(['object_id' => 'ast-tx3-late', 'name' => '2026 TX3', 'designation' => '2026 TX3', 'cd_iso' => '2026-10-12T08:11:00Z', 'dist_min_au' => 0.008]),
+        approachRow(['object_id' => 'ast-ty1', 'name' => '2026 TY1', 'designation' => '2026 TY1', 'cd_iso' => '2026-10-12T05:40:00Z']),
+    ]])]);
+
+    $html = $this->get('/close-approaches')->assertOk()->getContent();
+
+    expect(substr_count($html, '2026-10-12 05:40:00'))->toBe(1)
+        ->and(substr_count($html, '2026-10-12 05:41:00'))->toBe(1)
+        ->and(substr_count($html, '2026 TL6'))->toBe(1)
+        ->and(substr_count($html, '2026-10-12 06:01:00'))->toBe(1)
+        ->and(substr_count($html, '2026-10-12 06:00:00'))->toBe(0)
+        ->and(substr_count($html, '2026 TB6'))->toBe(1)
+        ->and(substr_count($html, '2026-10-12 07:10:00'))->toBe(1)
+        ->and(substr_count($html, '2026-10-12 07:00:00'))->toBe(0)
+        ->and(substr_count($html, '2026 TC6'))->toBe(1)
+        ->and(substr_count($html, '2026-10-12 08:00:00'))->toBe(1)
+        ->and(substr_count($html, '2026-10-12 08:11:00'))->toBe(1)
+        ->and(substr_count($html, '2026 TX3'))->toBe(2)
+        ->and(substr_count($html, '2026 TY1'))->toBe(1)
+        ->and($html)->toContain(Format::massKg(1.2e9));
+});
+
 it('shows a mass column only when an approach has a mass on record', function () {
     Http::swap(new Factory);
-    Http::fake(['*' => Http::response(['results' => [approachRow(['mass_kg' => 7.329e10]), approachRow(['object_id' => 'ast-other'])]])]);
+    Http::fake(['*' => Http::response(['results' => [approachRow(['mass_kg' => 7.329e10]), approachRow(['object_id' => 'ast-other', 'designation' => '2026 BB', 'name' => 'Other'])]])]);
     $this->get('/close-approaches')->assertOk()->assertSee('>Mass<', escape: false)->assertSee(Format::massKg(7.329e10), escape: false);
 
     Http::swap(new Factory);

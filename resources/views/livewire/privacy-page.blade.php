@@ -58,7 +58,7 @@
         @if ($analyticsEnabled)
             <div x-data class="flex flex-wrap gap-2">
                 <button type="button" class="inline-flex min-h-11 items-center rounded-lg border px-4 py-2 text-sm font-medium" style="border-color: var(--border); color: var(--text);" @click="window.publicUniverseAnalytics && window.publicUniverseAnalytics.choose('essential')">{{ __('Essential only') }}</button>
-                <button type="button" class="inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent); color: #07090f;" @click="window.publicUniverseAnalytics && window.publicUniverseAnalytics.choose('all')">{{ __('Accept analytics') }}</button>
+                <button type="button" class="inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);" @click="window.publicUniverseAnalytics && window.publicUniverseAnalytics.choose('all')">{{ __('Accept analytics') }}</button>
             </div>
         @endif
 

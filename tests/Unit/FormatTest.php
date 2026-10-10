@@ -20,6 +20,11 @@ it('formats astronomical units, trimming trailing zeros', function () {
         ->and(Format::au(2.5, 2))->toBe('2.5 AU');
 });
 
+it('converts a satellite semi-major axis from AU into kilometres', function () {
+    expect(Format::orbitRadiusKm(null))->toBeNull()
+        ->and(Format::orbitRadiusKm(0.004))->toBe(Format::km(0.004 * Format::KILOMETRES_PER_AU));
+});
+
 it('formats kilometres, switching to scientific notation when large', function () {
     expect(Format::km(58232.0))->toBe('58,232 km')
         ->and(Format::km(2_000_000.0))->toContain('× 10')
