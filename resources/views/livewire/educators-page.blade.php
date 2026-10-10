@@ -42,7 +42,8 @@
     @else
         <ul class="grid gap-6 md:grid-cols-2" role="list">
             @foreach ($handouts as $handout)
-                <li id="{{ $handout->id }}" class="surface flex scroll-mt-24 flex-col overflow-hidden">
+                <li id="{{ $handout->id }}" class="scroll-mt-24">
+                    <div class="surface flex flex-col overflow-hidden">
                     <div class="grid gap-6 p-5 sm:grid-cols-[9rem_1fr] sm:p-6">
                         <a href="{{ $handout->url() }}" download="{{ $handout->filename() }}"
                            class="block w-40 self-start overflow-hidden rounded-lg border sm:w-auto"
@@ -55,10 +56,13 @@
 
                         <div class="flex min-w-0 flex-col">
                             <div>
-                                <x-badge tone="amber" class="h-auto max-w-full flex-wrap whitespace-normal py-1 text-left leading-snug">
-                                    <span class="sr-only">{{ $handout->audience }}. </span>
-                                    <span aria-hidden="true">{{ $handout->audience }} · </span>
-                                    <x-key-stage :stages="$handout->stages" />
+                                <x-badge tone="amber" class="h-auto max-w-full min-w-0 flex-wrap whitespace-normal py-1 text-left leading-snug">
+                                    <span class="sr-only">{{ $handout->audience }}. {{ $handout->keyStageAccessible }}</span>
+                                    <span aria-hidden="true" class="min-w-0 max-w-full">
+                                        @foreach (explode(' · ', $handout->audience.' · '.$handout->keyStage) as $part)
+                                            <span class="whitespace-nowrap">{{ $part }}</span>@if (! $loop->last) · @endif
+                                        @endforeach
+                                    </span>
                                 </x-badge>
                             </div>
                             <h2 class="mt-3 font-serif text-2xl font-medium leading-tight" style="color: var(--text);">{{ $handout->title }}</h2>
@@ -92,6 +96,7 @@
                             </ul>
                         </div>
                     @endif
+                    </div>
                 </li>
             @endforeach
         </ul>
