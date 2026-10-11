@@ -9,6 +9,10 @@
             {{ __('This is an astronomy reference: physical worlds, measured properties and scientific discoveries. The galaxy explorer plots known exoplanet hosts against a schematic galactic disk; it is not a complete map of the stars.') }}
         </p>
 
+        <p class="rounded-lg border-l-2 px-4 py-2" style="border-color: var(--accent); color: var(--text);">
+            {{ __('Built with Grok Bot (xAI) and Cursor, a Wicked Sick pro bono project.') }}
+        </p>
+
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Where the data comes from') }}</h2>
         <p>
             {{ __('The catalogue brings together data from NASA and JPL, the NASA Exoplanet Archive, the IAU Minor Planet Center and other astronomical organisations. Source coverage and refresh times vary. Follow the source references and check the original data, attribution requirements and reuse terms when using a measurement in your own work. The code licence does not replace the terms of individual datasets.') }}

@@ -23,7 +23,7 @@ Proposed addresses, subject to provisioning and production approval:
 | REST | `API_BASE_URL=https://api.sol.wickedsick.com/api/v1` | `https://api.publicuniverse.net/api/v1` |
 | MCP | API host plus `/mcp` | `https://api.publicuniverse.net/mcp` |
 | OpenAPI / docs | API host plus `/openapi.json` and `/docs`; `API_DOCS_URL` override | Same paths on new API host |
-| Download manifest | `SOLAR_DOWNLOAD_URL`, default `https://s3.wickedsick.com/solar-system-db/latest.json` | `https://download.publicuniverse.net/latest.json` |
+| Download manifest | `SOLAR_DOWNLOAD_URL`, default `https://download.sol.wickedsick.com/latest.json` | `https://download.publicuniverse.net/latest.json` |
 | Public contact | `CONTACT_EMAIL`, default `hello@wickedsick.com` | Retain until a replacement mailbox is verified |
 | Transactional sender | `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, provider configuration | Decide and verify separately from the web move |
 
