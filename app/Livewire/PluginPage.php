@@ -23,6 +23,9 @@ final class PluginPage extends Component
         return view('livewire.plugin-page', [
             'mcpUrl' => Links::mcp(),
             'repository' => (string) config('plugin.repository'),
+            'pluginPath' => (string) config('plugin.path'),
+            'pluginUrl' => (string) config('plugin.url'),
+            'docsUrl' => (string) config('plugin.docs_url'),
             'connectionReady' => (bool) config('plugin.connection_ready'),
             'skills' => [
                 'tonight-sky' => __('Plan an evening of stargazing for a place and date.'),

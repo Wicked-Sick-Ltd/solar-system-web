@@ -73,7 +73,10 @@
             <p>
                 {{ __('Free to explore. See About & data sources for attribution and reuse terms. Astronomy, not astrology.') }}
             </p>
-            <p>&copy; {{ now()->year }} {{ config('site.name') }}.</p>
+            <p>
+                <span>&copy; {{ now()->year }} {{ config('site.name') }}.</span>
+                <span class="block sm:inline" data-testid="project-credit" style="color: var(--text);">{{ __('Built with Grok Bot (xAI) and Cursor, a Wicked Sick pro bono project.') }}</span>
+            </p>
         </div>
     </div>
 </footer>

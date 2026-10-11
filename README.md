@@ -21,6 +21,10 @@ This is an **astronomy** site, not astrology. The original solar-system-only
 product brief in [`BRIEF.md`](BRIEF.md) is historical. Deployment instructions
 are in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
+## Credits
+
+Built with Grok Bot (xAI) and Cursor, a Wicked Sick pro bono project.
+
 ## Stack
 
 - **Laravel 13** + **Livewire 4** (full-page components) + **Alpine** (bundled with Livewire)
@@ -62,7 +66,7 @@ Website branding, website URLs and backend endpoints are configured separately:
 | -------------- | ---------------------------------------------------- | ---------------------------------------- |
 | `SITE_NAME` | Visitor-facing name; independent of operational `APP_NAME` | `Public Universe` |
 | `API_DOCS_URL` | Optional documentation URL override | `https://api.sol.wickedsick.com/docs` |
-| `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://s3.wickedsick.com/solar-system-db/latest.json` |
+| `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://download.sol.wickedsick.com/latest.json` |
 | `CONTACT_EMAIL` | Public contact address | `hello@wickedsick.com` |
 | `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
 | `APP_URL`      | Canonical public URL (canonical/OG/sitemap/JSON-LD)  | `https://publicuniverse.net`             |

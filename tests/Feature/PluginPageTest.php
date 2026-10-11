@@ -14,8 +14,16 @@ it('explains setup for every supported client and distinguishes tools from skill
         ->assertSee('It does not install the seven skills.')
         ->assertSee('The plugin has not been published in the public directory.')
         ->assertSee('codex mcp add solar-system-db --url')
-        ->assertSee('copilot plugin install /absolute/path/to/solar-plugin')
-        ->assertSee('claude --plugin-dir /absolute/path/to/solar-plugin');
+        ->assertSee('copilot plugin install /absolute/path/to/ai-marketplace/plugins/publicuniverse')
+        ->assertSee('claude --plugin-dir /absolute/path/to/ai-marketplace/plugins/publicuniverse');
+});
+
+it('links only to the public ai-marketplace plugin, never the private solar-plugin repository', function () {
+    $this->get('/plugin')->assertOk()
+        ->assertSee('href="https://github.com/Wicked-Sick-Ltd/ai-marketplace/tree/main/plugins/publicuniverse"', false)
+        ->assertSee('https://github.com/Wicked-Sick-Ltd/ai-marketplace/blob/main/plugins/publicuniverse/docs/validation.md', false)
+        ->assertSee('git clone https://github.com/Wicked-Sick-Ltd/ai-marketplace.git')
+        ->assertDontSee('solar-plugin');
 });
 
 it('provides working subsection anchors and all seven workflows', function () {
