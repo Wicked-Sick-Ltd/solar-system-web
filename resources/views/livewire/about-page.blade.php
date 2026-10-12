@@ -96,6 +96,12 @@
             <a class="underline" style="color: var(--link);" href="{{ config('site.backend_repo') }}" rel="noopener" target="_blank">{{ __('Browse the backend repository on GitHub') }}</a>.
         </p>
 
+        @if (\App\Support\Social::profiles() !== [])
+            <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Follow :name', ['name' => config('site.name')]) }}</h2>
+            <p>{{ __('News, sky highlights and new features from our official accounts.') }}</p>
+            <x-social-links />
+        @endif
+
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Spotted an error?') }}</h2>
         <p>
             {{ __('Astronomical data is always being refined. If something looks wrong, please let us know:') }}

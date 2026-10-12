@@ -10,6 +10,7 @@ use App\Services\SolarApi\SolarApiClient;
 use App\Support\Links;
 use App\Support\ObjectOfTheDay;
 use App\Support\Seo;
+use App\Support\Social;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -22,7 +23,8 @@ final class Home extends Component
         app(Seo::class)
             ->title(null)
             ->description(config('site.description'))
-            ->jsonLd($this->websiteSchema());
+            ->jsonLd($this->websiteSchema())
+            ->jsonLd(Social::organizationSchema());
 
         $stats = null;
         $featured = null;

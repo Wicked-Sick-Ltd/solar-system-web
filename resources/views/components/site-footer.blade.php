@@ -9,6 +9,7 @@
             <p class="mt-3 max-w-xs text-sm leading-relaxed" style="color: var(--muted);">
                 {{ config('site.tagline') }}. {{ __('Built on open data from NASA/JPL and the IAU Minor Planet Center.') }}
             </p>
+            <x-social-links class="mt-4" />
         </div>
 
         <nav aria-label="{{ __('Browse') }}">
