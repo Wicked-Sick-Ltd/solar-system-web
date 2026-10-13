@@ -42,7 +42,7 @@ it('shares one bounded identity probe and changes scientific cache generation on
     }
     expect($calls)->toBe(['catalogue' => 1, 'stats' => 1]);
     $version = 'b';
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     expect($api->stats()->totalObjects)->toBe(20)->and($calls)->toBe(['catalogue' => 2, 'stats' => 2]);
 
 });
@@ -54,13 +54,13 @@ it('keeps a known generation when the checked build is unchanged but never reuse
     });
     $context = app(CatalogueContext::class);
     $a = $context->current()['token'];
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     expect($context->current()['token'])->toBe($a);
     $version = 'b';
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     $b = $context->current()['token'];
     $version = 'a';
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     expect($context->current()['token'])->not->toBe($a)->not->toBe($b);
 });
 
@@ -77,11 +77,11 @@ it('withdraws long stale data when identity becomes unavailable and recovers int
     expect($api->stats()->totalObjects)->toBe(12);
     $old = app(CatalogueContext::class)->current()['token'];
     $available = false;
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     expect(fn () => $api->stats())->toThrow(SolarApiException::class);
     expect($api->catalogueIdentity()->status)->toBe('unavailable');
     $available = true;
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     expect($api->stats()->totalObjects)->toBe(12)
         ->and(app(CatalogueContext::class)->current()['token'])->not->toBe($old);
 });
@@ -97,7 +97,7 @@ it('uses a short fresh-only cache for a legacy backend without probing each item
     $api = app(SolarApiClient::class);
     expect($api->stats()->totalObjects)->toBe(1)->and($api->stats()->totalObjects)->toBe(1);
     expect($calls)->toBe(['catalogue' => 1, 'stats' => 1]);
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     expect($api->stats()->totalObjects)->toBe(2)->and($calls)->toBe(['catalogue' => 2, 'stats' => 2]);
 });
 
@@ -111,7 +111,7 @@ it('rejects delayed refresh jobs from an old generation without fetching data', 
     $key = app(CatalogueContext::class)->key('/stats', []);
     $job = new RefreshSolarCache('/stats', [], $key, 3600);
     $version = 'b';
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     $job->handle(app(SolarApiClient::class));
     expect(Cache::get($key))->toBeNull();
     Http::assertSentCount(2);
@@ -137,7 +137,7 @@ it('does not serve prior scientific data while a different worker probes an expi
         ? CatalogueObservation::payload() : ['total_objects' => 21]));
     $api = app(SolarApiClient::class);
     expect($api->stats()->totalObjects)->toBe(21);
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     $lock = Cache::lock(CatalogueContext::storageKey().':probe', 5);
     expect($lock->get())->toBeTrue();
     try {
@@ -298,10 +298,10 @@ it('moves batched positions to a new build and never uses stale positions for un
     $api = app(SolarApiClient::class);
     expect($api->positionsBatch(['planet-saturn'], '2026-10-01')['planet-saturn']->xAu)->toBe(1.0);
     $version = 'b';
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     expect($api->positionsBatch(['planet-saturn'], '2026-10-01')['planet-saturn']->xAu)->toBe(2.0);
     $version = 'unknown';
-    $this->travel(61)->seconds();
+    $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     $key = app(CatalogueContext::class)->key('/positions/planet-saturn', ['date' => '2026-10-01']);
     Cache::put($key, ['value' => ['name' => 'Saturn', 'x_au' => 99], 'soft' => time() - 1], 3600);
     expect($api->positionsBatch(['planet-saturn'], '2026-10-01')['planet-saturn'])->toBeNull();

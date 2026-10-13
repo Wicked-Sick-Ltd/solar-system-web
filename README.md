@@ -68,7 +68,8 @@ Website branding, website URLs and backend endpoints are configured separately:
 | `API_DOCS_URL` | Optional documentation URL override | `https://api.sol.wickedsick.com/docs` |
 | `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://download.sol.wickedsick.com/latest.json` |
 | `CONTACT_EMAIL` | Public contact address | `hello@wickedsick.com` |
-| `API_BASE_URL` | The backend REST API root                            | `https://api.sol.wickedsick.com/api/v1`  |
+| `API_BASE_URL` | The backend REST API root this server fetches from   | `http://127.0.0.1:8003/api/v1`            |
+| `API_PUBLIC_URL` | The root shown to visitors (defaults to `API_BASE_URL`) | `https://api.sol.wickedsick.com/api/v1`  |
 | `APP_URL`      | Canonical public URL (canonical/OG/sitemap/JSON-LD)  | `https://publicuniverse.net`             |
 
 `APP_NAME` also influences default session-cookie and cache names. Keep its

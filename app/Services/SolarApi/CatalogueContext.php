@@ -14,7 +14,13 @@ use Throwable;
 /** Short shared observation lease. Never pins a separate scientific response. */
 final class CatalogueContext
 {
-    public const int PROBE_SECONDS = 60;
+    /**
+     * How long a catalogue observation is trusted before re-checking the backend.
+     * The catalogue only changes once a night (build ~04:25 UTC, pulled onto the
+     * API host within 15 min), so a 5-minute lease is plenty: the site notices a
+     * new build within 5 minutes and probes ~288 times a day instead of ~1,440.
+     */
+    public const int PROBE_SECONDS = 300;
 
     public const int UNKNOWN_DATA_SECONDS = 60;
 
