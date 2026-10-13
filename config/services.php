@@ -49,7 +49,13 @@ return [
     */
 
     'solar' => [
+        // Transport: where this server fetches the catalogue from. On php01 the API
+        // listens on loopback, so production uses http://127.0.0.1:8003/api/v1 and
+        // never leaves the box (see DEPLOYMENT.md).
         'base_url' => rtrim((string) env('API_BASE_URL', 'http://127.0.0.1:8003/api/v1'), '/'),
+        // Display: the public catalogue root shown to visitors and used for the
+        // /api page, docs/MCP links and /api/v1 redirects. Defaults to base_url.
+        'public_url' => rtrim((string) env('API_PUBLIC_URL', ''), '/'),
         'timeout' => (int) env('SOLAR_API_TIMEOUT', 8),
         'planner_timeout' => (int) env('SOLAR_PLANNER_TIMEOUT', 40),
 

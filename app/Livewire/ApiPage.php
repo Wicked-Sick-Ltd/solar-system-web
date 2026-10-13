@@ -50,7 +50,7 @@ final class ApiPage extends Component
         $toolNames = array_column(is_array($server['tools'] ?? null) ? $server['tools'] : [], 'name');
 
         return view('livewire.api-page', [
-            'baseUrl' => (string) config('services.solar.base_url'),
+            'baseUrl' => Links::cataloguePublicBase(),
             'mcpUrl' => $mcpUrl,
             'docsUrl' => Links::apiDocs(),
             'openApiUrl' => Links::openApi(),
