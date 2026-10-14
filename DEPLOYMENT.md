@@ -32,7 +32,7 @@ sessions. On an existing installation, inspect configuration before editing it.
 | `DB_CONNECTION`, `DB_DATABASE` | Existing account database; absolute path for SQLite |
 | `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` | If using a database server |
 | `API_BASE_URL` | Catalogue REST root **used for fetching**. On php01 the API is on loopback: `http://127.0.0.1:8003/api/v1`. Only use the public hostname from a box that cannot reach the API directly. |
-| `API_PUBLIC_URL` | Catalogue REST root **shown to visitors** (the `/api` page, docs/MCP links, `/api/v1/*` redirects): `https://api.sol.wickedsick.com/api/v1`. Defaults to `API_BASE_URL`; set it whenever that is internal. |
+| `API_PUBLIC_URL` | Catalogue REST root **shown to visitors** (the `/api` page, docs/MCP links, `/api/v1/*` redirects): `https://api.publicuniverse.net/api/v1` (the Forge site `api.sol.wickedsick.com` on php01 serves both names; the old one stays live, no redirect). Defaults to `API_BASE_URL`; set it whenever that is internal. |
 | `SOLAR_API_TIMEOUT` | HTTP timeout, defaults to 8 seconds |
 | `CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION` | `redis` recommended |
 | `CACHE_PREFIX` | Stable, application-specific; retain during branding changes |

@@ -102,8 +102,8 @@ def validate(pdf: Path, expected_pages: int, *, qa: bool = True, links_expected:
              for line in run(['pdfinfo', '-url', str(pdf)]).splitlines()
              if re.match(r'^\s*\d+\s+Annotation\s+', line)}
     expected = links_expected or [generate.DEFAULT_SITE_URL, generate.DEFAULT_API,
-                generate.DEFAULT_DOWNLOAD_URL, 'https://api.sol.wickedsick.com/mcp',
-                'https://api.sol.wickedsick.com/docs']
+                generate.DEFAULT_DOWNLOAD_URL, 'https://api.publicuniverse.net/mcp',
+                'https://api.publicuniverse.net/docs']
     for url in expected:
         if normalise_url(url) not in links:
             raise AssertionError(f'{pdf.name}: missing PDF link annotation: {url}')

@@ -30,7 +30,7 @@ Point `API_BASE_URL` in `.env` at a backend. The public one works fine for
 development:
 
 ```
-API_BASE_URL=https://api.sol.wickedsick.com/api/v1
+API_BASE_URL=https://api.publicuniverse.net/api/v1
 ```
 
 or run `solar-system-db` locally on `:8003` (see its README) and use
