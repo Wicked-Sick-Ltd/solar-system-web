@@ -204,12 +204,19 @@ final class Show extends Component
         $class = $orbital?->orbitClassName;
         $what = $class ? __(':type in the :class orbit class', ['type' => lcfirst($type), 'class' => $class]) : lcfirst($type);
 
-        $sentence = __(':name is a :what.', ['name' => $object->name, 'what' => $what]);
+        $article = preg_match('/^[aeiou]/i', $what) ? __('an') : __('a');
+        $sentence = __(':name is :article :what.', ['name' => $object->name, 'article' => $article, 'what' => $what]);
 
+        // Distances are heliocentric only for bodies orbiting the Sun; a moon's
+        // elements are about its parent. A hyperbolic orbit has no aphelion and
+        // a negative semi-major axis, so only its perihelion is quoted.
         $clauses = [];
-        if ($orbital?->perihelionAu !== null && $orbital->aphelionAu !== null) {
+        $heliocentric = $orbital !== null && $object->objectType !== 'moon';
+        if ($heliocentric && $orbital->perihelionAu !== null && $orbital->aphelionAu !== null) {
             $clauses[] = __('its orbit takes it from :peri to :ap from the Sun', ['peri' => Format::au($orbital->perihelionAu, 2), 'ap' => Format::au($orbital->aphelionAu, 2)]);
-        } elseif ($orbital?->semiMajorAxisAu !== null && $object->objectType !== 'moon') {
+        } elseif ($heliocentric && $orbital->perihelionAu !== null) {
+            $clauses[] = __('its closest approach to the Sun is :peri', ['peri' => Format::au($orbital->perihelionAu, 2)]);
+        } elseif ($heliocentric && $orbital->semiMajorAxisAu !== null && $orbital->semiMajorAxisAu > 0) {
             $clauses[] = __('it orbits the Sun at an average distance of :a', ['a' => Format::au($orbital->semiMajorAxisAu, 2)]);
         }
         if ($orbital?->orbitalPeriodDays !== null) {
