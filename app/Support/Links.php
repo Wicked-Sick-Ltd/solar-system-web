@@ -42,10 +42,18 @@ final class Links
         return $url;
     }
 
-    /** Host of the catalogue API, without the /api/v1 suffix. */
+    /** The public catalogue API root (what visitors should be sent to), e.g. https://api.publicuniverse.net/api/v1. */
+    public static function cataloguePublicBase(): string
+    {
+        $public = (string) config('services.solar.public_url');
+
+        return rtrim($public !== '' ? $public : (string) config('services.solar.base_url'), '/');
+    }
+
+    /** Public host of the catalogue API, without the /api/v1 suffix — for links, never for fetching. */
     public static function catalogueOrigin(): string
     {
-        $base = (string) config('services.solar.base_url');
+        $base = self::cataloguePublicBase();
         $host = preg_replace('#/api/v\d+/?$#', '', $base) ?? $base;
 
         return rtrim($host, '/');

@@ -40,7 +40,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-DEFAULT_API = "https://api.sol.wickedsick.com/api/v1"
+DEFAULT_API = "https://api.publicuniverse.net/api/v1"
 DEFAULT_SITE_NAME = "Public Universe"
 DEFAULT_SITE_URL = "https://publicuniverse.net"
 DEFAULT_DOWNLOAD_URL = "https://download.sol.wickedsick.com/latest.json"

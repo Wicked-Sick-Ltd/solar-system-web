@@ -113,7 +113,7 @@ it('retains each response identity through catalogue changes and rollback withou
     foreach (['a', 'b', 'a'] as $generation) {
         $this->get('/exoplanets/export/json')->assertOk()->assertJsonPath('metadata.snapshot_id', pageSnapshot($generation)['catalogue_id'])
             ->assertJsonPath('results.0.name', 'Generation '.$generation);
-        $this->travel(61)->seconds();
+        $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     }
     Http::assertSentCount(6);
 });

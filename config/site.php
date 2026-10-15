@@ -25,6 +25,19 @@ return [
     'download_url' => env('SOLAR_DOWNLOAD_URL', 'https://download.sol.wickedsick.com/latest.json'),
     'contact_email' => env('CONTACT_EMAIL', 'hello@wickedsick.com'),
 
+    // Official social profiles. Only non-empty entries render (footer, /about,
+    // Organization JSON-LD sameAs). Reserved handles: Bluesky publicuniverse.net;
+    // Instagram/Threads/TikTok/YouTube/Facebook publicuniversenet.
+    'social' => [
+        'x' => env('SOCIAL_X_URL', 'https://x.com/PublicUnivNet'),
+        'bluesky' => env('SOCIAL_BLUESKY_URL'),     // https://bsky.app/profile/publicuniverse.net
+        'instagram' => env('SOCIAL_INSTAGRAM_URL'), // https://www.instagram.com/publicuniversenet
+        'threads' => env('SOCIAL_THREADS_URL'),     // https://www.threads.net/@publicuniversenet
+        'tiktok' => env('SOCIAL_TIKTOK_URL'),       // https://www.tiktok.com/@publicuniversenet
+        'youtube' => env('SOCIAL_YOUTUBE_URL'),     // https://www.youtube.com/@publicuniversenet
+        'facebook' => env('SOCIAL_FACEBOOK_URL'),   // https://www.facebook.com/publicuniversenet
+    ],
+
     // Legal entity named in the privacy policy.
     'operator' => env('SITE_OPERATOR', 'Wicked Sick Ltd'),
 

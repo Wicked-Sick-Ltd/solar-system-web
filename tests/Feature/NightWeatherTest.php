@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\PrivateNightWeather;
+use App\Services\SolarApi\CatalogueContext;
 use App\Services\Weather\OpenMeteoClient;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
@@ -131,7 +132,7 @@ it('returns unavailable on invalid upstream units or failures and permits a late
             ->assertHeader('Cache-Control', 'no-store, private');
         $this->postJson('/observe/night/weather', nightWeatherInput())->assertStatus(503);
         Http::assertSentCount($attempt);
-        $this->travel(61)->seconds();
+        $this->travel(CatalogueContext::PROBE_SECONDS + 1)->seconds();
     }
     $this->postJson('/observe/night/weather', nightWeatherInput())->assertOk()->assertJsonPath('status', 'available');
     Http::assertSentCount(3);
