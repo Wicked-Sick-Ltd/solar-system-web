@@ -42,7 +42,7 @@ final class Links
         return $url;
     }
 
-    /** The public catalogue API root (what visitors should be sent to), e.g. https://api.sol.wickedsick.com/api/v1. */
+    /** The public catalogue API root (what visitors should be sent to), e.g. https://api.publicuniverse.net/api/v1. */
     public static function cataloguePublicBase(): string
     {
         $public = (string) config('services.solar.public_url');
