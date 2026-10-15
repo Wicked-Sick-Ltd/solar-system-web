@@ -49,7 +49,7 @@ it('keeps connection instructions tied to the configured backend through a domai
     $this->get('/plugin')->assertOk()
         ->assertSee('https://astronomy.example/mcp')
         ->assertSee('codex mcp add solar-system-db --url https://astronomy.example/mcp')
-        ->assertDontSee('https://api.sol.wickedsick.com/mcp');
+        ->assertDontSee('https://api.publicuniverse.net/mcp');
 });
 
 it('clearly states pending live access until operators mark the connection ready', function () {

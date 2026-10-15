@@ -3,8 +3,11 @@
 Status: reconciled with main PR #97 on 2 October 2026. The website policy is
 `publicuniverse.net` canonical with `sol.wickedsick.com` served indefinitely
 as an alias, without a redirect. See [hostnames](../DEPLOYMENT.md#hostnames-canonical-and-alias).
-API/download hostname moves remain proposals. This document does not authorize
-DNS, infrastructure, mail or live service changes.
+The API hostname moved on 13 October 2026: `api.publicuniverse.net` is the
+advertised address and `api.sol.wickedsick.com` stays served indefinitely as an
+alias of the same Forge site, without a redirect. The download hostname move
+remains a proposal. This document does not authorize DNS, infrastructure, mail
+or live service changes.
 
 ## Names and compatibility
 
@@ -20,7 +23,7 @@ Proposed addresses, subject to provisioning and production approval:
 | Surface | Current configuration/address | Proposed address |
 | --- | --- | --- |
 | Website | `APP_URL`, currently `https://sol.wickedsick.com` | `https://publicuniverse.net` |
-| REST | `API_BASE_URL=https://api.sol.wickedsick.com/api/v1` | `https://api.publicuniverse.net/api/v1` |
+| REST | `API_PUBLIC_URL=https://api.publicuniverse.net/api/v1` (done; `api.sol.wickedsick.com` alias retained) | — |
 | MCP | API host plus `/mcp` | `https://api.publicuniverse.net/mcp` |
 | OpenAPI / docs | API host plus `/openapi.json` and `/docs`; `API_DOCS_URL` override | Same paths on new API host |
 | Download manifest | `SOLAR_DOWNLOAD_URL`, default `https://download.sol.wickedsick.com/latest.json` | `https://download.publicuniverse.net/latest.json` |
