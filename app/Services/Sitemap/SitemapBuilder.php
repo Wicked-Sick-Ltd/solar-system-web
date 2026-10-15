@@ -23,7 +23,9 @@ use Throwable;
  * Builds the sitemap index and one urlset per kind of page.
  *
  * Solar-system objects stay the named, browsable set (planets, moons, dwarf
- * planets, and the brightest comets, near-Earth objects and TNOs). Exoplanets
+ * planets, asteroids over 50 km, and the brightest comets, near-Earth objects
+ * and TNOs); the ~1.5 million unnumbered stubs are reachable by browse, not
+ * listed. Exoplanets
  * and their host systems are the full catalogue the detail routes can render.
  * lastmod is the catalogue build time or the record's own timestamp, never the
  * clock of the request that happens to render the file.
@@ -31,6 +33,12 @@ use Throwable;
 final class SitemapBuilder
 {
     public const CACHE_KEY = 'sitemap.documents';
+
+    /** Asteroids at least this wide are listed individually (a few hundred bodies). */
+    public const NOTABLE_ASTEROID_KM = 50;
+
+    /** How many of the brightest comets, NEOs and TNOs each list contributes. */
+    public const LIST_LIMIT = 1000;
 
     /** @var list<string> */
     private const PAGES = [
@@ -144,13 +152,16 @@ final class SitemapBuilder
                 $ids[$id] = true;
             }
         }
-        foreach ($this->api->periodicComets(300) as $object) {
+        foreach ($this->walkObjects('asteroid', ['min_diameter_km' => self::NOTABLE_ASTEROID_KM]) as $id) {
+            $ids[$id] = true;
+        }
+        foreach ($this->api->periodicComets(self::LIST_LIMIT) as $object) {
             $ids[$object->id] = true;
         }
-        foreach ($this->api->neos(300) as $object) {
+        foreach ($this->api->neos(self::LIST_LIMIT) as $object) {
             $ids[$object->id] = true;
         }
-        foreach ($this->api->tnos(300) as $object) {
+        foreach ($this->api->tnos(self::LIST_LIMIT) as $object) {
             $ids[$object->id] = true;
         }
 
@@ -293,14 +304,17 @@ final class SitemapBuilder
         return $entries;
     }
 
-    /** @return list<string> */
-    private function walkObjects(string $type): array
+    /**
+     * @param  array<string,mixed>  $filters
+     * @return list<string>
+     */
+    private function walkObjects(string $type, array $filters = []): array
     {
         $ids = [];
         $offset = 0;
         $guard = 0;
         do {
-            $page = $this->api->objects(['type' => $type], 100, $offset);
+            $page = $this->api->objects(['type' => $type] + $filters, 100, $offset);
             foreach ($page->items as $object) {
                 if ($object->id !== '') {
                     $ids[] = $object->id;

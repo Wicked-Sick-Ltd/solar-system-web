@@ -6,6 +6,9 @@
     <title>{{ app(\App\Support\Seo::class)->fullTitle() }}</title>
     <meta name="description" content="{{ $activity['summary'] }}">
     <link rel="canonical" href="{{ app(\App\Support\Seo::class)->getCanonical() }}">
+    @foreach (app(\App\Support\Seo::class)->getJsonLd() as $schema)
+        <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endforeach
     <style>
         :root { color-scheme: light; font-family: system-ui, sans-serif; color: #172336; background: #edf1f5; }
         * { box-sizing: border-box; }

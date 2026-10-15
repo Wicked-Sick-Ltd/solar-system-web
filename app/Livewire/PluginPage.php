@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Support\KeyStage;
 use App\Support\Links;
+use App\Support\Schema;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -17,8 +18,14 @@ final class PluginPage extends Component
     public function render(): View
     {
         app(Seo::class)
-            ->title(__('Astronomy plugin'))
-            ->description(__('Use Public Universe astronomy data in ChatGPT, Codex, Cursor, GitHub Copilot and Claude Code. Setup instructions, reusable skills and example questions.'));
+            ->title(__('Astronomy MCP Plugin for Claude Code, Cursor, Codex, ChatGPT & Copilot'))
+            ->description(__('Use Public Universe astronomy data in ChatGPT, Codex, Cursor, GitHub Copilot and Claude Code. Setup instructions, reusable skills and example questions.'))
+            ->jsonLd(Schema::softwareApplication(
+                __(':site astronomy plugin', ['site' => config('site.name')]),
+                __('MCP server and reusable skills that give AI coding assistants sourced solar-system, exoplanet and night-sky data.'),
+                route('plugin'),
+                ['Claude Code', 'Cursor', 'Codex', 'ChatGPT', 'GitHub Copilot'],
+            ));
 
         return view('livewire.plugin-page', [
             'mcpUrl' => Links::mcp(),

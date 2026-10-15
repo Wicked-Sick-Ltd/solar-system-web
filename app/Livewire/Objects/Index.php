@@ -8,6 +8,7 @@ use App\Services\SolarApi\Data\Paginated;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
 use App\Support\ObjectType;
+use App\Support\Schema;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -93,8 +94,9 @@ final class Index extends Component
     public function render(SolarApiClient $api): View
     {
         app(Seo::class)
-            ->title(__('Browse all objects'))
-            ->description(__('Filter the full catalogue of solar-system objects by type, parent body, size and near-Earth status.'));
+            ->title(__('Browse 1.5 Million Solar System Objects: Moons, Asteroids, Comets & TNOs'))
+            ->description(__('Filter the full catalogue of solar-system objects by type, parent body, size and near-Earth status.'))
+            ->jsonLd(Schema::dataset(__(':site solar-system catalogue', ['site' => config('site.name')]), __('Every catalogued solar-system object, including all known moons, with orbital, physical and discovery data from NASA/JPL and the IAU Minor Planet Center.'), route('objects.index'), 'solar system, moons, asteroids, comets, trans-Neptunian objects'));
 
         foreach (['type', 'parent', 'size', 'neo', 'named', 'page'] as $field) {
             $this->validateField($field);

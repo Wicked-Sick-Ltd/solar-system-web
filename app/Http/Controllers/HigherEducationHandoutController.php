@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Support\Schema;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 
@@ -18,7 +19,8 @@ final class HigherEducationHandoutController
 
         app(Seo::class)
             ->title((string) $worksheet['title'])
-            ->description((string) $worksheet['summary']);
+            ->description((string) $worksheet['summary'])
+            ->jsonLd(Schema::learningResource((string) $worksheet['title'], (string) $worksheet['summary'], route('higher-education.handout', ['activity' => $activity]), (string) ($worksheet['level'] ?? 'Undergraduate')));
 
         return view('education.higher-education-handout', [
             'activity' => $worksheet,

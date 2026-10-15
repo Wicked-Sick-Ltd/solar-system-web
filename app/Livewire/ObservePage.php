@@ -14,7 +14,7 @@ final class ObservePage extends Component
 {
     public function render(): View
     {
-        app(Seo::class)->title(__('Observe'))->description(__('Plan your next look at the sky with object positions, local observing conditions and astronomical events.'));
+        app(Seo::class)->title(__('Night Sky Planner: Planet Visibility, Altitude Charts & Close Approaches'))->description(__('Plan your next look at the sky with object positions, local observing conditions and astronomical events.'));
 
         return view('livewire.observe-page');
     }

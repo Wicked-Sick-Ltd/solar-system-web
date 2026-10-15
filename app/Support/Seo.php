@@ -103,12 +103,12 @@ class Seo
 
         return $this->title !== null && $this->title !== $name
             ? "{$this->title} · {$name}"
-            : "{$name} · ".config('site.tagline');
+            : "{$name} · ".config('site.home_title', config('site.tagline'));
     }
 
     public function metaTitle(): string
     {
-        return $this->title ?? config('site.name').' · '.config('site.tagline');
+        return $this->title ?? config('site.name').' · '.config('site.home_title', config('site.tagline'));
     }
 
     public function getDescription(): string
