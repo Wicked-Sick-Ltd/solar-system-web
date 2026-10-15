@@ -7,6 +7,7 @@ namespace App\Livewire;
 use App\Services\SolarApi\Data\Paginated;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Schema;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -137,7 +138,8 @@ final class Category extends Component
         }
         $copy = $this->copy();
 
-        app(Seo::class)->title($copy['title'])->description($copy['lead']);
+        app(Seo::class)->title($copy['seo'])->description($copy['lead'])
+            ->jsonLd(Schema::dataset(__(':site :set', ['site' => config('site.name'), 'set' => lcfirst($copy['title'])]), $copy['lead'], url()->current()));
 
         $inputErrors = $this->inputErrors();
         $page = max(1, min(self::MAX_PAGE, $this->page));
@@ -272,32 +274,37 @@ final class Category extends Component
             ? ['order' => 'id', 'after' => $after ?? ''] : ['page' => $page]));
     }
 
-    /** @return array{title:string,eyebrow:string,lead:string} */
+    /** @return array{title:string,eyebrow:string,lead:string,seo:string} */
     private function copy(): array
     {
         return match ($this->kind) {
             'dwarf_planet' => [
                 'title' => __('Dwarf planets'),
+                'seo' => __('Dwarf Planets: Pluto, Ceres, Eris, Haumea & Makemake Data'),
                 'eyebrow' => __('Rounded by their own gravity'),
                 'lead' => __('Worlds massive enough to pull themselves round, but which never cleared their orbital neighbourhood — Ceres in the asteroid belt, and Pluto, Eris, Haumea and Makemake out beyond Neptune. Candidates are included.'),
             ],
             'asteroid' => [
                 'title' => __('Asteroids'),
+                'seo' => __('Asteroid Catalogue: Main Belt, Near-Earth & Potentially Hazardous Objects'),
                 'eyebrow' => __('Rocky remnants'),
                 'lead' => __('The rocky leftovers of planet formation — most circling the Sun in the main belt between Mars and Jupiter, some swinging close to Earth.'),
             ],
             'comet' => [
                 'title' => __('Comets'),
+                'seo' => __('Comet Catalogue: Periodic Comets, Orbits & Perihelion Dates'),
                 'eyebrow' => __('Icy visitors'),
                 'lead' => __('Balls of ice and dust on long, elongated orbits that grow tails as they near the Sun — from short-period regulars like Halley to one-time passers-by.'),
             ],
             'tno' => [
                 'title' => __('Trans-Neptunian objects'),
+                'seo' => __('Trans-Neptunian Objects: Kuiper Belt, Scattered Disc & Centaurs'),
                 'eyebrow' => __('Beyond Neptune'),
                 'lead' => __('The frozen bodies of the outer system — the Kuiper Belt, the scattered disc and the centaurs that wander between the giant planets.'),
             ],
             default => [
                 'title' => __('Objects'),
+                'seo' => __('Objects'),
                 'eyebrow' => __('Catalogue'),
                 'lead' => __('A selection from the catalogue.'),
             ],

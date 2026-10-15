@@ -10,6 +10,8 @@ return [
     // Public branding is independent of APP_NAME, which also namespaces sessions/cache.
     'name' => env('SITE_NAME', 'Public Universe'),
     'tagline' => 'Astronomy for everyone',
+    // <title> of the homepage, after the brand. The tagline stays on share cards and in the footer.
+    'home_title' => 'Interactive Solar System, Exoplanet & Night Sky Catalogue',
     'description' => 'Explore our solar system, exoplanets and their place in the galaxy. '
         .'Free astronomical data, interactive maps and observing tools for curious '
         .'minds, classrooms and researchers.',

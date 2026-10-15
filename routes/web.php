@@ -153,6 +153,7 @@ Route::get('/privacy', PrivacyPage::class)->name('privacy');
 Route::get('/settings', SettingsPage::class)->name('settings');
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap_index.xml', [SitemapController::class, 'index']);
 Route::get('/sitemaps/{name}.xml', [SitemapController::class, 'child'])
     ->where('name', '[a-z]+(?:-[0-9]+)?')
     ->name('sitemap.child');

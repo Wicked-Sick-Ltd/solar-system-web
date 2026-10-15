@@ -8,6 +8,7 @@ use App\Services\SolarApi\Data\ExoplanetFilters;
 use App\Services\SolarApi\Data\Paginated;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Schema;
 use App\Support\Seo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
@@ -94,7 +95,8 @@ final class Exoplanets extends Component
 
     public function render(SolarApiClient $api): View
     {
-        app(Seo::class)->title(__('Exoplanets'))->description(__('Explore confirmed planets beyond our solar system, with measurements from the NASA Exoplanet Archive.'));
+        app(Seo::class)->title(__('Confirmed Exoplanets Catalogue & Host Star Explorer'))->description(__('Explore confirmed planets beyond our solar system, with measurements from the NASA Exoplanet Archive.'))
+            ->jsonLd(Schema::dataset(__(':site exoplanet catalogue', ['site' => config('site.name')]), __('Confirmed exoplanets and their host stars, with discovery method, orbit, size, mass and distance from the NASA Exoplanet Archive.'), route('exoplanets.index'), 'exoplanets, host stars, NASA Exoplanet Archive'));
         $results = new Paginated([], ExoplanetFilters::PER_PAGE, 0, false);
         $apiDown = false;
         $filterErrors = array_merge([], ...array_values($this->initialFilterErrors));

@@ -14,7 +14,7 @@ final class ExplorePage extends Component
 {
     public function render(): View
     {
-        app(Seo::class)->title(__('Explore'))->description(__('Find a world, follow its moons, or explore known planetary systems across our galaxy.'));
+        app(Seo::class)->title(__('Explore the Solar System, Exoplanets & 3D Galaxy Map'))->description(__('Find a world, follow its moons, or explore known planetary systems across our galaxy.'));
 
         return view('livewire.explore-page');
     }

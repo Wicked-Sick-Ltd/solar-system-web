@@ -51,7 +51,7 @@ it('does not resolve arbitrary config keys or unknown handouts', function () {
 
 it('describes university activities as free HTML learning resources', function () {
     $this->get('/higher-education')->assertOk()
-        ->assertSee('<title>Higher education · '.config('site.name').'</title>', false)
+        ->assertSee('<title>Free Undergraduate Astronomy Activities &amp; Printable Handouts · '.config('site.name').'</title>', false)
         ->assertSee('"@type":"LearningResource"', false)
         ->assertSee('"educationalLevel":"Undergraduate"', false)
         ->assertSee('"encodingFormat":"text/html"', false)
