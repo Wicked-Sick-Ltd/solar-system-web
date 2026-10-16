@@ -186,6 +186,16 @@ it('chooses the next earth encounter and a horizons command', function () {
             'id' => 'ast-54661369', 'name' => '2026 TP6', 'designation' => '(2026 TP6)',
         ])))->toBe(['DES=54661369;', '2026 TP6']);
 
+    expect($flyby->commands(ObjectDetail::fromArray([
+        'id' => 'com-1P', 'name' => 'Halley', 'designation' => '1P/Halley',
+    ])))->toBe(['1P', 'Halley'])
+        ->and($flyby->commands(ObjectDetail::fromArray([
+            'id' => 'ast-provisional', 'name' => null, 'designation' => '2026 TB6',
+        ])))->toBe(['2026 TB6'])
+        ->and($flyby->commands(ObjectDetail::fromArray([
+            'id' => 'ast-provisional', 'name' => null, 'designation' => '(2026 TB6)',
+        ])))->toBe(['2026 TB6']);
+
     $moon = new CloseApproach('Moon', '2029-04-13T21:46:00Z', 0.01, null, null, null, null);
     expect($flyby->select([$moon]))->toBeNull();
 });

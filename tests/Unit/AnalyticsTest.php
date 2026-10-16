@@ -46,3 +46,13 @@ it('redacts the settings share token, which carries an observing location', func
     expect($location)->toBe('https://solar.test/settings?s=redacted')
         ->and($location)->not->toContain($token);
 });
+
+it('redacts observer coordinates from the API try-it query bag', function () {
+    $location = Analytics::pageLocation(Request::create('https://solar.test/api?try=plan_night&p%5Blat%5D=51.5&p%5Blon%5D=-0.1&p%5Bdate%5D=2026-10-10'));
+
+    expect($location)->toContain('p%5Blat%5D=redacted')
+        ->and($location)->toContain('p%5Blon%5D=redacted')
+        ->and($location)->toContain('p%5Bdate%5D=2026-10-10')
+        ->and($location)->not->toContain('51.5')
+        ->and($location)->not->toContain('-0.1');
+});

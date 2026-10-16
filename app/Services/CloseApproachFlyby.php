@@ -184,14 +184,13 @@ class CloseApproachFlyby
             $candidates[] = (int) $match[1] > 1_000_000 ? 'DES='.$match[1].';' : $match[1];
         }
         $designation = (string) $designation;
-        if (preg_match('/^(\d+)\b/', $designation, $match) === 1) {
+        if (preg_match('/^(\d+P)\b/i', $designation, $match) === 1) {
+            $candidates[] = strtoupper($match[1]);
+        } elseif (preg_match('/^(\d+)\b/', $designation, $match) === 1 && ! preg_match('/^\d{4}\s/', $designation)) {
             $candidates[] = $match[1];
         }
         if (preg_match('/\(([^)]+)\)/', $designation, $match) === 1) {
             $candidates[] = trim($match[1]);
-        }
-        if (preg_match('/^(\d+P)\b/i', $designation, $match) === 1) {
-            $candidates[] = strtoupper($match[1]);
         }
         if ($name !== null && $name !== '') {
             $candidates[] = $name;

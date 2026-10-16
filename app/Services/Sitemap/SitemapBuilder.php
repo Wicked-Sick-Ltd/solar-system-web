@@ -382,7 +382,12 @@ final class SitemapBuilder
         }
 
         try {
-            return $this->timestamp($this->api->stats()->lastRefreshed()?->toIso8601String());
+            $stats = $this->api->stats();
+            if ($stats === null) {
+                return null;
+            }
+
+            return $this->timestamp($stats->lastRefreshed()?->toIso8601String());
         } catch (SolarApiException) {
             return null;
         }

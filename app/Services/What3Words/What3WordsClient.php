@@ -58,7 +58,7 @@ final class What3WordsClient
      */
     public function locate(string $address): array
     {
-        $words = LocationParser::what3words($address);
+        $words = $this->wordsFromAddress($address);
         if ($words === null) {
             throw new What3WordsException(__('Enter a what3words address as three words, such as ///filled.count.soap.'), 'invalid');
         }
@@ -186,6 +186,28 @@ final class What3WordsClient
         }
 
         return mb_substr($place, 0, 120);
+    }
+
+    /**
+     * Observatory callers already chose what3words; accept a valid triple even
+     * when the third word matches a hostname TLD label.
+     */
+    private function wordsFromAddress(string $address): ?string
+    {
+        $words = LocationParser::what3words($address);
+        if ($words !== null) {
+            return $words;
+        }
+
+        $stripped = mb_strtolower(trim($address, " /\t\n"));
+        if (! preg_match('~^(\p{L}+)\.(\p{L}+)\.(\p{L}+)$~u', $stripped, $match)) {
+            return null;
+        }
+        if (mb_strtolower($match[1]) === 'www') {
+            return null;
+        }
+
+        return "{$match[1]}.{$match[2]}.{$match[3]}";
     }
 
     private function validCoordinate(float $lat, float $lon): bool

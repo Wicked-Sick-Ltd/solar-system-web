@@ -63,6 +63,20 @@ final class CatalogueCall
         }
         RateLimiter::hit($bucket, 60);
 
+        if ($this->isNightCall($built['url'])) {
+            $egress = 'catalogue-docs:night-egress';
+            if (RateLimiter::tooManyAttempts($egress, 9)) {
+                return $result + $this->failure($operationId, 'Night planning is busy right now. Wait a minute and try again.');
+            }
+            RateLimiter::hit($egress, 60);
+
+            $night = 'catalogue-docs:night:'.hash('sha256', (string) request()->ip());
+            if (RateLimiter::tooManyAttempts($night, 3)) {
+                return $result + $this->failure($operationId, 'Too many night-planning calls from this network. Wait a minute and try again.');
+            }
+            RateLimiter::hit($night, 60);
+        }
+
         try {
             $response = $this->send($built['url']);
         } catch (ConnectionException) {
@@ -219,11 +233,18 @@ final class CatalogueCall
     {
         $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
         $reads = $this->timeout();
-        if (str_contains($path, '/observing/night')) {
+        if ($this->isNightCall($url)) {
             return max($reads, (int) config('services.solar.planner_timeout', 40));
         }
 
         return $reads;
+    }
+
+    private function isNightCall(string $url): bool
+    {
+        $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
+
+        return str_contains($path, '/observing/night');
     }
 
     /**

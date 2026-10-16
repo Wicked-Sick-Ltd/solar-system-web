@@ -38,6 +38,11 @@ final class SetResponseHeaders
         $response = $next($request);
 
         $this->addSecurityHeaders($response);
+        if ($request->routeIs('api.catalogue') && $response->isRedirect()) {
+            foreach ($response->headers->getCookies() as $cookie) {
+                $response->headers->removeCookie($cookie->getName(), $cookie->getPath(), $cookie->getDomain());
+            }
+        }
         // Shared caches must select the anonymous representation before lookup,
         // and account pages must not remain in the browser cache after logout.
         $response->setVary('Cookie', false);

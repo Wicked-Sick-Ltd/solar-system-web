@@ -6,6 +6,8 @@ use App\Services\CatalogueDocs\CatalogueCall;
 use App\Services\CatalogueDocs\InlineText;
 use App\Services\CatalogueDocs\OpenApiCatalogue;
 use App\Services\CatalogueDocs\Snippets;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 
 it('escapes specification text and keeps the published bold markup', function () {
     $html = InlineText::html('NASA/JPL. **For astronomy, not astrology.** <script>alert(1)</script>');
@@ -74,6 +76,38 @@ it('waits longer for night planning than for a catalogue read', function () {
 
     expect($call->timeoutFor('https://catalogue.test/api/v1/search?q=Halley'))->toBe(8)
         ->and($call->timeoutFor('https://catalogue.test/api/v1/observing/night?date=2026-10-10'))->toBe(40);
+});
+
+it('shares a night-planning budget across visitors and caps each network', function () {
+    config(['services.solar.base_url' => 'https://catalogue.test/api/v1']);
+    Http::fake(['https://catalogue.test/*' => Http::response(['ok' => true])]);
+    RateLimiter::clear('catalogue-docs:night-egress');
+    RateLimiter::clear('catalogue-docs:night:'.hash('sha256', '127.0.0.1'));
+    RateLimiter::clear('catalogue-docs:try:'.hash('sha256', '127.0.0.1'));
+
+    $catalogue = [
+        'origin' => 'https://catalogue.test',
+        'operations' => [[
+            'id' => 'plan_night',
+            'path' => '/api/v1/observing/night',
+            'parameters' => [
+                ['name' => 'date', 'in' => 'query', 'required' => true, 'type' => 'string', 'minimum' => null, 'maximum' => null, 'min_length' => 1, 'max_length' => 20],
+                ['name' => 'lat', 'in' => 'query', 'required' => true, 'type' => 'number', 'minimum' => '-90', 'maximum' => '90', 'min_length' => null, 'max_length' => null],
+                ['name' => 'lon', 'in' => 'query', 'required' => true, 'type' => 'number', 'minimum' => '-180', 'maximum' => '180', 'min_length' => null, 'max_length' => null],
+            ],
+        ]],
+    ];
+    $call = app(CatalogueCall::class);
+    $input = ['date' => '2026-10-10', 'lat' => '51.5', 'lon' => '-0.1'];
+
+    foreach (range(1, 3) as $index) {
+        $input['lat'] = (string) (51.5 + $index);
+        expect($call->attempt($catalogue, 'plan_night', $input)['ok'])->toBeTrue();
+    }
+
+    $input['lat'] = '55.5';
+    expect($call->attempt($catalogue, 'plan_night', $input)['message'] ?? '')
+        ->toContain('Too many night-planning calls');
 });
 
 it('keeps read-only calls on the configured origin and caps limit', function () {
