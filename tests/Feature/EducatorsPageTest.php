@@ -79,7 +79,7 @@ it('shows the reassurance line and a feedback mailto', function () {
 it('emits SEO metadata and LearningResource structured data', function () {
     $this->get('/educators')
         ->assertOk()
-        ->assertSee('<title>Educators · '.config('site.name').'</title>', escape: false)
+        ->assertSee('<title>Free Astronomy Worksheets &amp; UK Key Stage Space Lesson Resources · '.config('site.name').'</title>', escape: false)
         ->assertSee('<link rel="canonical" href="'.url('/educators').'">', escape: false)
         ->assertSee('og:title', escape: false)
         ->assertSee('"@type":"CollectionPage"', escape: false)

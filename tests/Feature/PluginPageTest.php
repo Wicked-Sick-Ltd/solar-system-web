@@ -63,7 +63,7 @@ it('clearly states pending live access until operators mark the connection ready
 
 it('emits canonical metadata and uses public editorial caching', function () {
     $this->get('/plugin')->assertOk()
-        ->assertSee('<title>Astronomy plugin · '.config('site.name').'</title>', false)
+        ->assertSee('<title>Astronomy MCP Plugin for Claude Code, Cursor, Codex, ChatGPT &amp; Copilot · '.config('site.name').'</title>', false)
         ->assertSee('<link rel="canonical" href="'.url('/plugin').'">', false)
         ->assertHeader('Cache-Control', 'max-age=0, public, s-maxage=600, stale-while-revalidate=86400');
 });

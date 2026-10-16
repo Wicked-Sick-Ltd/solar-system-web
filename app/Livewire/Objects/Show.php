@@ -10,6 +10,7 @@ use App\Services\SolarApi\Data\ObjectSummary;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Format;
 use App\Support\Seo;
 use App\Support\ShareImage;
 use Illuminate\Contracts\View\View;
@@ -70,7 +71,8 @@ final class Show extends Component
             abort(404);
         }
 
-        $this->applySeo($object);
+        $summary = $this->summary($object);
+        $this->applySeo($object, $summary);
 
         $parent = null;
         if ($object->hasParent()) {
@@ -145,6 +147,7 @@ final class Show extends Component
 
         return view('livewire.objects.show', [
             'object' => $object,
+            'summary' => $summary,
             'apiDown' => false,
             'position' => $position,
             'earth' => $earth,
@@ -189,17 +192,93 @@ final class Show extends Component
         return $moons;
     }
 
-    private function applySeo(ObjectDetail $object): void
+    /**
+     * One human-readable sentence built from the record itself, so a sparse
+     * minor-body page (orbital elements only) still reads as prose, in the
+     * meta description and on the page.
+     */
+    private function summary(ObjectDetail $object): string
     {
-        $description = $object->notes
-            ? Str::limit($object->notes, 180)
-            : __(':name — :type. Orbital, physical and observational data, sources and current position.', [
-                'name' => $object->name,
-                'type' => $object->typeLabel() ?? __('solar-system object'),
+        $type = $object->typeLabel() ?? __('solar-system object');
+        $orbital = $object->orbital;
+        $class = $orbital?->orbitClassName;
+        $what = $class ? __(':type in the :class orbit class', ['type' => lcfirst($type), 'class' => $class]) : lcfirst($type);
+
+        $article = preg_match('/^[aeiou]/i', $what) ? __('an') : __('a');
+        $sentence = __(':name is :article :what.', ['name' => $object->name, 'article' => $article, 'what' => $what]);
+
+        // Distances are heliocentric only for bodies orbiting the Sun; a moon's
+        // elements are about its parent. A hyperbolic orbit has no aphelion and
+        // a negative semi-major axis, so only its perihelion is quoted.
+        $clauses = [];
+        $heliocentric = $orbital !== null && $object->objectType !== 'moon';
+        if ($heliocentric && $orbital->perihelionAu !== null && $orbital->aphelionAu !== null) {
+            $clauses[] = __('its orbit takes it from :peri to :ap from the Sun', ['peri' => Format::au($orbital->perihelionAu, 2), 'ap' => Format::au($orbital->aphelionAu, 2)]);
+        } elseif ($heliocentric && $orbital->perihelionAu !== null) {
+            $clauses[] = __('its closest approach to the Sun is :peri', ['peri' => Format::au($orbital->perihelionAu, 2)]);
+        } elseif ($heliocentric && $orbital->semiMajorAxisAu !== null && $orbital->semiMajorAxisAu > 0) {
+            $clauses[] = __('it orbits the Sun at an average distance of :a', ['a' => Format::au($orbital->semiMajorAxisAu, 2)]);
+        }
+        if ($orbital?->orbitalPeriodDays !== null) {
+            $clauses[] = __('one orbit takes :period', ['period' => Format::periodDays($orbital->orbitalPeriodDays)]);
+        }
+        $diameter = $object->physical?->diameterKm();
+        if ($diameter !== null) {
+            $clauses[] = __('it is about :d across', ['d' => Format::km($diameter)]);
+        }
+        if ($clauses !== []) {
+            $sentence .= ' '.ucfirst(implode('; ', $clauses)).'.';
+        }
+
+        $discovered = Format::date($object->discoveryDateForDisplay());
+        $discoverer = $object->discovery->discoverer ?? $object->discoverer;
+        if ($discovered !== null || $discoverer !== null) {
+            $sentence .= ' '.__('Discovered :when:by.', [
+                'when' => $discovered ?? __('on an unrecorded date'),
+                'by' => $discoverer ? __(' by :who', ['who' => $discoverer]) : '',
             ]);
+        }
+        if ($orbital?->solutionDate !== null) {
+            $sentence .= ' '.__('Orbit from the JPL solution of :date.', ['date' => Format::date($orbital->solutionDate) ?? $orbital->solutionDate]);
+        }
+
+        return $sentence;
+    }
+
+    /** `Name (Type): Diameter, Orbit, Moons & Live Sky Position` from whichever facets the record has. */
+    private function seoTitle(ObjectDetail $object): string
+    {
+        $facets = [];
+        if ($object->physical?->diameterKm() !== null) {
+            $facets[] = __('Diameter');
+        }
+        if ($object->orbital?->hasAny()) {
+            $facets[] = __('Orbit');
+        }
+        if ($object->isPlanetLike()) {
+            $facets[] = __('Moons');
+        }
+        if ($object->closeApproaches !== []) {
+            $facets[] = __('Close Approaches');
+        }
+        if ($object->orbital?->isPropagatable() || $object->objectType === 'moon' || $object->id === 'sun') {
+            $facets[] = __('Live Sky Position');
+        }
+        $title = $object->typeLabel() ? "{$object->name} ({$object->typeLabel()})" : $object->name;
+        if ($facets === []) {
+            return $title;
+        }
+        $last = array_pop($facets);
+
+        return $title.': '.($facets === [] ? $last : implode(', ', $facets).' & '.$last);
+    }
+
+    private function applySeo(ObjectDetail $object, string $summary): void
+    {
+        $description = $object->notes ? Str::limit($object->notes, 180) : $summary;
 
         app(Seo::class)
-            ->title($object->name)
+            ->title($this->seoTitle($object))
             ->description($description)
             ->type('article')
             ->canonical(route('objects.show', $object->id))

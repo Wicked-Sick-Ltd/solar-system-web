@@ -14,7 +14,7 @@ final class LearnPage extends Component
 {
     public function render(): View
     {
-        app(Seo::class)->title(__('Learn'))->description(__('Start with three questions: how far away are stars, how do we find planets, and what do the measurements mean?'));
+        app(Seo::class)->title(__('Learn Astronomy with Real NASA & JPL Data'))->description(__('Start with three questions: how far away are stars, how do we find planets, and what do the measurements mean?'));
 
         return view('livewire.learn-page');
     }

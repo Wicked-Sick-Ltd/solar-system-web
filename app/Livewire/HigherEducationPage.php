@@ -18,7 +18,7 @@ final class HigherEducationPage extends Component
         $activities = config('higher-education.activities', []);
 
         app(Seo::class)
-            ->title(__('Higher education'))
+            ->title(__('Free Undergraduate Astronomy Activities & Printable Handouts'))
             ->description(__('Free undergraduate astronomy activities and printable handouts: orbital models, exoplanet selection effects and reproducible research using real catalogue data.'))
             ->jsonLd([
                 '@context' => 'https://schema.org',

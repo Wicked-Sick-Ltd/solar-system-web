@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\Seo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,8 @@ final class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
+        app(Seo::class)->title(__('Sign in'))->noindex();
+
         return view('auth.login');
     }
 

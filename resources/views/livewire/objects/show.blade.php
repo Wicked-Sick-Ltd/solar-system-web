@@ -60,9 +60,7 @@
             </div>
         </header>
 
-        @if ($object->notes)
-            <p class="mt-6 text-base leading-relaxed" style="color: var(--text); max-width: var(--container-prose);">{{ $object->notes }}</p>
-        @endif
+        <p class="mt-6 text-base leading-relaxed" style="color: var(--text); max-width: var(--container-prose);">{{ $object->notes ?: $summary }}</p>
 
         {{-- Pluto only: the pub-quiz dedication, with the distance in AU --}}
         @if (PlutoDistance::appliesTo($object))

@@ -23,7 +23,7 @@ final class EducatorsPage extends Component
         $handouts = Handout::all();
 
         app(Seo::class)
-            ->title(__('Educators'))
+            ->title(__('Free Astronomy Worksheets & UK Key Stage Space Lesson Resources'))
             ->description(__('Free A4 classroom handouts about the solar system for primary and secondary schools, built on NASA/JPL data. No adverts, no pupil accounts.'))
             ->jsonLd($this->schema($handouts));
 
