@@ -144,7 +144,7 @@ final class OgImageController extends Controller
 
     private function png(string $bytes, ?int $maxAge = null): Response
     {
-        return response($bytes, 200, [
+        return response($bytes)->withHeaders([
             'Content-Type' => 'image/png',
             'Cache-Control' => $maxAge === null
                 ? 'public, max-age='.(int) config('og.ttl').', immutable'

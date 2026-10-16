@@ -30,7 +30,7 @@ final class ExoplanetExportController
             return response()->json(['error' => 'Exoplanet export temporarily unavailable.'], 503, $headers);
         }
 
-        return response($body, 200, $headers + [
+        return response($body)->withHeaders($headers + [
             'Content-Type' => $format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/json; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="exoplanets-page-'.$filters->page.'.'.$format.'"',
         ]);

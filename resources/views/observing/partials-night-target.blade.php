@@ -5,9 +5,9 @@
                         $journalTarget = \App\Services\Observing\NightTargets::journalIdentity($target['id']);
                     @endphp
                     <div class="print:hidden"><x-save-observing-target :catalogue="$journalTarget['catalogue']" :target-id="$journalTarget['id']" :target-label="$target['name']" /></div>
-                    @if(isset($target['catalogue'])) @include('observing.partials-night-source', ['source' => $target['catalogue']]) @endif
+                    @isset($target['catalogue']) @include('observing.partials-night-source', ['source' => $target['catalogue']]) @endisset
                     @if ($target['status'] === 'unresolved_grazing')<p>{{ __('A constraint nearly touches its threshold. These provisional windows need independent checking.') }}</p>@endif
-                    @if(isset($target['constraint_coverage'])) @include('observing.partials-constraint-coverage', ['coverage' => $target['constraint_coverage']]) @endif
+                    @isset($target['constraint_coverage']) @include('observing.partials-constraint-coverage', ['coverage' => $target['constraint_coverage']]) @endisset
                     <p>{{ __('Windows satisfying altitude, darkness, Sun separation and your Moon constraint:') }}</p>
                     <ul class="list-disc pl-5">@forelse ($target['windows'] as $window)<li><time datetime="{{ $window['start_utc'] }}">{{ $local($window['start_utc']) }}</time> – <time datetime="{{ $window['end_utc'] }}">{{ $local($window['end_utc']) }}</time></li>@empty<li>{{ $target['status'] === 'unresolved_grazing' ? __('No confirmed window; a constraint boundary remains unresolved.') : __('No matching window in the selected observing interval. This does not mean the target never rises.') }}</li>@endforelse</ul>
                     @php
