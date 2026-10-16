@@ -125,6 +125,10 @@ it('follows catalogue paths on this website to the catalogue host', function () 
     $this->get('/api/v1/exoplanets/Proxima%20Cen%20b')
         ->assertRedirect('https://catalogue.test/api/v1/exoplanets/Proxima%20Cen%20b');
 
+    $redirect = $this->get('/api/v1/search?q=Halley')->assertRedirect();
+    expect($redirect->headers->get('Cache-Control'))->toContain('public')
+        ->and($redirect->headers->getCookies())->toBe([]);
+
     $this->post('/api/v1/observing/discover')->assertStatus(405);
     $this->get('/api')->assertOk();
 });
