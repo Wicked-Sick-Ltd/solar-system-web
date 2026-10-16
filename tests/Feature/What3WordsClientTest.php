@@ -74,6 +74,17 @@ it('caches an observatory locate and still leaves the sky-panel lookup uncached'
     Http::assertSentCount(3);
 });
 
+it('accepts a what3words address whose third word looks like a hostname TLD', function () {
+    Http::fake(['api.what3words.com/*' => Http::response([
+        'words' => 'filled.count.info',
+        'nearestPlace' => 'Bayswater, London',
+        'coordinates' => ['lng' => -0.195521, 'lat' => 51.520847],
+    ])]);
+
+    expect(app(What3WordsClient::class)->locate('filled.count.info')['words'])->toBe('filled.count.info');
+    Http::assertSentCount(1);
+});
+
 it('reads a cached reverse address without a second request', function () {
     Http::fake(['api.what3words.com/*' => Http::response([
         'words' => 'index.home.raft',
