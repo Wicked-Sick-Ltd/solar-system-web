@@ -23,6 +23,9 @@ final class Analytics
     /** Query parameters whose values never leave the first party. `s` is the settings share token. */
     public const array REDACTED_QUERY_PARAMS = ['s'];
 
+    /** Try-it parameter names on /api that carry an observer location. */
+    private const array REDACTED_TRY_PARAMS = ['lat', 'lon'];
+
     /** Stands in for a redacted value, so "a share link was opened" still counts without the payload. */
     public const string REDACTED = 'redacted';
 
@@ -60,6 +63,13 @@ final class Analytics
         foreach (self::REDACTED_QUERY_PARAMS as $key) {
             if (array_key_exists($key, $query)) {
                 $query[$key] = self::REDACTED;
+            }
+        }
+        if (isset($query['p']) && is_array($query['p'])) {
+            foreach (self::REDACTED_TRY_PARAMS as $key) {
+                if (array_key_exists($key, $query['p'])) {
+                    $query['p'][$key] = self::REDACTED;
+                }
             }
         }
 
