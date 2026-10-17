@@ -81,7 +81,8 @@ it('serves the sitemap index under both names and lists notable asteroids among 
 
 it('keeps boilerplate out of search snippets and renders the flyby summary once', function () {
     $this->get('/')->assertOk()
-        ->assertSee('<footer class="border-t" style="border-color: var(--border);" data-nosnippet>', false)
+        ->assertSee('<div data-nosnippet class="mx-auto grid', false)
+        ->assertSee('<div data-nosnippet class="border-t"', false)
         ->assertSee('"@type":"WebSite"', false)
         ->assertSee('"@type":"Dataset"', false);
     $this->get('/about')->assertOk()

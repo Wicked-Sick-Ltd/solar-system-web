@@ -1,5 +1,5 @@
-<footer class="border-t" style="border-color: var(--border);" data-nosnippet>
-    <div class="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+<footer class="border-t" style="border-color: var(--border);">
+    <div data-nosnippet class="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div class="sm:col-span-2 lg:col-span-1">
             <div class="flex items-center gap-2.5">
                 <span aria-hidden="true" class="inline-block h-3 w-3 rounded-full"
@@ -61,14 +61,14 @@
     </div>
 
     @if (app(\App\Services\Mailchimp\MailchimpClient::class)->isConfigured())
-        <div class="border-t" style="border-color: var(--border);">
+        <div data-nosnippet class="border-t" style="border-color: var(--border);">
             <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
                 <livewire:newsletter-signup />
             </div>
         </div>
     @endif
 
-    <div class="border-t" style="border-color: var(--border);">
+    <div data-nosnippet class="border-t" style="border-color: var(--border);">
         <div class="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"
              style="color: var(--muted);">
             <p>
