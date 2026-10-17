@@ -16,10 +16,10 @@ it('keeps auth and account pages out of the index under their own titles', funct
 
     $this->get('/register')->assertOk()
         ->assertSee("<title>Create account · {$brand}</title>", false)
-        ->assertSee('<meta name="robots" content="noindex', false);
+        ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
     $this->get('/login')->assertOk()
         ->assertSee("<title>Sign in · {$brand}</title>", false)
-        ->assertSee('<meta name="robots" content="noindex', false);
+        ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
     $this->actingAs(User::factory()->create())->get('/alerts')->assertOk()
         ->assertSee("<title>Your visibility alerts · {$brand}</title>", false)
         ->assertSee('<meta name="robots" content="noindex', false);
@@ -77,4 +77,26 @@ it('serves the sitemap index under both names and lists notable asteroids among 
     Http::assertSent(fn ($request) => str_ends_with((string) parse_url($request->url(), PHP_URL_PATH), '/objects')
         && ($request['type'] ?? null) === 'asteroid'
         && (string) ($request['min_diameter_km'] ?? '') === (string) SitemapBuilder::NOTABLE_ASTEROID_KM);
+});
+
+it('keeps boilerplate out of search snippets and renders the flyby summary once', function () {
+    $this->get('/')->assertOk()
+        ->assertSee('<footer class="border-t" style="border-color: var(--border);" data-nosnippet>', false)
+        ->assertSee('"@type":"WebSite"', false)
+        ->assertSee('"@type":"Dataset"', false);
+    $this->get('/about')->assertOk()
+        ->assertSee('"@type":"WebSite"', false)
+        ->assertSee('"@type":"Dataset"', false);
+
+    $this->travelTo(new DateTimeImmutable('2026-10-10T12:00:00Z'));
+    $html = $this->get('/objects/ast-20099942-apophis')->assertOk()->getContent();
+    expect(substr_count($html, 'The curve is the geocentric path'))->toBe(1);
+});
+
+it('ranks planetary bodies and close-approach objects first in the objects sitemap', function () {
+    $xml = $this->get('/sitemaps/objects.xml')->assertOk()->getContent();
+    preg_match_all('/<priority>([\d.]+)<\/priority>/', $xml, $m);
+    $sorted = $m[1];
+    rsort($sorted, SORT_STRING);
+    expect($m[1])->toBe($sorted)->and($m[1][0])->toBe('0.8');
 });

@@ -16,7 +16,7 @@ final class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
-        app(Seo::class)->title(__('Sign in'))->noindex();
+        app(Seo::class)->title(__('Sign in'))->noindex(nofollow: true);
 
         return view('auth.login');
     }

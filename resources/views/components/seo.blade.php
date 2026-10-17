@@ -8,7 +8,7 @@
 <meta name="description" content="{{ $seo->getDescription() }}">
 <link rel="canonical" href="{{ $seo->getCanonical() }}">
 @if ($seo->isNoindex())
-    <meta name="robots" content="noindex, follow">
+    <meta name="robots" content="noindex, {{ $seo->isNofollow() ? 'nofollow' : 'follow' }}">
 @else
     <meta name="robots" content="index, follow, max-image-preview:large">
 @endif

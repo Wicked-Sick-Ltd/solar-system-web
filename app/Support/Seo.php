@@ -28,6 +28,8 @@ class Seo
 
     private bool $noindex = false;
 
+    private bool $nofollow = false;
+
     /** @var list<array<string,mixed>> */
     private array $jsonLd = [];
 
@@ -80,9 +82,10 @@ class Seo
         return $this;
     }
 
-    public function noindex(bool $noindex = true): static
+    public function noindex(bool $noindex = true, bool $nofollow = false): static
     {
         $this->noindex = $noindex;
+        $this->nofollow = $nofollow;
 
         return $this;
     }
@@ -141,6 +144,11 @@ class Seo
     public function isNoindex(): bool
     {
         return $this->noindex;
+    }
+
+    public function isNofollow(): bool
+    {
+        return $this->nofollow;
     }
 
     /**

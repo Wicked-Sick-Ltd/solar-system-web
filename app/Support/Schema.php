@@ -71,6 +71,38 @@ final class Schema
         return $schema;
     }
 
+    /**
+     * The whole catalogue as one Dataset, for the home, about and API pages.
+     *
+     * @return array<string,mixed>
+     */
+    public static function catalogue(string $url): array
+    {
+        return self::dataset(
+            __(':site solar-system and exoplanet catalogue', ['site' => config('site.name')]),
+            __('Over 1.5 million solar-system objects (planets, moons, dwarf planets, asteroids, comets, trans-Neptunian objects) plus confirmed exoplanets and their host stars, with orbital, physical and discovery data from NASA/JPL, the NASA Exoplanet Archive and the IAU Minor Planet Center. Published nightly as a SQLite database and served by a read-only REST API.'),
+            $url,
+            'astronomy, solar system, asteroids, comets, exoplanets, orbital elements, open data',
+        );
+    }
+
+    /** @return array<string,mixed> */
+    public static function webSite(): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => config('site.name'),
+            'url' => route('home'),
+            'description' => config('site.description'),
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => route('search').'?q={query}',
+                'query-input' => 'required name=query',
+            ],
+        ];
+    }
+
     /** @return array<string,mixed> */
     public static function webApi(): array
     {

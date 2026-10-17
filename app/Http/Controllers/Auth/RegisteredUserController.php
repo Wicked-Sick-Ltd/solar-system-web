@@ -17,7 +17,7 @@ final class RegisteredUserController extends Controller
 {
     public function create(): View
     {
-        app(Seo::class)->title(__('Create account'))->noindex();
+        app(Seo::class)->title(__('Create account'))->noindex(nofollow: true);
 
         return view('auth.register');
     }

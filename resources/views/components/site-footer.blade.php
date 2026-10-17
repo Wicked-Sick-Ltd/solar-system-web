@@ -1,4 +1,4 @@
-<footer class="border-t" style="border-color: var(--border);">
+<footer class="border-t" style="border-color: var(--border);" data-nosnippet>
     <div class="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div class="sm:col-span-2 lg:col-span-1">
             <div class="flex items-center gap-2.5">

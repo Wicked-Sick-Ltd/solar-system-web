@@ -24,12 +24,7 @@ final class ApiPage extends Component
         app(Seo::class)
             ->title(__('Open Astronomy Data: REST API, MCP Server & SQLite Download'))
             ->description(__('Public developer reference for the read-only astronomy catalogue API and its MCP server. Generated from the live OpenAPI document.'))
-            ->jsonLd(Schema::dataset(
-                __(':site solar-system and exoplanet catalogue', ['site' => config('site.name')]),
-                __('Over 1.5 million solar-system objects (planets, moons, dwarf planets, asteroids, comets, trans-Neptunian objects) plus confirmed exoplanets and their host stars, with orbital, physical and discovery data from NASA/JPL, the NASA Exoplanet Archive and the IAU Minor Planet Center. Published nightly as a SQLite database and served by a read-only REST API.'),
-                route('api'),
-                'astronomy, solar system, asteroids, comets, exoplanets, orbital elements, open data',
-            ))
+            ->jsonLd(Schema::catalogue(route('api')))
             ->jsonLd(Schema::webApi());
 
         $document = app(OpenApiCatalogue::class)->document();
