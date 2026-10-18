@@ -11,10 +11,9 @@ community-message dispatcher: rendering copy does not send it anywhere.
 
 ## First release and version policy
 
-`version.txt` starts at `0.0.0`, a bootstrap sentinel, with a draft at
-`resources/releases/1.0.0.json`. The draft is not a public announcement and the
-sentinel publication hook verifies live readiness but inserts no public release. The first community release is planned as
-1.0.0; do not invent historical releases or backdate publication.
+`version.txt` started at `0.0.0`, a bootstrap sentinel under which the publication
+hook verifies live readiness but inserts no public release. The first community
+release is 1.0.0; do not invent historical releases or backdate publication.
 
 Use stable MAJOR.MINOR.PATCH versions. Compatible fixes are patches, features
 are minor releases, and incompatible supported behaviour/integration changes
@@ -176,10 +175,12 @@ Atom and RSS feeds are `/releases/feed.atom` and `/releases/feed.rss`. Reviewed
 community release JSON under `resources/releases/` is a separate publication
 ledger and is not replaced by this file.
 
-## Current unreleased editorial packet
+## Release history
 
-The [1.0.0 review packet](RELEASE-1.0.0-REVIEW.md) maps the expanded draft to its
-unmerged topic PRs and distinguishes forthcoming integration from accepted
-behavior. The [programme gap review](plans/2026-10-02-programme-gap-review.md)
-records remaining work. These review documents and rendered draft notes do not
-change the bootstrap version or authorize publication.
+1.0.0 (prepared 18 October 2026) is the first community release. Its notes live at
+`resources/releases/1.0.0.json` and the technical list in `CHANGELOG.md`. The
+[1.0.0 review packet](RELEASE-1.0.0-REVIEW.md) and the
+[programme gap review](plans/2026-10-02-programme-gap-review.md) are the historical
+editorial record behind it. Merging the release PR sets the version; the notes
+appear at `/whats-new/1.0.0` only after the deployed build passes the live
+readiness check and `universe:releases:publish` records it.

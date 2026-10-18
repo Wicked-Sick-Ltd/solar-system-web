@@ -153,10 +153,10 @@ it('ships the real merged highlights and leaves dependency noise out', function 
         ->and($entries[108]['summary'])->toContain('consent')
         ->and($entries->keys()->all())->not->toContain(103)
         ->and($entries->keys()->all())->not->toContain(15)
-        ->and(app(ChangelogCatalog::class)->groups()[0]['date'])->toBe('2026-10-10');
+        ->and(app(ChangelogCatalog::class)->groups()[0]['date'])->toBe('2026-10-18');
 
     $this->get(route('releases.index'))->assertOk()
-        ->assertSee('10 October 2026')
+        ->assertSee('18 October 2026')
         ->assertSee('galaxy map')
         ->assertSee('Pull request 110')
         ->assertSee(route('releases.feed'), false);

@@ -1,11 +1,161 @@
 {
     "repository": "Wicked-Sick-Ltd/solar-system-web",
-    "generated_at": "2026-10-10T16:37:44Z",
+    "generated_at": "2026-10-18T09:19:55Z",
     "groups": [
+        {
+            "date": "2026-10-18",
+            "version": null,
+            "entries": [
+                {
+                    "number": 141,
+                    "title": "feat(seo): nosnippet boilerplate, nofollow auth gates, single flyby summary, home/about schema, ranked objects sitemap",
+                    "type": "feat",
+                    "scope": "seo",
+                    "summary": "Nosnippet boilerplate, nofollow auth gates, single flyby summary, home/about schema, ranked objects sitemap.",
+                    "merged_at": "2026-10-18T09:18:13Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/141"
+                }
+            ]
+        },
+        {
+            "date": "2026-10-16",
+            "version": null,
+            "entries": [
+                {
+                    "number": 140,
+                    "title": "fix: triage unaddressed review follow-ups (#126–#132)",
+                    "type": "fix",
+                    "scope": null,
+                    "summary": "Triage unaddressed review follow-ups (#126–#132).",
+                    "merged_at": "2026-10-16T18:03:59Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/140"
+                }
+            ]
+        },
+        {
+            "date": "2026-10-15",
+            "version": null,
+            "entries": [
+                {
+                    "number": 138,
+                    "title": "feat(seo): noindex auth pages, descriptive titles, object summaries and Dataset/WebAPI/LearningResource JSON-LD",
+                    "type": "feat",
+                    "scope": "seo",
+                    "summary": "Noindex auth pages, descriptive titles, object summaries and Dataset/WebAPI/LearningResource JSON-LD.",
+                    "merged_at": "2026-10-15T16:02:19Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/138"
+                }
+            ]
+        },
+        {
+            "date": "2026-10-14",
+            "version": null,
+            "entries": [
+                {
+                    "number": 134,
+                    "title": "feat(api): advertise api.publicuniverse.net as the catalogue API hostname",
+                    "type": "feat",
+                    "scope": "api",
+                    "summary": "Advertise api.publicuniverse.net as the catalogue API hostname.",
+                    "merged_at": "2026-10-14T18:19:02Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/134"
+                }
+            ]
+        },
+        {
+            "date": "2026-10-13",
+            "version": null,
+            "entries": [
+                {
+                    "number": 133,
+                    "title": "feat(api): fetch the catalogue over the internal network, keep public URL for visitor links",
+                    "type": "feat",
+                    "scope": "api",
+                    "summary": "Fetch the catalogue over the internal network, keep public URL for visitor links.",
+                    "merged_at": "2026-10-13T11:09:44Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/133"
+                }
+            ]
+        },
+        {
+            "date": "2026-10-12",
+            "version": null,
+            "entries": [
+                {
+                    "number": 125,
+                    "title": "feat: link official Public Universe social profiles",
+                    "type": "feat",
+                    "scope": null,
+                    "summary": "Link official Public Universe social profiles.",
+                    "merged_at": "2026-10-12T20:30:36Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/125"
+                }
+            ]
+        },
+        {
+            "date": "2026-10-11",
+            "version": null,
+            "entries": [
+                {
+                    "number": 124,
+                    "title": "fix: Public Universe launch must-fixes (plugin links, catalogue download, credits)",
+                    "type": "fix",
+                    "scope": null,
+                    "summary": "Public Universe launch must-fixes (plugin links, catalogue download, credits).",
+                    "merged_at": "2026-10-11T18:06:20Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/124"
+                },
+                {
+                    "number": 123,
+                    "title": "fix(seo): static public/robots.txt (live /robots.txt returns 404 with the right body)",
+                    "type": "fix",
+                    "scope": "seo",
+                    "summary": "Static public/robots.txt (live /robots.txt returns 404 with the right body).",
+                    "merged_at": "2026-10-11T08:28:45Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/123"
+                }
+            ]
+        },
         {
             "date": "2026-10-10",
             "version": null,
             "entries": [
+                {
+                    "number": 122,
+                    "title": "feat(sitemap): index exoplanet and host-system pages",
+                    "type": "feat",
+                    "scope": "sitemap",
+                    "summary": "Index exoplanet and host-system pages.",
+                    "merged_at": "2026-10-10T18:13:31Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/122"
+                },
+                {
+                    "number": 121,
+                    "title": "feat(observatory): locate a site from a what3words address",
+                    "type": "feat",
+                    "scope": "observatory",
+                    "summary": "Locate a site from a what3words address.",
+                    "merged_at": "2026-10-10T18:04:53Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/121"
+                },
+                {
+                    "number": 120,
+                    "title": "fix(home): place featured today above the next close approach",
+                    "type": "fix",
+                    "scope": "home",
+                    "summary": "Place featured today above the next close approach.",
+                    "merged_at": "2026-10-10T17:40:39Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/120"
+                },
+                {
+                    "number": 119,
+                    "title": "fix(api): catalogue search paths and night try-it",
+                    "type": "fix",
+                    "scope": "api",
+                    "summary": "Catalogue search paths and night try-it.",
+                    "merged_at": "2026-10-10T16:49:50Z",
+                    "url": "https://github.com/Wicked-Sick-Ltd/solar-system-web/pull/119"
+                },
                 {
                     "number": 118,
                     "title": "feat(objects): add an ecliptic flyby diagram for close approaches",
