@@ -8,7 +8,7 @@
     Loading and Consent Mode live in resources/js/analytics-consent.js.
 --}}
 @if (\App\Support\Analytics::measurementId())
-<div id="cookie-banner" x-data="cookieConsent()" x-init="init()" x-show="open" x-cloak
+<div id="cookie-banner" data-nosnippet x-data="cookieConsent()" x-init="init()" x-show="open" x-cloak
      class="fixed inset-x-0 bottom-0 z-40 border-t p-4 sm:p-5"
      style="background-color: var(--bg-elevated); border-color: var(--border); box-shadow: 0 -8px 32px rgba(0,0,0,.35);"
      role="region" aria-label="{{ __('Cookie consent') }}">

@@ -4,9 +4,8 @@
 <figure {{ $attributes->merge(['class' => 'flyby-diagram min-w-0']) }} data-flyby @if ($frame->compact) data-flyby-compact @endif>
     <figcaption id="flyby-heading" class="mb-3 font-serif font-medium {{ $frame->compact ? 'text-base' : 'text-xl' }}">{{ __('Flyby geometry') }}</figcaption>
     <svg viewBox="0 0 {{ $frame->width }} {{ $frame->height }}"
-         class="h-auto w-full max-w-full" role="img" aria-labelledby="flyby-title flyby-desc">
+         class="h-auto w-full max-w-full" role="img" aria-labelledby="flyby-title" aria-describedby="flyby-summary">
         <title id="flyby-title">{{ $frame->title }}</title>
-        <desc id="flyby-desc">{{ $frame->summary }}</desc>
 
         <rect x="0.5" y="0.5" width="{{ $frame->width - 1 }}" height="{{ $frame->height - 1 }}"
               class="flyby-frame" rx="12" />

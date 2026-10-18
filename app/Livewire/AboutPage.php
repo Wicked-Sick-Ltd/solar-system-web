@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\Schema;
 use App\Support\Seo;
 use App\Support\Social;
 use Illuminate\Contracts\View\View;
@@ -20,7 +21,9 @@ final class AboutPage extends Component
         app(Seo::class)
             ->title(__('About'))
             ->description(__('What this site is, where the data comes from, how it is licensed, and how to use the API yourself.'))
-            ->jsonLd(Social::organizationSchema());
+            ->jsonLd(Social::organizationSchema())
+            ->jsonLd(Schema::webSite())
+            ->jsonLd(Schema::catalogue(route('about')));
 
         $sources = [];
         try {

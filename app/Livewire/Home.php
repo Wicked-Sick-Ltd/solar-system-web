@@ -9,6 +9,7 @@ use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
 use App\Support\Links;
 use App\Support\ObjectOfTheDay;
+use App\Support\Schema;
 use App\Support\Seo;
 use App\Support\Social;
 use Illuminate\Contracts\View\View;
@@ -23,8 +24,9 @@ final class Home extends Component
         app(Seo::class)
             ->title(null)
             ->description(config('site.description'))
-            ->jsonLd($this->websiteSchema())
-            ->jsonLd(Social::organizationSchema());
+            ->jsonLd(Schema::webSite())
+            ->jsonLd(Social::organizationSchema())
+            ->jsonLd(Schema::catalogue(route('home')));
 
         $stats = null;
         $featured = null;
@@ -64,23 +66,6 @@ final class Home extends Component
                 'blurb' => __('Icy visitors on long, looping orbits — Halley and its many cousins.')],
             ['label' => __('Trans-Neptunian'), 'route' => 'tnos', 'count' => $stats?->transNeptunian(),
                 'blurb' => __('The Kuiper Belt, scattered disc and the centaurs beyond Neptune.')],
-        ];
-    }
-
-    /** @return array<string,mixed> */
-    private function websiteSchema(): array
-    {
-        return [
-            '@context' => 'https://schema.org',
-            '@type' => 'WebSite',
-            'name' => config('site.name'),
-            'url' => route('home'),
-            'description' => config('site.description'),
-            'potentialAction' => [
-                '@type' => 'SearchAction',
-                'target' => route('search').'?q={query}',
-                'query-input' => 'required name=query',
-            ],
         ];
     }
 }

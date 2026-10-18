@@ -143,39 +143,44 @@ final class SitemapBuilder
      */
     private function objects(?string $lastmod): array
     {
+        // id => priority; planetary bodies and close-approach objects outrank the rest.
         $ids = [];
+        $add = function (string $id, string $priority) use (&$ids): void {
+            $ids[$id] = max($ids[$id] ?? '0', $priority);
+        };
         foreach ($this->api->dwarfPlanets(true) as $object) {
-            $ids[$object->id] = true;
+            $add($object->id, '0.8');
         }
-        foreach (['planet', 'moon'] as $type) {
-            foreach ($this->walkObjects($type) as $id) {
-                $ids[$id] = true;
-            }
+        foreach ($this->walkObjects('planet') as $id) {
+            $add($id, '0.8');
+        }
+        foreach ($this->walkObjects('moon') as $id) {
+            $add($id, '0.6');
         }
         foreach ($this->walkObjects('asteroid', ['min_diameter_km' => self::NOTABLE_ASTEROID_KM]) as $id) {
-            $ids[$id] = true;
+            $add($id, '0.6');
         }
         foreach ($this->api->periodicComets(self::LIST_LIMIT) as $object) {
-            $ids[$object->id] = true;
+            $add($object->id, '0.6');
         }
         foreach ($this->api->neos(self::LIST_LIMIT) as $object) {
-            $ids[$object->id] = true;
+            $add($object->id, '0.7');
         }
         foreach ($this->api->tnos(self::LIST_LIMIT) as $object) {
-            $ids[$object->id] = true;
+            $add($object->id, '0.6');
         }
 
         $entries = [];
-        foreach (array_keys($ids) as $id) {
+        foreach ($ids as $id => $priority) {
             if ($id === '') {
                 continue;
             }
-            $entry = $this->entry(IndexableUrl::forRoute('objects.show', ['slug' => $id]), $lastmod, '0.6');
+            $entry = $this->entry(IndexableUrl::forRoute('objects.show', ['slug' => (string) $id]), $lastmod, $priority);
             if ($entry !== null) {
                 $entries[] = $entry;
             }
         }
-        usort($entries, fn (array $a, array $b): int => $a['loc'] <=> $b['loc']);
+        usort($entries, fn (array $a, array $b): int => [$b['priority'], $a['loc']] <=> [$a['priority'], $b['loc']]);
 
         return $entries;
     }
