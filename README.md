@@ -268,5 +268,5 @@ paginated alternative to the 3D map that works without JavaScript.
 
 [Release workflow](docs/releases.md) covers reviewed community notes, the public
 `/whats-new` history, versioning, CI metadata checks and deployment verification.
-Start with `php artisan universe:releases:render 1.0.0` to preview the first draft
+Start with `php artisan universe:releases:render 1.0.0` to preview the current notes
 locally. This does not publish or send an announcement.
