@@ -69,11 +69,14 @@ test('container initialization publishes the redacted page location and disables
     assert.equal(plain()[0].page_location.includes('SECRET'), false);
     assert.equal(pageViews().length, 0);
 
+    const prior = state.page;
     state.page = 'https://publicuniverse.net/observe/night?lat=redacted&lon=redacted';
     document.dispatchEvent(new Event('livewire:navigated'));
     assert.equal(sets().at(-1)[1].page_location, state.page);
     assert.equal(sets().at(-1)[1].send_page_view, false);
+    assert.equal(sets().at(-1)[1].page_referrer, prior);
     assert.equal(plain().at(-1).page_location, state.page);
+    assert.equal(plain().at(-1).page_referrer, prior);
     assert.equal(pageViews().length, 0);
     assert.equal(JSON.stringify(sets()).includes('12.34567'), false);
 });
@@ -129,6 +132,55 @@ test('container initialization redacts coordinates in a same-origin page referre
     assert.equal(brokenReferrer.page_referrer, '');
 });
 
+test('container initialization redacts bracketed descendants of sensitive query parameters', () => {
+    const referrer = 'https://publicuniverse.test/api?lat[]=51.5&p[lon][]=1.23456&s[]=PRIVATE_SETTINGS&targets=moon';
+    const { window } = boot(null, 'GTM-M8THNDPH', referrer);
+    const published = window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
+    const decoded = decodeURIComponent(published);
+
+    assert.equal(decoded.includes('lat[]=redacted'), true);
+    assert.equal(decoded.includes('p[lon][]=redacted'), true);
+    assert.equal(decoded.includes('s[]=redacted'), true);
+    assert.equal(decoded.includes('targets=moon'), true);
+    assert.equal(published.includes('51.5'), false);
+    assert.equal(published.includes('1.23456'), false);
+    assert.equal(published.includes('PRIVATE_SETTINGS'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('PRIVATE_SETTINGS'), false);
+});
+
+test('Livewire navigation uses the previous redacted page as page_referrer', () => {
+    const { state, document, window, commands, pageViews } = boot(null, 'GTM-M8THNDPH', 'https://publicuniverse.test/api?p[lat]=51.5&p[lon]=-0.1');
+    const plain = () => window.dataLayer.filter((entry) => entry && Object.prototype.hasOwnProperty.call(entry, 'page_referrer') && entry[0] === undefined);
+    const sets = () => commands().filter((entry) => entry[0] === 'set' && entry[1] && typeof entry[1] === 'object' && Object.prototype.hasOwnProperty.call(entry[1], 'page_referrer'));
+    const prior = state.page;
+
+    assert.match(decodeURIComponent(plain()[0].page_referrer), /p\[lat\]=redacted/);
+    assert.equal(plain()[0].page_referrer.includes('51.5'), false);
+
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(plain().at(-1).page_referrer, plain()[0].page_referrer);
+
+    state.page = 'https://publicuniverse.net/privacy';
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(plain().at(-1).page_location, state.page);
+    assert.equal(plain().at(-1).page_referrer, prior);
+    assert.equal(sets().at(-1)[1].page_referrer, prior);
+    assert.equal(plain().at(-1).page_referrer.includes('51.5'), false);
+
+    window.publicUniverseAnalytics.choose('all');
+    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews()[0][2].page_location, state.page);
+    assert.equal(pageViews()[0][2].page_referrer, prior);
+
+    const next = 'https://publicuniverse.net/about';
+    state.page = next;
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(plain().at(-1).page_referrer, 'https://publicuniverse.net/privacy');
+    assert.equal(pageViews().at(-1)[2].page_referrer, 'https://publicuniverse.net/privacy');
+    assert.equal(pageViews().at(-1)[2].page_location, next);
+});
+
 test('Consent Mode v2 denies analytics storage and does not load Google before consent', () => {
     const { scripts, commands } = boot();
     const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
@@ -170,6 +222,7 @@ test('opting in loads gtag once and reports the redacted page, then Livewire nav
     document.dispatchEvent(new Event('livewire:navigated'));
     assert.equal(pageViews().length, 2);
     assert.equal(pageViews()[1][2].page_location, 'https://publicuniverse.net/privacy');
+    assert.equal(pageViews()[1][2].page_referrer, 'https://publicuniverse.net/objects/mars');
     assert.equal(pageViews()[1][2].page_title, 'Privacy & cookies');
     assert.equal(scripts.length, 1);
 });

@@ -5,10 +5,15 @@
 // file does not inject it. Before the snippet runs, and again after each
 // Livewire navigation, the redacted address from
 // <meta name="ga-page-location"> is written to dataLayer and gtag('set'),
-// with page_referrer taken from document.referrer after the same sensitive
-// query parameters are removed. Container tags then use those values instead
-// of the address bar and the raw referrer, including cookieless hits while
-// storage is denied. Automatic page views stay off;
+// with page_referrer. The first publication uses document.referrer after the
+// same sensitive query parameters are removed, including bracketed forms such
+// as lat[] and p[lon][]. Livewire fires navigated once on boot without
+// changing the page, and that keeps the landing referrer. A later navigated
+// event whose address changed uses the previous redacted page_location,
+// because document.referrer does not update on wire:navigate. Container tags
+// then use those values instead of the address bar and the raw referrer,
+// including cookieless hits while storage is denied. Automatic page views
+// stay off;
 // a page_view event is sent only after cookie_consent=all. gtag.js is
 // injected only after that choice, and only when a GA4 measurement id is
 // set. Accepting analytics with Tag Manager alone updates consent so the
@@ -22,6 +27,10 @@
     var COOKIE = 'cookie_consent'; // App\Support\Analytics::CONSENT_COOKIE
     var ONE_YEAR = 31536000;
     var lastLocation = null;
+    // Last redacted page_location already given to tags, and the referrer that
+    // belonged to it. Null until the first publication.
+    var publishedLocation = null;
+    var publishedReferrer = null;
 
     function gtag() {
         window.dataLayer.push(arguments);
@@ -51,6 +60,12 @@
         return value || (location.origin + location.pathname);
     }
 
+    function isSensitiveAnalyticsParam(key) {
+        // PHP parses lat[], s[], and p[lon][] as nested arrays and redacts the
+        // whole value. Match the name and any bracketed descendant of it.
+        return /^(?:s|lat|lon|p\[(?:lat|lon)\])(?:\[.*\])?$/i.test(key);
+    }
+
     function sanitizeAnalyticsUrl(value) {
         // Same-origin navigations keep the full query string in
         // document.referrer. GA4 copies that into page_referrer on its own,
@@ -68,19 +83,28 @@
         if (url.protocol !== 'http:' && url.protocol !== 'https:') {
             return '';
         }
-        ['s', 'lat', 'lon'].forEach(function (key) {
-            if (url.searchParams.has(key)) {
-                url.searchParams.set(key, 'redacted');
-            }
+        var keys = [];
+        url.searchParams.forEach(function (paramValue, key) {
+            keys.push(key);
         });
-        ['lat', 'lon'].forEach(function (key) {
-            var nested = 'p[' + key + ']';
-            if (url.searchParams.has(nested)) {
-                url.searchParams.set(nested, 'redacted');
+        keys.forEach(function (key) {
+            if (isSensitiveAnalyticsParam(key)) {
+                url.searchParams.set(key, 'redacted');
             }
         });
 
         return url.toString();
+    }
+
+    function referrerFor(page) {
+        // A changed address reports the previous redacted page. The same
+        // address, including Livewire's boot event, keeps the referrer already
+        // chosen for this page (the sanitized document.referrer at first).
+        if (publishedLocation !== null && publishedLocation !== page) {
+            return publishedLocation;
+        }
+
+        return publishedReferrer === null ? '' : publishedReferrer;
     }
 
     function read() {
@@ -136,7 +160,10 @@
         if (!page) {
             return '';
         }
-        var referrer = sanitizeAnalyticsUrl(document.referrer);
+        if (publishedReferrer === null) {
+            publishedReferrer = sanitizeAnalyticsUrl(document.referrer);
+        }
+        var referrer = referrerFor(page);
         window.dataLayer.push({
             page_location: page,
             page_referrer: referrer,
@@ -146,6 +173,10 @@
             page_referrer: referrer,
             send_page_view: false,
         });
+        if (publishedLocation !== null && publishedLocation !== page) {
+            publishedReferrer = publishedLocation;
+        }
+        publishedLocation = page;
 
         return page;
     }
@@ -158,11 +189,12 @@
         if (!page || page === lastLocation) {
             return;
         }
+        var referrer = referrerFor(page);
         lastLocation = page;
         window.gtag('event', 'page_view', {
             page_title: document.title,
             page_location: page,
-            page_referrer: sanitizeAnalyticsUrl(document.referrer),
+            page_referrer: referrer,
         });
     }
 
