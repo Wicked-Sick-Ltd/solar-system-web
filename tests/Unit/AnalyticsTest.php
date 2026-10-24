@@ -76,6 +76,8 @@ it('ships the consent script that Livewire navigation can call', function () {
         ->toContain('window.dataLayer.push({')
         ->toContain("window.gtag('set', {")
         ->toContain('page_location: page')
+        ->toContain('page_referrer: referrer')
+        ->toContain('sanitizeAnalyticsUrl(document.referrer)')
         ->toContain('send_page_view: false')
         ->toContain("addEventListener('livewire:navigated'")
         ->toContain('publishPageLocation();')

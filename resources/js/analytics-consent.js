@@ -4,9 +4,11 @@
 // snippet is part of the document when a container id is configured; this
 // file does not inject it. Before the snippet runs, and again after each
 // Livewire navigation, the redacted address from
-// <meta name="ga-page-location"> is written to dataLayer and gtag('set').
-// Container tags then use that address instead of location.href, including
-// cookieless hits while storage is denied. Automatic page views stay off;
+// <meta name="ga-page-location"> is written to dataLayer and gtag('set'),
+// with page_referrer taken from document.referrer after the same sensitive
+// query parameters are removed. Container tags then use those values instead
+// of the address bar and the raw referrer, including cookieless hits while
+// storage is denied. Automatic page views stay off;
 // a page_view event is sent only after cookie_consent=all. gtag.js is
 // injected only after that choice, and only when a GA4 measurement id is
 // set. Accepting analytics with Tag Manager alone updates consent so the
@@ -47,6 +49,38 @@
         var value = meta && meta.getAttribute('content');
 
         return value || (location.origin + location.pathname);
+    }
+
+    function sanitizeAnalyticsUrl(value) {
+        // Same-origin navigations keep the full query string in
+        // document.referrer. GA4 copies that into page_referrer on its own,
+        // so the parameters page_location already redacts are removed here.
+        // An empty or unparseable referrer is reported as an empty string.
+        if (typeof value !== 'string' || value === '') {
+            return '';
+        }
+        var url;
+        try {
+            url = new URL(value);
+        } catch (error) {
+            return '';
+        }
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            return '';
+        }
+        ['s', 'lat', 'lon'].forEach(function (key) {
+            if (url.searchParams.has(key)) {
+                url.searchParams.set(key, 'redacted');
+            }
+        });
+        ['lat', 'lon'].forEach(function (key) {
+            var nested = 'p[' + key + ']';
+            if (url.searchParams.has(nested)) {
+                url.searchParams.set(nested, 'redacted');
+            }
+        });
+
+        return url.toString();
     }
 
     function read() {
@@ -94,18 +128,22 @@
     }
 
     function publishPageLocation() {
-        // Container-managed tags read the address bar unless this is already
-        // in the dataLayer when they initialise, and again when the page changes
-        // without a reload. The manual page_view below is the only page view.
+        // Container-managed tags read the address bar and document.referrer
+        // unless both are already in the dataLayer when they initialise, and
+        // again when the page changes without a reload. The manual page_view
+        // below is the only page view.
         var page = pageLocation();
         if (!page) {
             return '';
         }
+        var referrer = sanitizeAnalyticsUrl(document.referrer);
         window.dataLayer.push({
             page_location: page,
+            page_referrer: referrer,
         });
         window.gtag('set', {
             page_location: page,
+            page_referrer: referrer,
             send_page_view: false,
         });
 
@@ -124,6 +162,7 @@
         window.gtag('event', 'page_view', {
             page_title: document.title,
             page_location: page,
+            page_referrer: sanitizeAnalyticsUrl(document.referrer),
         });
     }
 

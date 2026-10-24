@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../../resources/js/analytics-consent.js', import.meta.url), 'utf8');
 
-function boot(id = 'G-TEST1234', gtm = null) {
+function boot(id = 'G-TEST1234', gtm = null, referrer = '') {
     const state = {
         id,
         gtm,
@@ -37,6 +37,7 @@ function boot(id = 'G-TEST1234', gtm = null) {
             else jar.set(name, pair.slice(eq + 1));
         },
     });
+    document.referrer = referrer;
     const location = {
         protocol: 'https:',
         hostname: 'publicuniverse.net',
@@ -46,7 +47,7 @@ function boot(id = 'G-TEST1234', gtm = null) {
         reload() { state.reloads += 1; },
     };
     const window = { document, location };
-    runInNewContext(source, { window, document, location });
+    runInNewContext(source, { window, document, location, URL });
     const commands = () => window.dataLayer.map((entry) => Array.from(entry));
     const pageViews = () => commands().filter((entry) => entry[0] === 'event' && entry[1] === 'page_view');
     return { state, scripts, jar, document, window, commands, pageViews };
@@ -62,6 +63,8 @@ test('container initialization publishes the redacted page location and disables
     assert.equal(sets()[0][1].send_page_view, false);
     assert.equal(plain().length, 1);
     assert.equal(plain()[0].page_location, 'https://publicuniverse.net/objects/mars');
+    assert.equal(plain()[0].page_referrer, '');
+    assert.equal(sets()[0][1].page_referrer, '');
     assert.equal(JSON.stringify(sets()).includes('SECRET'), false);
     assert.equal(plain()[0].page_location.includes('SECRET'), false);
     assert.equal(pageViews().length, 0);
@@ -73,6 +76,57 @@ test('container initialization publishes the redacted page location and disables
     assert.equal(plain().at(-1).page_location, state.page);
     assert.equal(pageViews().length, 0);
     assert.equal(JSON.stringify(sets()).includes('12.34567'), false);
+});
+
+test('container initialization redacts coordinates in a same-origin page referrer', () => {
+    const referrer = 'https://publicuniverse.test/api?p[lat]=51.5&p[lon]=-0.1';
+    const { document, window, commands, pageViews } = boot(null, 'GTM-M8THNDPH', referrer);
+    const plain = () => window.dataLayer.filter((entry) => entry && Object.prototype.hasOwnProperty.call(entry, 'page_referrer') && entry[0] === undefined);
+    const sets = () => commands().filter((entry) => entry[0] === 'set' && entry[1] && typeof entry[1] === 'object' && Object.prototype.hasOwnProperty.call(entry[1], 'page_referrer'));
+
+    assert.equal(plain().length, 1);
+    const published = plain()[0].page_referrer;
+    assert.equal(published.includes('51.5'), false);
+    assert.equal(published.includes('-0.1'), false);
+    assert.match(decodeURIComponent(published), /p\[lat\]=redacted/);
+    assert.match(decodeURIComponent(published), /p\[lon\]=redacted/);
+    assert.equal(published.startsWith('https://publicuniverse.test/api?'), true);
+    assert.equal(sets()[0][1].page_referrer, published);
+    assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('-0.1'), false);
+    assert.equal(pageViews().length, 0);
+
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(plain().at(-1).page_referrer, published);
+    assert.equal(sets().at(-1)[1].page_referrer, published);
+    assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
+
+    window.publicUniverseAnalytics.choose('all');
+    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews()[0][2].page_referrer, published);
+    assert.equal(JSON.stringify(pageViews()).includes('51.5'), false);
+    assert.equal(JSON.stringify(pageViews()).includes('-0.1'), false);
+
+    const located = boot(null, 'GTM-M8THNDPH', 'https://publicuniverse.net/observe/night?lat=12.34567&lon=1.23456&targets=moon');
+    const locatedReferrer = located.window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
+    assert.equal(decodeURIComponent(locatedReferrer).includes('lat=redacted'), true);
+    assert.equal(decodeURIComponent(locatedReferrer).includes('lon=redacted'), true);
+    assert.equal(decodeURIComponent(locatedReferrer).includes('targets=moon'), true);
+    assert.equal(locatedReferrer.includes('12.34567'), false);
+    assert.equal(locatedReferrer.includes('1.23456'), false);
+
+    const shared = boot(null, 'GTM-M8THNDPH', 'https://publicuniverse.net/settings?s=SECRET');
+    const sharedReferrer = shared.window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
+    assert.equal(decodeURIComponent(sharedReferrer).includes('s=redacted'), true);
+    assert.equal(sharedReferrer.includes('SECRET'), false);
+
+    const empty = boot(null, 'GTM-M8THNDPH', '');
+    const emptyReferrer = empty.window.dataLayer.find((entry) => entry && Object.prototype.hasOwnProperty.call(entry, 'page_referrer') && entry[0] === undefined);
+    assert.equal(emptyReferrer.page_referrer, '');
+
+    const broken = boot(null, 'GTM-M8THNDPH', 'not a url');
+    const brokenReferrer = broken.window.dataLayer.find((entry) => entry && Object.prototype.hasOwnProperty.call(entry, 'page_referrer') && entry[0] === undefined);
+    assert.equal(brokenReferrer.page_referrer, '');
 });
 
 test('Consent Mode v2 denies analytics storage and does not load Google before consent', () => {

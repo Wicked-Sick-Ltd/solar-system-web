@@ -277,6 +277,8 @@ it('gives container tags the redacted page location before Tag Manager starts', 
         ->and($beforeContainer)->toContain('window.dataLayer.push({')
         ->and($beforeContainer)->toContain("window.gtag('set', {")
         ->and($beforeContainer)->toContain('page_location: page')
+        ->and($beforeContainer)->toContain('page_referrer: referrer')
+        ->and($beforeContainer)->toContain('sanitizeAnalyticsUrl(document.referrer)')
         ->and($beforeContainer)->toContain('send_page_view: false')
         ->and($html)->not->toContain('page_location: location.href')
         ->and($html)->not->toContain('page_location: location')
