@@ -210,7 +210,7 @@ test('Livewire navigation uses the previous redacted page as page_referrer', () 
 });
 
 test('history changes publish the redacted page before later listeners and do not page-view before consent', () => {
-    const { state, document, window, history, historyListeners, commands, pageViews } = boot(null, 'GTM-M8THNDPH');
+    const { state, document, window, history, historyListeners, pageViews } = boot(null, 'GTM-M8THNDPH');
     const plain = () => window.dataLayer.filter((entry) => entry && entry.page_location && entry[0] === undefined);
     const prior = state.page;
     const sensitive = 'https://publicuniverse.net/privacy?lat=51.5&lon=-0.1&s=SECRET';
