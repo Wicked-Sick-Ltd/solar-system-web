@@ -40,6 +40,13 @@
     @livewireStyles
 </head>
 <body class="min-h-screen antialiased" style="background-color: var(--bg); color: var(--text);">
+    {{-- The noscript image cannot run Consent Mode. Render it only after the server has read cookie_consent=all. Any request carrying that cookie is already private and uncached, so the shared anonymous HTML never includes the image. --}}
+    @if (\App\Support\Analytics::gtmContainerId() && \App\Support\Analytics::hasServerOptIn())
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ \App\Support\Analytics::gtmContainerId() }}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    @endif
     <a href="#main"
        class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:m-3 focus:rounded-lg focus:px-4 focus:py-2 focus:font-medium"
        style="background-color: var(--accent-fill); color: var(--on-accent);">
