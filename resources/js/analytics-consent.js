@@ -138,22 +138,28 @@
 
     function phpAssign(root, key, value) {
         var bracket = key.indexOf('[');
-        if (bracket <= 0 || key.charAt(key.length - 1) !== ']') {
+        if (bracket <= 0) {
             bagSet(root, phpNormalizeName(key), value);
             return;
         }
         var name = phpNormalizeName(key.slice(0, bracket));
         var rest = key.slice(bracket);
         var segments = [];
-        var re = /\[([^\]]*)\]/g;
-        var match;
-        var consumed = 0;
-        while ((match = re.exec(rest))) {
-            segments.push(match[1]);
-            consumed = re.lastIndex;
+        var pos = 0;
+        // parse_str keeps each complete [...] that follows immediately, then
+        // ignores the rest. p[lat]extra and lat[0]extra are p[lat] and lat[0],
+        // and p[lat]extra[lon] does not become a second index.
+        while (pos < rest.length && rest.charAt(pos) === '[') {
+            var close = rest.indexOf(']', pos + 1);
+            if (close === -1) {
+                break;
+            }
+            segments.push(rest.slice(pos + 1, close));
+            pos = close + 1;
         }
-        if (consumed !== rest.length || segments.length === 0) {
-            bagSet(root, phpNormalizeName(key), value);
+        if (segments.length === 0) {
+            // An unclosed bracket is not an array access. PHP turns each `[` into `_`.
+            bagSet(root, phpNormalizeName(key.replace(/\[/g, '_')), value);
             return;
         }
         if (!bagHas(root, name) || !isQueryBag(root.vals[name])) {
@@ -273,8 +279,12 @@
         }
         var search = url.search.charAt(0) === '?' ? url.search.slice(1) : url.search;
         var built = buildQuery(redactQuery(phpParseQuery(search)));
+        // Request::url() trims every trailing slash, so the homepage is
+        // https://example.test and /objects/mars/ is /objects/mars. Leaving
+        // the slash in would make popstate and the server meta two addresses.
+        var base = (url.origin + url.pathname).replace(/\/+$/, '');
 
-        return url.origin + url.pathname + (built === '' ? '' : '?' + built) + (url.hash || '');
+        return base + (built === '' ? '' : '?' + built) + (url.hash || '');
     }
 
     function referrerFor(page) {
