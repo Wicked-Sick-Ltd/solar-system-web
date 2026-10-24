@@ -2,28 +2,38 @@
 
 declare(strict_types=1);
 
+use App\Support\Analytics;
 use App\Support\SettingsPayload;
 
 beforeEach(fn () => fakeSolar());
 
-it('ships no analytics and no consent banner when no measurement id is configured', function () {
-    config(['site.analytics.ga_measurement_id' => null]);
+it('ships no analytics and no consent banner when neither GA4 nor Tag Manager is configured', function () {
+    config([
+        'site.analytics.ga_measurement_id' => null,
+        'site.analytics.gtm_container_id' => null,
+    ]);
 
     // Only essential cookies are set, which need no consent under PECR.
     $this->get('/')
         ->assertOk()
         ->assertDontSee('googletagmanager.com', escape: false)
         ->assertDontSee('<meta name="ga-measurement-id"', escape: false)
+        ->assertDontSee('<meta name="gtm-container-id"', escape: false)
         ->assertDontSee('id="cookie-banner"', escape: false);
 });
 
 it('exposes the measurement id but never loads gtag server-side, only behind consent', function () {
-    config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
+    config([
+        'site.analytics.ga_measurement_id' => 'G-TEST1234',
+        'site.analytics.gtm_container_id' => null,
+    ]);
 
     $this->get('/')
         ->assertOk()
         ->assertSee('name="ga-measurement-id" content="G-TEST1234"', escape: false)
         ->assertDontSee('<script async src="https://www.googletagmanager.com', escape: false)
+        ->assertDontSee('gtm.js?id=', escape: false)
+        ->assertDontSee('ns.html?id=', escape: false)
         ->assertSee('cookie_consent', escape: false);
 });
 
@@ -71,13 +81,29 @@ it('shows a cookie banner that links to the privacy policy when analytics is ena
 });
 
 it('ignores a measurement id that is not a GA4 id', function () {
-    config(['site.analytics.ga_measurement_id' => 'G-NO<script>']);
+    config([
+        'site.analytics.ga_measurement_id' => 'G-NO<script>',
+        'site.analytics.gtm_container_id' => null,
+    ]);
 
     $this->get('/')
         ->assertOk()
         ->assertDontSee('googletagmanager.com', escape: false)
         ->assertDontSee('id="cookie-banner"', escape: false)
         ->assertDontSee('ga-measurement-id', escape: false);
+});
+
+it('ignores a container id that is not a GTM id', function () {
+    config([
+        'site.analytics.ga_measurement_id' => null,
+        'site.analytics.gtm_container_id' => 'GTM-NO<script>',
+    ]);
+
+    $this->get('/')
+        ->assertOk()
+        ->assertDontSee('googletagmanager.com', escape: false)
+        ->assertDontSee('id="cookie-banner"', escape: false)
+        ->assertDontSee('gtm-container-id', escape: false);
 });
 
 it('defaults analytics storage to denied and sends page views after Livewire navigation', function () {
@@ -109,9 +135,15 @@ it('defaults analytics storage to denied and sends page views after Livewire nav
 });
 
 it('explains Google Analytics 4 and Consent Mode, with choices only when it is switched on', function () {
+    config([
+        'site.analytics.ga_measurement_id' => null,
+        'site.analytics.gtm_container_id' => null,
+    ]);
+
     $this->get('/privacy')
         ->assertOk()
         ->assertSee('Google Analytics 4')
+        ->assertSee('Google Tag Manager')
         ->assertSee('Consent Mode v2')
         ->assertSee('analytics_storage')
         ->assertSee('not currently switched on')
@@ -128,6 +160,86 @@ it('explains Google Analytics 4 and Consent Mode, with choices only when it is s
         ->assertSee('Accept analytics')
         ->assertSee("publicUniverseAnalytics.choose('essential')", false)
         ->assertSee("publicUniverseAnalytics.choose('all')", false)
+        ->assertDontSee('not currently switched on');
+});
+
+it('renders the default Google Tag Manager container in the head and at the start of the body', function () {
+    expect(config('site.analytics.gtm_container_id'))->toBe('GTM-M8THNDPH')
+        ->and(Analytics::gtmContainerId())->toBe('GTM-M8THNDPH');
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain("})(window,document,'script','dataLayer','GTM-M8THNDPH');")
+        ->toContain("j.src=\n'https://www.googletagmanager.com/gtm.js?id='+i+dl;")
+        ->toContain('name="gtm-container-id" content="GTM-M8THNDPH"')
+        ->toContain('name="ga-page-location"')
+        ->toContain('https://www.googletagmanager.com/ns.html?id=GTM-M8THNDPH')
+        ->toContain('id="cookie-banner"')
+        ->toMatch('/<body[^>]*>\s*<!-- Google Tag Manager \(noscript\) -->\s*<noscript><iframe src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-M8THNDPH"\s*height="0" width="0" style="display:none;visibility:hidden"><\/iframe><\/noscript>/');
+
+    $consent = strpos($html, "gtag('consent', 'default'");
+    $pageLocation = strpos($html, 'name="ga-page-location"');
+    $gtm = strpos($html, "})(window,document,'script','dataLayer','GTM-M8THNDPH');");
+    $body = strpos($html, '<body');
+
+    expect($consent)->toBeInt()
+        ->and($pageLocation)->toBeInt()
+        ->and($pageLocation)->toBeLessThan($consent)
+        ->and($gtm)->toBeGreaterThan($consent)
+        ->and($body)->toBeGreaterThan($gtm)
+        ->and($html)->toContain("analytics_storage: 'denied'")
+        ->and($html)->toContain("ad_storage: 'denied'")
+        ->and($html)->toContain("ad_user_data: 'denied'")
+        ->and($html)->toContain("ad_personalization: 'denied'");
+});
+
+it('shows the cookie banner and privacy choices when only Tag Manager is configured', function () {
+    config([
+        'site.analytics.ga_measurement_id' => null,
+        'site.analytics.gtm_container_id' => 'GTM-M8THNDPH',
+    ]);
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('id="cookie-banner"')
+        ->toContain("})(window,document,'script','dataLayer','GTM-M8THNDPH');")
+        ->toContain('ns.html?id=GTM-M8THNDPH')
+        ->not->toContain('<meta name="ga-measurement-id"')
+        ->not->toContain('<script async src="https://www.googletagmanager.com');
+
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('Essential only')
+        ->assertSee('Accept analytics')
+        ->assertSee("publicUniverseAnalytics.choose('essential')", false)
+        ->assertSee("publicUniverseAnalytics.choose('all')", false)
+        ->assertDontSee('not currently switched on');
+});
+
+it('keeps Consent Mode ahead of Tag Manager when GA4 is configured as well', function () {
+    config([
+        'site.analytics.ga_measurement_id' => 'G-TEST1234',
+        'site.analytics.gtm_container_id' => 'GTM-M8THNDPH',
+    ]);
+
+    $html = $this->get('/')->assertOk()->getContent();
+    $consent = strpos($html, "analytics_storage: 'denied'");
+    $gtm = strpos($html, 'https://www.googletagmanager.com/gtm.js');
+
+    expect($html)
+        ->toContain('name="ga-measurement-id" content="G-TEST1234"')
+        ->toContain('name="gtm-container-id" content="GTM-M8THNDPH"')
+        ->toContain('name="ga-page-location"')
+        ->toContain('id="cookie-banner"')
+        ->and($consent)->toBeInt()
+        ->and($gtm)->toBeGreaterThan($consent);
+
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('Essential only')
+        ->assertSee('Accept analytics')
         ->assertDontSee('not currently switched on');
 });
 

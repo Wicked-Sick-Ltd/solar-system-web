@@ -14,14 +14,19 @@ use Illuminate\Http\Request;
  * accepted analytics opens the link — before they touch anything on the page.
  * Settings share links carry an observing location in the URL fragment
  * (`#s=…`), which never reaches this request. Older `?s=` links still might,
- * so those query values are replaced here. The browser script reads that
+ * so those query values are replaced here. Observing `lat` and `lon` query
+ * values are replaced too: the night tools refuse to copy them into the page,
+ * and they must not reach Google either. The browser script reads that
  * value from a meta tag, including after Livewire navigation, instead of
  * the address bar.
  */
 final class Analytics
 {
-    /** Query parameters whose values never leave the first party. `s` is the settings share token. */
-    public const array REDACTED_QUERY_PARAMS = ['s'];
+    /**
+     * Query parameters whose values never leave the first party.
+     * `s` is the settings share token. `lat` and `lon` are an observing location.
+     */
+    public const array REDACTED_QUERY_PARAMS = ['s', 'lat', 'lon'];
 
     /** Try-it parameter names on /api that carry an observer location. */
     private const array REDACTED_TRY_PARAMS = ['lat', 'lon'];
@@ -44,6 +49,29 @@ final class Analytics
         $id = strtoupper(trim($id));
 
         return preg_match('/\AG-[A-Z0-9]{4,32}\z/', $id) === 1 ? $id : null;
+    }
+
+    /**
+     * Google Tag Manager container id from GTM_CONTAINER_ID, or null when Tag Manager must not render.
+     * Anything that is not a container id is treated as unset so it cannot be echoed into HTML.
+     */
+    public static function gtmContainerId(): ?string
+    {
+        $id = config('site.analytics.gtm_container_id');
+
+        if (! is_string($id)) {
+            return null;
+        }
+
+        $id = strtoupper(trim($id));
+
+        return preg_match('/\AGTM-[A-Z0-9]{4,16}\z/', $id) === 1 ? $id : null;
+    }
+
+    /** Consent UI runs when GA4, Tag Manager, or both are configured. */
+    public static function enabled(): bool
+    {
+        return self::measurementId() !== null || self::gtmContainerId() !== null;
     }
 
     /** First-party consent script. Empty when the file cannot be read. */

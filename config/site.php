@@ -43,11 +43,15 @@ return [
     // Legal entity named in the privacy policy.
     'operator' => env('SITE_OPERATOR', 'Wicked Sick Ltd'),
 
-    // Google Analytics 4. Leave GA4_MEASUREMENT_ID unset to ship no analytics
-    // and no cookie banner. When set, Consent Mode v2 keeps analytics_storage
-    // denied and gtag.js is injected only after the visitor opts in
-    // (resources/js/analytics-consent.js).
+    // Google Tag Manager and Google Analytics 4.
+    // GTM_CONTAINER_ID defaults to the Public Universe container so production
+    // renders it before .env is updated. An empty or invalid value renders nothing.
+    // Leave GA4_MEASUREMENT_ID unset to skip the direct gtag.js property. Consent
+    // Mode v2 keeps analytics_storage denied until the visitor opts in
+    // (resources/js/analytics-consent.js). The cookie banner shows when either
+    // id is valid.
     'analytics' => [
         'ga_measurement_id' => env('GA4_MEASUREMENT_ID'),
+        'gtm_container_id' => env('GTM_CONTAINER_ID', 'GTM-M8THNDPH'),
     ],
 ];

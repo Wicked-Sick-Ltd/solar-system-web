@@ -14,7 +14,7 @@ use Livewire\Component;
 final class PrivacyPage extends Component
 {
     /** Bump when the policy text materially changes. */
-    public const string LAST_UPDATED = '2026-10-10';
+    public const string LAST_UPDATED = '2026-10-24';
 
     public function render(): View
     {
@@ -25,7 +25,7 @@ final class PrivacyPage extends Component
         return view('livewire.privacy-page', [
             'operator' => config('site.operator'),
             'email' => config('site.contact_email'),
-            'analyticsEnabled' => Analytics::measurementId() !== null,
+            'analyticsEnabled' => Analytics::enabled(),
             'updated' => self::LAST_UPDATED,
         ]);
     }

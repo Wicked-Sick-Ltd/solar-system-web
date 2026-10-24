@@ -5,9 +5,10 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../../resources/js/analytics-consent.js', import.meta.url), 'utf8');
 
-function boot(id = 'G-TEST1234') {
+function boot(id = 'G-TEST1234', gtm = null) {
     const state = {
         id,
+        gtm,
         page: 'https://publicuniverse.net/objects/mars',
         reloads: 0,
     };
@@ -19,7 +20,8 @@ function boot(id = 'G-TEST1234') {
     document.createElement = () => ({ async: false, src: '' });
     document.getElementById = () => null;
     document.querySelector = (selector) => {
-        if (selector === 'meta[name="ga-measurement-id"]') return { getAttribute: () => state.id };
+        if (selector === 'meta[name="ga-measurement-id"]') return state.id ? { getAttribute: () => state.id } : null;
+        if (selector === 'meta[name="gtm-container-id"]') return state.gtm ? { getAttribute: () => state.gtm } : null;
         if (selector === 'meta[name="ga-page-location"]') return { getAttribute: () => state.page };
         return null;
     };
@@ -123,4 +125,37 @@ test('a tampered measurement id is not requested', () => {
     const { scripts, window } = boot('G-TEST1234<script>');
     window.publicUniverseAnalytics.load();
     assert.equal(scripts.length, 0);
+});
+
+test('Tag Manager alone grants analytics storage without requesting gtag.js', () => {
+    const { scripts, state, window, commands, pageViews } = boot(null, 'GTM-M8THNDPH');
+    window.publicUniverseAnalytics.choose('all');
+    assert.equal(scripts.length, 0);
+    const granted = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'update');
+    assert.equal(granted[2].analytics_storage, 'granted');
+    assert.equal(granted[2].ad_storage, undefined);
+    assert.equal(granted[2].ad_user_data, undefined);
+    assert.equal(granted[2].ad_personalization, undefined);
+    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews()[0][2].page_location, 'https://publicuniverse.net/objects/mars');
+
+    window.publicUniverseAnalytics.choose('essential');
+    assert.equal(state.reloads, 1);
+    const denial = commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
+    assert.equal(denial[2].analytics_storage, 'denied');
+});
+
+test('GA4 and Tag Manager together still load gtag.js only after consent', () => {
+    const { scripts, window } = boot('G-TEST1234', 'GTM-M8THNDPH');
+    assert.equal(scripts.length, 0);
+    window.publicUniverseAnalytics.choose('all');
+    assert.equal(scripts.length, 1);
+    assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
+});
+
+test('a tampered container id does not grant storage on its own', () => {
+    const { scripts, window, commands } = boot(null, 'GTM-NO<script>');
+    window.publicUniverseAnalytics.load();
+    assert.equal(scripts.length, 0);
+    assert.equal(commands().some((entry) => entry[0] === 'consent' && entry[1] === 'update'), false);
 });

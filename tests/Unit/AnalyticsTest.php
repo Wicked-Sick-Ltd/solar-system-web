@@ -31,6 +31,32 @@ it('reads only a real GA4 measurement id from GA4_MEASUREMENT_ID', function () {
     }
 });
 
+it('reads only a real GTM container id from GTM_CONTAINER_ID', function () {
+    expect(file_get_contents(config_path('site.php')))->toContain("env('GTM_CONTAINER_ID', 'GTM-M8THNDPH')");
+
+    config(['site.analytics.gtm_container_id' => ' gtm-m8thndph ']);
+    expect(Analytics::gtmContainerId())->toBe('GTM-M8THNDPH');
+
+    foreach ([null, '', '   ', 'G-TEST1234', 'GTM-AB', 'GTM-'.str_repeat('A', 17), '<script>', 'GTM-M8THNDPH;alert(1)', 12] as $invalid) {
+        config(['site.analytics.gtm_container_id' => $invalid]);
+        expect(Analytics::gtmContainerId())->toBeNull();
+    }
+});
+
+it('treats analytics as configured when GA4, Tag Manager, or both are valid', function () {
+    config(['site.analytics.ga_measurement_id' => null, 'site.analytics.gtm_container_id' => null]);
+    expect(Analytics::enabled())->toBeFalse();
+
+    config(['site.analytics.ga_measurement_id' => 'G-TEST1234', 'site.analytics.gtm_container_id' => null]);
+    expect(Analytics::enabled())->toBeTrue()->and(Analytics::gtmContainerId())->toBeNull();
+
+    config(['site.analytics.ga_measurement_id' => null, 'site.analytics.gtm_container_id' => 'gtm-m8thndph']);
+    expect(Analytics::enabled())->toBeTrue()->and(Analytics::gtmContainerId())->toBe('GTM-M8THNDPH');
+
+    config(['site.analytics.ga_measurement_id' => 'G-TEST1234', 'site.analytics.gtm_container_id' => 'GTM-M8THNDPH']);
+    expect(Analytics::enabled())->toBeTrue()->and(Analytics::measurementId())->toBe('G-TEST1234');
+});
+
 it('ships the consent script that Livewire navigation can call', function () {
     expect(Analytics::clientScript())
         ->toContain("analytics_storage: 'denied'")
@@ -45,6 +71,16 @@ it('redacts the settings share token, which carries an observing location', func
 
     expect($location)->toBe('https://solar.test/settings?s=redacted')
         ->and($location)->not->toContain($token);
+});
+
+it('redacts observer coordinates from the query string before they can be reported', function () {
+    $location = Analytics::pageLocation(Request::create('https://solar.test/observe/night?lat=12.34567&lon=1.23456&targets[]=moon'));
+
+    expect($location)->not->toContain('12.34567')
+        ->and($location)->not->toContain('1.23456')
+        ->and($location)->toContain('lat=redacted')
+        ->and($location)->toContain('lon=redacted')
+        ->and($location)->toContain('moon');
 });
 
 it('redacts observer coordinates from the API try-it query bag', function () {

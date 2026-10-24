@@ -1,10 +1,13 @@
-// Google Analytics 4, UK GDPR / PECR.
+// Google Analytics 4 and Google Tag Manager, UK GDPR / PECR.
 //
-// Consent Mode v2 defaults are denied before any Google script exists.
-// googletagmanager.com is injected only after cookie_consent=all. Essential
-// only never loads it. Livewire's wire:navigate does not reload the page, so
-// a later page_view is sent from livewire:navigated using the redacted
-// address in <meta name="ga-page-location">, not location.href.
+// Consent Mode v2 defaults are denied before the Tag Manager snippet. That
+// snippet is part of the document when a container id is configured; this
+// file does not inject it. gtag.js is injected only after cookie_consent=all,
+// and only when a GA4 measurement id is set. Accepting analytics with Tag
+// Manager alone updates consent so the container's tags may run. Essential
+// only never grants storage. Livewire's wire:navigate does not reload the
+// page, so a later page_view is sent from livewire:navigated using the
+// redacted address in <meta name="ga-page-location">, not location.href.
 (function () {
     if (window.__puAnalyticsInit) {
         return;
@@ -24,6 +27,13 @@
         var id = meta && meta.getAttribute('content');
 
         return id && /^G-[A-Z0-9]{4,32}$/.test(id) ? id : null;
+    }
+
+    function gtmContainerId() {
+        var meta = document.querySelector('meta[name="gtm-container-id"]');
+        var id = meta && meta.getAttribute('content');
+
+        return id && /^GTM-[A-Z0-9]{4,16}$/.test(id) ? id : null;
     }
 
     function pageLocation() {
@@ -100,13 +110,18 @@
             return;
         }
         var id = measurementId();
-        if (!id) {
+        var gtm = gtmContainerId();
+        if (!id && !gtm) {
             return;
         }
         window.__gaLoaded = true;
         window.gtag('consent', 'update', {
             analytics_storage: 'granted',
         });
+        if (!id) {
+            sendPageView();
+            return;
+        }
         var script = document.createElement('script');
         script.async = true;
         script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);

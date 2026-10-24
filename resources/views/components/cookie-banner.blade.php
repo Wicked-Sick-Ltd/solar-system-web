@@ -3,11 +3,12 @@
     until the visitor explicitly accepts. The choice lives in a first-party
     cookie (`cookie_consent` = essential | all) for a year.
 
-    Rendered only when a valid GA4 measurement id is configured. Without it
-    the site sets essential cookies only, which need no consent banner.
-    Loading and Consent Mode live in resources/js/analytics-consent.js.
+    Rendered when a valid GA4 measurement id, a Google Tag Manager container,
+    or both are configured. Without either, the site sets essential cookies
+    only, which need no consent banner. Loading and Consent Mode live in
+    resources/js/analytics-consent.js.
 --}}
-@if (\App\Support\Analytics::measurementId())
+@if (\App\Support\Analytics::enabled())
 <div id="cookie-banner" data-nosnippet x-data="cookieConsent()" x-init="init()" x-show="open" x-cloak
      class="fixed inset-x-0 bottom-0 z-40 border-t p-4 sm:p-5"
      style="background-color: var(--bg-elevated); border-color: var(--border); box-shadow: 0 -8px 32px rgba(0,0,0,.35);"
