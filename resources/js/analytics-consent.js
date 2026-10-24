@@ -2,19 +2,22 @@
 //
 // Consent Mode v2 defaults are denied before the Tag Manager snippet. That
 // snippet is part of the document when a container id is configured; this
-// file does not inject it. gtag.js is injected only after cookie_consent=all,
-// and only when a GA4 measurement id is set. Accepting analytics with Tag
-// Manager alone updates consent so the container's tags may run. Essential
-// only never grants storage. Livewire's wire:navigate does not reload the
-// page, so a later page_view is sent from livewire:navigated using the
-// redacted address in <meta name="ga-page-location">, not location.href.
+// file does not inject it. Before the snippet runs, and again after each
+// Livewire navigation, the redacted address from
+// <meta name="ga-page-location"> is written to dataLayer and gtag('set').
+// Container tags then use that address instead of location.href, including
+// cookieless hits while storage is denied. Automatic page views stay off;
+// a page_view event is sent only after cookie_consent=all. gtag.js is
+// injected only after that choice, and only when a GA4 measurement id is
+// set. Accepting analytics with Tag Manager alone updates consent so the
+// container's tags may run. Essential only never grants storage.
 (function () {
     if (window.__puAnalyticsInit) {
         return;
     }
     window.__puAnalyticsInit = true;
 
-    var COOKIE = 'cookie_consent';
+    var COOKIE = 'cookie_consent'; // App\Support\Analytics::CONSENT_COOKIE
     var ONE_YEAR = 31536000;
     var lastLocation = null;
 
@@ -88,6 +91,25 @@
             return;
         }
         window.dispatchEvent(new CustomEvent('cookie-consent-chosen'));
+    }
+
+    function publishPageLocation() {
+        // Container-managed tags read the address bar unless this is already
+        // in the dataLayer when they initialise, and again when the page changes
+        // without a reload. The manual page_view below is the only page view.
+        var page = pageLocation();
+        if (!page) {
+            return '';
+        }
+        window.dataLayer.push({
+            page_location: page,
+        });
+        window.gtag('set', {
+            page_location: page,
+            send_page_view: false,
+        });
+
+        return page;
     }
 
     function sendPageView() {
@@ -173,6 +195,7 @@
     });
     window.gtag('set', 'ads_data_redaction', true);
     window.gtag('set', 'url_passthrough', false);
+    publishPageLocation();
 
     window.publicUniverseAnalytics = {
         choose: choose,
@@ -181,5 +204,8 @@
         read: read,
     };
 
-    document.addEventListener('livewire:navigated', sendPageView);
+    document.addEventListener('livewire:navigated', function () {
+        publishPageLocation();
+        sendPageView();
+    });
 })();

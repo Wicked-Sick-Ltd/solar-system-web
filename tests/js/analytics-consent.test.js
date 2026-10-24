@@ -52,6 +52,29 @@ function boot(id = 'G-TEST1234', gtm = null) {
     return { state, scripts, jar, document, window, commands, pageViews };
 }
 
+test('container initialization publishes the redacted page location and disables automatic page views', () => {
+    const { state, document, window, commands, pageViews } = boot(null, 'GTM-M8THNDPH');
+    const sets = () => commands().filter((entry) => entry[0] === 'set' && entry[1] && typeof entry[1] === 'object' && entry[1].page_location);
+    const plain = () => window.dataLayer.filter((entry) => entry && entry.page_location && entry[0] === undefined);
+
+    assert.equal(sets().length, 1);
+    assert.equal(sets()[0][1].page_location, state.page);
+    assert.equal(sets()[0][1].send_page_view, false);
+    assert.equal(plain().length, 1);
+    assert.equal(plain()[0].page_location, 'https://publicuniverse.net/objects/mars');
+    assert.equal(JSON.stringify(sets()).includes('SECRET'), false);
+    assert.equal(plain()[0].page_location.includes('SECRET'), false);
+    assert.equal(pageViews().length, 0);
+
+    state.page = 'https://publicuniverse.net/observe/night?lat=redacted&lon=redacted';
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(sets().at(-1)[1].page_location, state.page);
+    assert.equal(sets().at(-1)[1].send_page_view, false);
+    assert.equal(plain().at(-1).page_location, state.page);
+    assert.equal(pageViews().length, 0);
+    assert.equal(JSON.stringify(sets()).includes('12.34567'), false);
+});
+
 test('Consent Mode v2 denies analytics storage and does not load Google before consent', () => {
     const { scripts, commands } = boot();
     const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');

@@ -35,6 +35,17 @@ final class Analytics
     public const string REDACTED = 'redacted';
 
     /**
+     * First-party cookie set from the browser when the visitor chooses.
+     * It is not encrypted: the page script has to read and write it, and the
+     * server has to read the same value to decide whether a no-JavaScript
+     * Tag Manager image is allowed.
+     */
+    public const string CONSENT_COOKIE = 'cookie_consent';
+
+    /** The only value that records an explicit analytics opt-in. */
+    public const string CONSENT_ACCEPTED = 'all';
+
+    /**
      * GA4 measurement id from GA4_MEASUREMENT_ID, or null when analytics must not render.
      * Anything that is not a measurement id is treated as unset so it cannot be echoed into HTML.
      */
@@ -72,6 +83,19 @@ final class Analytics
     public static function enabled(): bool
     {
         return self::measurementId() !== null || self::gtmContainerId() !== null;
+    }
+
+    /**
+     * True when this request carries the cookie written by "Accept analytics".
+     * Anything else, including a missing cookie or "Essential only", is not consent.
+     * The no-JavaScript Tag Manager image needs this check: that image cannot
+     * run Consent Mode, and the banner cannot ask.
+     */
+    public static function hasServerOptIn(?Request $request = null): bool
+    {
+        $request ??= request();
+
+        return $request->cookie(self::CONSENT_COOKIE) === self::CONSENT_ACCEPTED;
     }
 
     /** First-party consent script. Empty when the file cannot be read. */

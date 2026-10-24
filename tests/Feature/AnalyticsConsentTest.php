@@ -174,19 +174,21 @@ it('renders the default Google Tag Manager container in the head and at the star
         ->toContain("j.src=\n'https://www.googletagmanager.com/gtm.js?id='+i+dl;")
         ->toContain('name="gtm-container-id" content="GTM-M8THNDPH"')
         ->toContain('name="ga-page-location"')
-        ->toContain('https://www.googletagmanager.com/ns.html?id=GTM-M8THNDPH')
         ->toContain('id="cookie-banner"')
-        ->toMatch('/<body[^>]*>\s*<!-- Google Tag Manager \(noscript\) -->\s*<noscript><iframe src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-M8THNDPH"\s*height="0" width="0" style="display:none;visibility:hidden"><\/iframe><\/noscript>/');
+        ->not->toContain('ns.html?id=');
 
     $consent = strpos($html, "gtag('consent', 'default'");
     $pageLocation = strpos($html, 'name="ga-page-location"');
+    $published = strpos($html, 'publishPageLocation();');
     $gtm = strpos($html, "})(window,document,'script','dataLayer','GTM-M8THNDPH');");
     $body = strpos($html, '<body');
 
     expect($consent)->toBeInt()
         ->and($pageLocation)->toBeInt()
+        ->and($published)->toBeInt()
         ->and($pageLocation)->toBeLessThan($consent)
-        ->and($gtm)->toBeGreaterThan($consent)
+        ->and($published)->toBeGreaterThan($consent)
+        ->and($gtm)->toBeGreaterThan($published)
         ->and($body)->toBeGreaterThan($gtm)
         ->and($html)->toContain("analytics_storage: 'denied'")
         ->and($html)->toContain("ad_storage: 'denied'")
@@ -205,7 +207,7 @@ it('shows the cookie banner and privacy choices when only Tag Manager is configu
     expect($html)
         ->toContain('id="cookie-banner"')
         ->toContain("})(window,document,'script','dataLayer','GTM-M8THNDPH');")
-        ->toContain('ns.html?id=GTM-M8THNDPH')
+        ->not->toContain('ns.html?id=')
         ->not->toContain('<meta name="ga-measurement-id"')
         ->not->toContain('<script async src="https://www.googletagmanager.com');
 
@@ -241,6 +243,79 @@ it('keeps Consent Mode ahead of Tag Manager when GA4 is configured as well', fun
         ->assertSee('Essential only')
         ->assertSee('Accept analytics')
         ->assertDontSee('not currently switched on');
+});
+
+it('gives container tags the redacted page location before Tag Manager starts', function () {
+    config([
+        'site.analytics.ga_measurement_id' => null,
+        'site.analytics.gtm_container_id' => 'GTM-M8THNDPH',
+    ]);
+
+    $token = SettingsPayload::encode(['theme' => 'light', 'location' => ['lat' => 50.97, 'lon' => -1.58]]);
+    $html = $this->get('/settings?s='.$token.'&lat=12.34567&lon=1.23456')->assertOk()->getContent();
+
+    preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $html, $meta);
+
+    expect($meta[1] ?? '')->toContain('s=redacted')
+        ->and($meta[1] ?? '')->toContain('lat=redacted')
+        ->and($meta[1] ?? '')->toContain('lon=redacted')
+        ->and($meta[1] ?? '')->not->toContain($token)
+        ->and($meta[1] ?? '')->not->toContain('12.34567')
+        ->and($meta[1] ?? '')->not->toContain('1.23456');
+
+    $consent = strpos($html, "gtag('consent', 'default'");
+    $defined = strpos($html, 'function publishPageLocation()');
+    $published = strpos($html, 'publishPageLocation();');
+    $gtm = strpos($html, "})(window,document,'script','dataLayer','GTM-M8THNDPH');");
+    $beforeContainer = $defined === false || $gtm === false ? '' : substr($html, $defined, $gtm - $defined);
+
+    expect($consent)->toBeInt()
+        ->and($defined)->toBeInt()
+        ->and($published)->toBeInt()
+        ->and($gtm)->toBeGreaterThan($published)
+        ->and($published)->toBeGreaterThan($consent)
+        ->and($beforeContainer)->toContain('window.dataLayer.push({')
+        ->and($beforeContainer)->toContain("window.gtag('set', {")
+        ->and($beforeContainer)->toContain('page_location: page')
+        ->and($beforeContainer)->toContain('send_page_view: false')
+        ->and($html)->not->toContain('page_location: location.href')
+        ->and($html)->not->toContain('page_location: location')
+        ->and($html)->not->toContain('12.34567')
+        ->and($html)->not->toContain('1.23456')
+        ->and($html)->not->toContain('50.97');
+});
+
+it('omits the no-JavaScript Tag Manager image unless the server can read an accept choice', function () {
+    config([
+        'site.analytics.ga_measurement_id' => null,
+        'site.analytics.gtm_container_id' => 'GTM-M8THNDPH',
+    ]);
+
+    // The anonymous document is what a shared cache stores. It keeps the head
+    // snippet, which can run Consent Mode, and leaves out the noscript image.
+    $anonymous = $this->get('/')->assertOk();
+    expect($anonymous->headers->get('Cache-Control'))->toContain('public')
+        ->and($anonymous->getContent())->toContain("})(window,document,'script','dataLayer','GTM-M8THNDPH');")
+        ->and($anonymous->getContent())->not->toContain('ns.html');
+
+    // The browser script writes this cookie in the clear. The test client must
+    // do the same, or the server would be reading a value the page never sends.
+    $essential = $this->withUnencryptedCookie(Analytics::CONSENT_COOKIE, 'essential')->get('/')->assertOk();
+    expect($essential->headers->get('Cache-Control'))->toContain('private')->toContain('no-store')
+        ->and($essential->headers->get('Vary'))->toContain('Cookie')
+        ->and($essential->getContent())->not->toContain('ns.html');
+
+    $accepted = $this->withUnencryptedCookie(Analytics::CONSENT_COOKIE, Analytics::CONSENT_ACCEPTED)->get('/')->assertOk();
+    expect($accepted->headers->get('Cache-Control'))->toContain('private')->toContain('no-store')
+        ->and($accepted->headers->get('Vary'))->toContain('Cookie')
+        ->and($accepted->getContent())->toContain('https://www.googletagmanager.com/ns.html?id=GTM-M8THNDPH')
+        ->and($accepted->getContent())->toMatch('/<body[^>]*>\s*<!-- Google Tag Manager \(noscript\) -->\s*<noscript><iframe src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-M8THNDPH"/');
+
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('no-JavaScript Tag Manager image is left out')
+        ->assertSee('Without JavaScript the banner cannot record a choice')
+        ->assertSee('not stored in a shared cache');
 });
 
 it('publishes a privacy policy page', function () {
