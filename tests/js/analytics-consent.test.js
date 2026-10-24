@@ -146,14 +146,8 @@ test('container initialization redacts bracketed descendants of sensitive query 
     const referrer = 'https://publicuniverse.test/api?lat[]=51.5&lon[]=9.87654&p[lat][]=51.5&p[lon][]=1.23456&s[]=PRIVATE_SETTINGS&targets=moon';
     const { window } = boot(null, 'GTM-M8THNDPH', referrer);
     const published = window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
-    const decoded = decodeURIComponent(published);
 
-    assert.equal(decoded.includes('lat[]=redacted'), true);
-    assert.equal(decoded.includes('lon[]=redacted'), true);
-    assert.equal(decoded.includes('p[lat][]=redacted'), true);
-    assert.equal(decoded.includes('p[lon][]=redacted'), true);
-    assert.equal(decoded.includes('s[]=redacted'), true);
-    assert.equal(decoded.includes('targets=moon'), true);
+    assert.equal(published, 'https://publicuniverse.test/api?lat=redacted&lon=redacted&p%5Blat%5D=redacted&p%5Blon%5D=redacted&s=redacted&targets=moon');
     assert.equal(published.includes('51.5'), false);
     assert.equal(published.includes('9.87654'), false);
     assert.equal(published.includes('1.23456'), false);
@@ -164,13 +158,8 @@ test('container initialization redacts bracketed descendants of sensitive query 
     const nestedReferrer = 'https://publicuniverse.test/api?p[][lat]=51.5&p[][lon]=1.23456&p[0][date]=2026-10-10&p[latitude]=9&latitude=kept';
     const nested = boot(null, 'GTM-M8THNDPH', nestedReferrer);
     const nestedPublished = nested.window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
-    const nestedDecoded = decodeURIComponent(nestedPublished);
 
-    assert.equal(nestedDecoded.includes('p[][lat]=redacted'), true);
-    assert.equal(nestedDecoded.includes('p[][lon]=redacted'), true);
-    assert.equal(nestedDecoded.includes('p[0][date]=2026-10-10'), true);
-    assert.equal(nestedDecoded.includes('p[latitude]=9'), true);
-    assert.equal(nestedDecoded.includes('latitude=kept'), true);
+    assert.equal(nestedPublished, 'https://publicuniverse.test/api?p%5B0%5D%5Blat%5D=redacted&p%5B0%5D%5Bdate%5D=2026-10-10&p%5B1%5D%5Blon%5D=redacted&p%5Blatitude%5D=9&latitude=kept');
     assert.equal(nestedPublished.includes('51.5'), false);
     assert.equal(nestedPublished.includes('1.23456'), false);
     assert.equal(JSON.stringify(nested.window.dataLayer).includes('51.5'), false);
@@ -207,6 +196,75 @@ test('Livewire navigation uses the previous redacted page as page_referrer', () 
     assert.equal(plain().at(-1).page_referrer, 'https://publicuniverse.net/privacy');
     assert.equal(pageViews().at(-1)[2].page_referrer, 'https://publicuniverse.net/privacy');
     assert.equal(pageViews().at(-1)[2].page_location, next);
+});
+
+test('navigate, pushState, and navigated keep the origin as page_referrer for a bracketed destination', () => {
+    const { state, document, window, history, pageViews } = boot(null, 'GTM-M8THNDPH');
+    const plain = () => window.dataLayer.filter((entry) => entry && entry.page_location && entry[0] === undefined);
+    const origin = state.page;
+    const destination = 'https://publicuniverse.net/privacy?lat[]=51.5';
+    const phpDestination = 'https://publicuniverse.net/privacy?lat=redacted';
+
+    window.publicUniverseAnalytics.choose('all');
+    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews()[0][2].page_location, origin);
+
+    document.dispatchEvent(new CustomEvent('livewire:navigate', { detail: { url: destination } }));
+    history.pushState({}, '', destination);
+    state.page = phpDestination;
+    document.dispatchEvent(new Event('livewire:navigated'));
+
+    const published = plain().filter((entry) => entry.page_location === phpDestination);
+    assert.equal(published.length, 3);
+    published.forEach((entry) => {
+        assert.equal(entry.page_referrer, origin);
+    });
+    assert.equal(plain().at(-1).page_location, phpDestination);
+    assert.equal(pageViews().length, 2);
+    assert.equal(pageViews().at(-1)[2].page_location, phpDestination);
+    assert.equal(pageViews().at(-1)[2].page_referrer, origin);
+    assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
+});
+
+test('successive history wrappers keep their own delegates and publish once', () => {
+    const { window, history } = boot(null, 'GTM-M8THNDPH');
+    const plain = () => window.dataLayer.filter((entry) => entry && entry.page_location && entry[0] === undefined);
+    const pushOrder = [];
+    const firstPush = history.pushState;
+    history.pushState = function () {
+        pushOrder.push('push-first');
+        return firstPush.apply(this, arguments);
+    };
+    const secondPush = history.pushState;
+    history.pushState = function () {
+        pushOrder.push('push-second');
+        return secondPush.apply(this, arguments);
+    };
+    const beforePush = plain().length;
+    history.pushState({}, '', 'https://publicuniverse.net/privacy?lat[]=51.5');
+    assert.deepEqual(pushOrder, ['push-second', 'push-first']);
+    assert.equal(plain().length, beforePush + 1);
+    assert.equal(plain().at(-1).page_location, 'https://publicuniverse.net/privacy?lat=redacted');
+    assert.equal(plain().at(-1).page_location.includes('51.5'), false);
+
+    const replaceOrder = [];
+    const firstReplace = history.replaceState;
+    history.replaceState = function () {
+        replaceOrder.push('replace-first');
+        return firstReplace.apply(this, arguments);
+    };
+    const secondReplace = history.replaceState;
+    history.replaceState = function () {
+        replaceOrder.push('replace-second');
+        return secondReplace.apply(this, arguments);
+    };
+    const beforeReplace = plain().length;
+    history.replaceState({}, '', 'https://publicuniverse.net/about?lon[]=1.2');
+    assert.deepEqual(replaceOrder, ['replace-second', 'replace-first']);
+    assert.equal(plain().length, beforeReplace + 1);
+    assert.equal(plain().at(-1).page_location, 'https://publicuniverse.net/about?lon=redacted');
+    assert.equal(plain().at(-1).page_location.includes('1.2'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
 });
 
 test('history changes publish the redacted page before later listeners and do not page-view before consent', () => {
