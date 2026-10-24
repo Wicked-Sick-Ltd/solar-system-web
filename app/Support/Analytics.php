@@ -16,9 +16,12 @@ use Illuminate\Http\Request;
  * (`#s=…`), which never reaches this request. Older `?s=` links still might,
  * so those query values are replaced here. Observing `lat` and `lon` query
  * values are replaced too: the night tools refuse to copy them into the page,
- * and they must not reach Google either. The browser script reads that
- * value from a meta tag, including after Livewire navigation, instead of
- * the address bar.
+ * and they must not reach Google either. PHP folds `lat[]` and `s[]` onto
+ * those same keys, and `p[lon][]` onto `p[lon]`. A list of try-it bags
+ * (`p[][lat]`, `p[][lon]`) keeps the coordinates one level down, so the try-it
+ * bag is walked until every `lat` and `lon` entry is replaced. The browser
+ * script reads the result from a meta tag, including after Livewire
+ * navigation, instead of the address bar.
  */
 final class Analytics
 {
@@ -111,22 +114,51 @@ final class Analytics
     {
         $request ??= request();
 
-        $query = $request->query();
+        $query = self::redactQuery($request->query());
+        $url = $request->url();
+
+        return $query === [] ? $url : $url.'?'.http_build_query($query);
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $query
+     * @return array<array-key, mixed>
+     */
+    private static function redactQuery(array $query): array
+    {
         foreach (self::REDACTED_QUERY_PARAMS as $key) {
+            // `lat[]=51.5` and `s[token]=…` arrive as an array under `lat` or `s`.
+            // Replacing the whole value drops every nested entry.
             if (array_key_exists($key, $query)) {
                 $query[$key] = self::REDACTED;
             }
         }
         if (isset($query['p']) && is_array($query['p'])) {
-            foreach (self::REDACTED_TRY_PARAMS as $key) {
-                if (array_key_exists($key, $query['p'])) {
-                    $query['p'][$key] = self::REDACTED;
-                }
+            $query['p'] = self::redactTryBag($query['p']);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Coordinates inside the /api try-it bag, including `p[lon][]` and `p[][lat]`.
+     *
+     * @param  array<array-key, mixed>  $bag
+     * @return array<array-key, mixed>
+     */
+    private static function redactTryBag(array $bag): array
+    {
+        foreach ($bag as $key => $value) {
+            if (is_string($key) && in_array($key, self::REDACTED_TRY_PARAMS, true)) {
+                $bag[$key] = self::REDACTED;
+
+                continue;
+            }
+            if (is_array($value)) {
+                $bag[$key] = self::redactTryBag($value);
             }
         }
 
-        $url = $request->url();
-
-        return $query === [] ? $url : $url.'?'.http_build_query($query);
+        return $bag;
     }
 }

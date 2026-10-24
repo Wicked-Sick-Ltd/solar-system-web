@@ -133,20 +133,38 @@ test('container initialization redacts coordinates in a same-origin page referre
 });
 
 test('container initialization redacts bracketed descendants of sensitive query parameters', () => {
-    const referrer = 'https://publicuniverse.test/api?lat[]=51.5&p[lon][]=1.23456&s[]=PRIVATE_SETTINGS&targets=moon';
+    const referrer = 'https://publicuniverse.test/api?lat[]=51.5&lon[]=9.87654&p[lat][]=51.5&p[lon][]=1.23456&s[]=PRIVATE_SETTINGS&targets=moon';
     const { window } = boot(null, 'GTM-M8THNDPH', referrer);
     const published = window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
     const decoded = decodeURIComponent(published);
 
     assert.equal(decoded.includes('lat[]=redacted'), true);
+    assert.equal(decoded.includes('lon[]=redacted'), true);
+    assert.equal(decoded.includes('p[lat][]=redacted'), true);
     assert.equal(decoded.includes('p[lon][]=redacted'), true);
     assert.equal(decoded.includes('s[]=redacted'), true);
     assert.equal(decoded.includes('targets=moon'), true);
     assert.equal(published.includes('51.5'), false);
+    assert.equal(published.includes('9.87654'), false);
     assert.equal(published.includes('1.23456'), false);
     assert.equal(published.includes('PRIVATE_SETTINGS'), false);
     assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
     assert.equal(JSON.stringify(window.dataLayer).includes('PRIVATE_SETTINGS'), false);
+
+    const nestedReferrer = 'https://publicuniverse.test/api?p[][lat]=51.5&p[][lon]=1.23456&p[0][date]=2026-10-10&p[latitude]=9&latitude=kept';
+    const nested = boot(null, 'GTM-M8THNDPH', nestedReferrer);
+    const nestedPublished = nested.window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
+    const nestedDecoded = decodeURIComponent(nestedPublished);
+
+    assert.equal(nestedDecoded.includes('p[][lat]=redacted'), true);
+    assert.equal(nestedDecoded.includes('p[][lon]=redacted'), true);
+    assert.equal(nestedDecoded.includes('p[0][date]=2026-10-10'), true);
+    assert.equal(nestedDecoded.includes('p[latitude]=9'), true);
+    assert.equal(nestedDecoded.includes('latitude=kept'), true);
+    assert.equal(nestedPublished.includes('51.5'), false);
+    assert.equal(nestedPublished.includes('1.23456'), false);
+    assert.equal(JSON.stringify(nested.window.dataLayer).includes('51.5'), false);
+    assert.equal(JSON.stringify(nested.window.dataLayer).includes('1.23456'), false);
 });
 
 test('Livewire navigation uses the previous redacted page as page_referrer', () => {

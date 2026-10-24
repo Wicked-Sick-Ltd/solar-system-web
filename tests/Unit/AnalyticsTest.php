@@ -112,3 +112,32 @@ it('redacts observer coordinates from the API try-it query bag', function () {
         ->and($location)->not->toContain('51.5')
         ->and($location)->not->toContain('-0.1');
 });
+
+it('redacts bracketed descendants of the settings token and observer coordinates', function () {
+    $location = Analytics::pageLocation(Request::create(
+        'https://solar.test/api?lat[]=51.5&lon[]=9.87654&p[lat][]=51.5&p[lon][]=1.23456&s[]=PRIVATE_SETTINGS&targets=moon&p[date]=2026-10-10',
+    ));
+
+    expect($location)->toContain('lat=redacted')
+        ->and($location)->toContain('lon=redacted')
+        ->and($location)->toContain('s=redacted')
+        ->and($location)->toContain('p%5Blat%5D=redacted')
+        ->and($location)->toContain('p%5Blon%5D=redacted')
+        ->and($location)->toContain('p%5Bdate%5D=2026-10-10')
+        ->and($location)->toContain('targets=moon')
+        ->and($location)->not->toContain('51.5')
+        ->and($location)->not->toContain('9.87654')
+        ->and($location)->not->toContain('1.23456')
+        ->and($location)->not->toContain('PRIVATE_SETTINGS');
+});
+
+it('redacts try-it coordinates nested inside a list of parameter bags', function () {
+    $location = Analytics::pageLocation(Request::create(
+        'https://solar.test/api?p[][lat]=51.5&p[][lon]=1.23456&p[0][date]=2026-10-10',
+    ));
+
+    expect($location)->toContain('2026-10-10')
+        ->and($location)->toContain('redacted')
+        ->and($location)->not->toContain('51.5')
+        ->and($location)->not->toContain('1.23456');
+});

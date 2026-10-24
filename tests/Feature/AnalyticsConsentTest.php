@@ -69,6 +69,36 @@ it('redacts a settings share token from the page location it reports', function 
     expect($html)->not->toContain('50.97');
 });
 
+it('redacts bracketed coordinates and share tokens from the published page location', function () {
+    config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
+
+    $html = $this->get('/privacy?lat[]=51.5&p[lon][]=1.23456&s[]=PRIVATE_SETTINGS&targets=moon')
+        ->assertOk()
+        ->getContent();
+
+    preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $html, $meta);
+    $location = html_entity_decode($meta[1] ?? '', ENT_QUOTES);
+
+    expect($location)->toContain('lat=redacted')
+        ->and($location)->toContain('s=redacted')
+        ->and($location)->toContain('targets=moon')
+        ->and($location)->not->toContain('51.5')
+        ->and($location)->not->toContain('1.23456')
+        ->and($location)->not->toContain('PRIVATE_SETTINGS');
+
+    $nested = $this->get('/privacy?p[][lat]=51.5&p[][lon]=1.23456&p[][date]=2026-10-10')
+        ->assertOk()
+        ->getContent();
+
+    preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $nested, $nestedMeta);
+    $nestedLocation = html_entity_decode($nestedMeta[1] ?? '', ENT_QUOTES);
+
+    expect($nestedLocation)->toContain('2026-10-10')
+        ->and($nestedLocation)->toContain('redacted')
+        ->and($nestedLocation)->not->toContain('51.5')
+        ->and($nestedLocation)->not->toContain('1.23456');
+});
+
 it('shows a cookie banner that links to the privacy policy when analytics is enabled', function () {
     config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
 

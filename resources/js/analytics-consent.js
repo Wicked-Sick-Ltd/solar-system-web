@@ -7,7 +7,7 @@
 // <meta name="ga-page-location"> is written to dataLayer and gtag('set'),
 // with page_referrer. The first publication uses document.referrer after the
 // same sensitive query parameters are removed, including bracketed forms such
-// as lat[] and p[lon][]. Livewire fires navigated once on boot without
+// as lat[], p[lon][], and p[][lat]. Livewire fires navigated once on boot without
 // changing the page, and that keeps the landing referrer. A later navigated
 // event whose address changed uses the previous redacted page_location,
 // because document.referrer does not update on wire:navigate. Container tags
@@ -62,8 +62,14 @@
 
     function isSensitiveAnalyticsParam(key) {
         // PHP parses lat[], s[], and p[lon][] as nested arrays and redacts the
-        // whole value. Match the name and any bracketed descendant of it.
-        return /^(?:s|lat|lon|p\[(?:lat|lon)\])(?:\[.*\])?$/i.test(key);
+        // whole value. URLSearchParams keeps the brackets in the key, so match
+        // the name and any bracketed descendant. p[][lat] and p[][lon] are the
+        // same coordinates one level further down.
+        if (/^(?:s|lat|lon)(?:\[.*\])?$/i.test(key)) {
+            return true;
+        }
+
+        return /^p\[/i.test(key) && /\[(?:lat|lon)\]/i.test(key);
     }
 
     function sanitizeAnalyticsUrl(value) {
