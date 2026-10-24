@@ -166,6 +166,60 @@ test('container initialization redacts bracketed descendants of sensitive query 
     assert.equal(JSON.stringify(nested.window.dataLayer).includes('1.23456'), false);
 });
 
+test('trailing text after a bracketed query key is ignored and redacted like PHP', () => {
+    const referrer = 'https://publicuniverse.test/api?p[lat]extra=51.5&p[lon]extra=-0.1&lat[0]extra=51.5';
+    const expected = 'https://publicuniverse.test/api?p%5Blat%5D=redacted&p%5Blon%5D=redacted&lat=redacted';
+    const { window, history } = boot(null, 'GTM-M8THNDPH', referrer);
+    const plain = () => window.dataLayer.filter((entry) => entry && entry.page_location && entry[0] === undefined);
+    const published = window.dataLayer.find((entry) => entry && entry.page_referrer && entry[0] === undefined).page_referrer;
+
+    assert.equal(published, expected);
+    assert.equal(published.includes('51.5'), false);
+    assert.equal(published.includes('-0.1'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('-0.1'), false);
+
+    history.pushState({}, '', 'https://publicuniverse.net/privacy?p[lat]extra=51.5&p[lon]extra=-0.1&lat[0]extra=51.5');
+    assert.equal(plain().at(-1).page_location, 'https://publicuniverse.net/privacy?p%5Blat%5D=redacted&p%5Blon%5D=redacted&lat=redacted');
+    assert.equal(plain().at(-1).page_location.includes('51.5'), false);
+    assert.equal(plain().at(-1).page_location.includes('-0.1'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('extra'), false);
+});
+
+test('back to the homepage keeps the previous page as page_referrer', () => {
+    const { state, document, window, history, historyListeners, pageViews } = boot(null, 'GTM-M8THNDPH');
+    const plain = () => window.dataLayer.filter((entry) => entry && entry.page_location && entry[0] === undefined);
+    const mars = 'https://publicuniverse.test/objects/mars';
+    const home = 'https://publicuniverse.test';
+
+    state.page = mars;
+    document.dispatchEvent(new Event('livewire:navigated'));
+    window.publicUniverseAnalytics.choose('all');
+    const viewsOnMars = pageViews().length;
+    assert.equal(pageViews().at(-1)[2].page_location, mars);
+
+    window.location.href = 'https://publicuniverse.test/';
+    const pop = historyListeners.find((entry) => entry.type === 'popstate');
+    assert.ok(pop);
+    pop.fn();
+    assert.equal(plain().at(-1).page_location, home);
+    assert.equal(plain().at(-1).page_referrer, mars);
+
+    state.page = home;
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(plain().at(-1).page_location, home);
+    assert.equal(plain().at(-1).page_referrer, mars);
+    assert.equal(pageViews().length, viewsOnMars + 1);
+    assert.equal(pageViews().at(-1)[2].page_location, home);
+    assert.equal(pageViews().at(-1)[2].page_referrer, mars);
+    assert.equal(pageViews().at(-1)[2].page_referrer.endsWith('/'), false);
+
+    history.pushState({}, '', 'https://publicuniverse.test/objects/mars/?lat=12.34567');
+    assert.equal(plain().at(-1).page_location, 'https://publicuniverse.test/objects/mars?lat=redacted');
+    assert.equal(plain().at(-1).page_location.includes('12.34567'), false);
+    assert.equal(pageViews().length, viewsOnMars + 1);
+});
+
 test('Livewire navigation uses the previous redacted page as page_referrer', () => {
     const { state, document, window, commands, pageViews } = boot(null, 'GTM-M8THNDPH', 'https://publicuniverse.test/api?p[lat]=51.5&p[lon]=-0.1');
     const plain = () => window.dataLayer.filter((entry) => entry && Object.prototype.hasOwnProperty.call(entry, 'page_referrer') && entry[0] === undefined);
