@@ -50,6 +50,8 @@ return [
     // Mode v2 keeps analytics_storage denied until the visitor opts in
     // (resources/js/analytics-consent.js). The cookie banner shows when either
     // id is valid.
+    // send_page_view: false does not disable GA4 Enhanced Measurement.
+    // Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.
     'analytics' => [
         'ga_measurement_id' => env('GA4_MEASUREMENT_ID'),
         'gtm_container_id' => env('GTM_CONTAINER_ID', 'GTM-M8THNDPH'),

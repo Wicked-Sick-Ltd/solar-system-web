@@ -44,8 +44,8 @@ sessions. On an existing installation, inspect configuration before editing it.
 | `POSTMARK_API_KEY` | Required when `MAIL_MAILER=postmark` |
 | `OG_DISK` | `local` or `s3`; see [Ceph storage](docs/CEPH-S3.md) for `AWS_*` |
 | `CONTACT_EMAIL`, `API_DOCS_URL` | Optional public contact and backend docs overrides |
-| `GTM_CONTAINER_ID` | Google Tag Manager container. `GTM_CONTAINER_ID=GTM-M8THNDPH` is the Public Universe container and the application default, so production renders that container even when this variable is absent. Set it empty to ship no container. Consent Mode v2 denies analytics storage until the visitor accepts. |
-| `GA4_MEASUREMENT_ID` | Optional Google Analytics 4 measurement id. Direct `gtag.js` loads only after consent. The cookie banner shows when this or `GTM_CONTAINER_ID` is configured. |
+| `GTM_CONTAINER_ID` | Google Tag Manager container. `GTM_CONTAINER_ID=GTM-M8THNDPH` is the Public Universe container and the application default, so production renders that container even when this variable is absent. Set it empty to ship no container. Consent Mode v2 denies analytics storage until the visitor accepts. Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction. |
+| `GA4_MEASUREMENT_ID` | Optional Google Analytics 4 measurement id. Direct `gtag.js` loads only after consent. The cookie banner shows when this or `GTM_CONTAINER_ID` is configured. The same Enhanced Measurement history setting must stay off when this id owns the GA4 stream. |
 
 Keep `.env`, the account database and backups out of `public/`. For SQLite,
 create the parent directory and database file as the application user, with

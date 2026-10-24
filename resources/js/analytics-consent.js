@@ -10,10 +10,15 @@
 // as lat[], p[lon][], and p[][lat]. Livewire fires navigated once on boot without
 // changing the page, and that keeps the landing referrer. A later navigated
 // event whose address changed uses the previous redacted page_location,
-// because document.referrer does not update on wire:navigate. Container tags
-// then use those values instead of the address bar and the raw referrer,
-// including cookieless hits while storage is denied. Automatic page views
-// stay off;
+// because document.referrer does not update on wire:navigate. The same
+// publication runs synchronously inside history.pushState and replaceState,
+// and on popstate, before any later history wrapper or livewire:navigating /
+// livewire:navigated listener. Container tags then use those values instead
+// of the address bar and the raw referrer, including cookieless hits while
+// storage is denied. send_page_view stays false. That does not disable GA4
+// Enhanced Measurement history page views.
+// Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.
+// Automatic page views stay off;
 // a page_view event is sent only after cookie_consent=all. gtag.js is
 // injected only after that choice, and only when a GA4 measurement id is
 // set. Accepting analytics with Tag Manager alone updates consent so the
@@ -157,12 +162,45 @@
         window.dispatchEvent(new CustomEvent('cookie-consent-chosen'));
     }
 
+    function urlText(value) {
+        if (typeof value === 'string') {
+            return value;
+        }
+        if (value && typeof value.href === 'string') {
+            return value.href;
+        }
+
+        return '';
+    }
+
+    function redactedHistoryUrl(value) {
+        // History changes expose the address bar before Livewire swaps in the
+        // server-rendered meta. Redact the URL being committed, and drop the
+        // fragment, which can carry a settings token.
+        var text = urlText(value);
+        if (text === '') {
+            return pageLocation();
+        }
+        var absolute;
+        try {
+            absolute = new URL(text, location.href);
+        } catch (error) {
+            return pageLocation();
+        }
+        absolute.hash = '';
+        var sanitized = sanitizeAnalyticsUrl(absolute.toString());
+
+        return sanitized || pageLocation();
+    }
+
     function publishPageLocation() {
         // Container-managed tags read the address bar and document.referrer
         // unless both are already in the dataLayer when they initialise, and
         // again when the page changes without a reload. The manual page_view
-        // below is the only page view.
-        var page = pageLocation();
+        // below is the only page view. send_page_view: false does not stop
+        // GA4 Enhanced Measurement from sending its own hit on pushState.
+        var override = arguments[0];
+        var page = typeof override === 'string' && override !== '' ? override : pageLocation();
         if (!page) {
             return '';
         }
@@ -185,6 +223,73 @@
         publishedLocation = page;
 
         return page;
+    }
+
+    function bindHistoryMethod(method) {
+        var nav = window.history;
+        if (!nav || typeof nav[method] !== 'function') {
+            return;
+        }
+        var native = nav[method];
+        var inner = native;
+        var applying = false;
+
+        function outer() {
+            // A wrapper installed later (Tag Manager) calls back into us.
+            // The re-entry must hit the browser method, not publish again.
+            if (applying) {
+                return native.apply(this, arguments);
+            }
+            applying = true;
+            try {
+                var target = arguments.length >= 3 ? arguments[2] : null;
+                // Publish before the inner wrapper, so a history listener that
+                // sends a hit sees the redacted page_location already set.
+                publishPageLocation(redactedHistoryUrl(target));
+                return inner.apply(this, arguments);
+            } finally {
+                applying = false;
+            }
+        }
+
+        try {
+            Object.defineProperty(nav, method, {
+                configurable: true,
+                enumerable: true,
+                get: function () {
+                    return outer;
+                },
+                set: function (next) {
+                    if (typeof next === 'function' && next !== outer) {
+                        inner = next;
+                    }
+                },
+            });
+        } catch (error) {
+            nav[method] = outer;
+        }
+    }
+
+    function installHistoryPublisher() {
+        bindHistoryMethod('pushState');
+        bindHistoryMethod('replaceState');
+        if (typeof window.addEventListener === 'function') {
+            window.addEventListener('popstate', function () {
+                publishPageLocation(redactedHistoryUrl(location.href));
+            }, true);
+        }
+        // livewire:navigate is dispatched before pushState and before
+        // livewire:navigating. Capture runs before bubble listeners.
+        document.addEventListener('livewire:navigate', function (event) {
+            var detail = event && event.detail;
+            var url = detail && detail.url;
+            if (url && typeof url.href === 'string') {
+                url = url.href;
+            }
+            if (typeof url === 'string' && url !== '') {
+                publishPageLocation(redactedHistoryUrl(url));
+            }
+        }, true);
     }
 
     function sendPageView() {
@@ -272,6 +377,7 @@
     });
     window.gtag('set', 'ads_data_redaction', true);
     window.gtag('set', 'url_passthrough', false);
+    installHistoryPublisher();
     publishPageLocation();
 
     window.publicUniverseAnalytics = {
@@ -284,5 +390,5 @@
     document.addEventListener('livewire:navigated', function () {
         publishPageLocation();
         sendPageView();
-    });
+    }, true);
 })();

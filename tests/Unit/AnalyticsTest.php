@@ -81,7 +81,19 @@ it('ships the consent script that Livewire navigation can call', function () {
         ->toContain('send_page_view: false')
         ->toContain("addEventListener('livewire:navigated'")
         ->toContain('publishPageLocation();')
+        ->toContain('history.pushState')
+        ->toContain("bindHistoryMethod('replaceState')")
+        ->toContain("addEventListener('popstate'")
         ->toContain('googletagmanager.com/gtag/js');
+});
+
+it('documents that GA4 history page views must be disabled for the Tag Manager container', function () {
+    $sentence = "Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction";
+
+    expect(file_get_contents(config_path('site.php')))->toContain($sentence)
+        ->and(file_get_contents(base_path('DEPLOYMENT.md')))->toContain($sentence)
+        ->and(file_get_contents(base_path('.env.example')))->toContain($sentence)
+        ->and(Analytics::clientScript())->toContain($sentence);
 });
 
 it('redacts the settings share token, which carries an observing location', function () {

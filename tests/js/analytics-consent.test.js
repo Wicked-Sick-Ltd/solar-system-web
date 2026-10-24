@@ -38,6 +38,11 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '') {
         },
     });
     document.referrer = referrer;
+    const historyListeners = [];
+    const history = {
+        pushState() {},
+        replaceState() {},
+    };
     const location = {
         protocol: 'https:',
         hostname: 'publicuniverse.net',
@@ -46,11 +51,16 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '') {
         href: 'https://publicuniverse.net/objects/mars?s=SECRET#s=SECRET',
         reload() { state.reloads += 1; },
     };
-    const window = { document, location };
+    const window = {
+        document,
+        location,
+        history,
+        addEventListener(type, fn) { historyListeners.push({ type, fn }); },
+    };
     runInNewContext(source, { window, document, location, URL });
     const commands = () => window.dataLayer.map((entry) => Array.from(entry));
     const pageViews = () => commands().filter((entry) => entry[0] === 'event' && entry[1] === 'page_view');
-    return { state, scripts, jar, document, window, commands, pageViews };
+    return { state, scripts, jar, document, window, history, historyListeners, commands, pageViews };
 }
 
 test('container initialization publishes the redacted page location and disables automatic page views', () => {
@@ -197,6 +207,70 @@ test('Livewire navigation uses the previous redacted page as page_referrer', () 
     assert.equal(plain().at(-1).page_referrer, 'https://publicuniverse.net/privacy');
     assert.equal(pageViews().at(-1)[2].page_referrer, 'https://publicuniverse.net/privacy');
     assert.equal(pageViews().at(-1)[2].page_location, next);
+});
+
+test('history changes publish the redacted page before later listeners and do not page-view before consent', () => {
+    const { state, document, window, history, historyListeners, commands, pageViews } = boot(null, 'GTM-M8THNDPH');
+    const plain = () => window.dataLayer.filter((entry) => entry && entry.page_location && entry[0] === undefined);
+    const prior = state.page;
+    const sensitive = 'https://publicuniverse.net/privacy?lat=51.5&lon=-0.1&s=SECRET';
+    const seen = [];
+    const previous = history.pushState;
+    history.pushState = function () {
+        const latest = plain().at(-1);
+        seen.push(latest ? latest.page_location : '');
+        return previous.apply(this, arguments);
+    };
+
+    history.pushState({}, '', sensitive);
+    const published = plain().at(-1).page_location;
+    assert.equal(seen[0], published);
+    assert.equal(decodeURIComponent(published).includes('lat=redacted'), true);
+    assert.equal(decodeURIComponent(published).includes('lon=redacted'), true);
+    assert.equal(decodeURIComponent(published).includes('s=redacted'), true);
+    assert.equal(published.includes('51.5'), false);
+    assert.equal(published.includes('SECRET'), false);
+    assert.equal(plain().at(-1).page_referrer, prior);
+    assert.equal(pageViews().length, 0);
+    assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
+    assert.equal(JSON.stringify(window.dataLayer).includes('SECRET'), false);
+
+    history.replaceState({}, '', '/observe/night?lat=12.34567');
+    assert.equal(plain().at(-1).page_location.includes('12.34567'), false);
+    assert.equal(decodeURIComponent(plain().at(-1).page_location).includes('lat=redacted'), true);
+    assert.equal(pageViews().length, 0);
+
+    window.location.href = 'https://publicuniverse.net/catalogue?lon=1.23456&s=TOKEN';
+    const pop = historyListeners.find((entry) => entry.type === 'popstate');
+    assert.ok(pop);
+    pop.fn();
+    assert.equal(plain().at(-1).page_location.includes('1.23456'), false);
+    assert.equal(plain().at(-1).page_location.includes('TOKEN'), false);
+    assert.equal(decodeURIComponent(plain().at(-1).page_location).includes('lon=redacted'), true);
+    assert.equal(pageViews().length, 0);
+
+    document.dispatchEvent(new CustomEvent('livewire:navigate', { detail: { url: 'https://publicuniverse.net/api?p[lat]=51.5&p[lon]=-0.1' } }));
+    assert.equal(plain().at(-1).page_location.includes('51.5'), false);
+    assert.match(decodeURIComponent(plain().at(-1).page_location), /p\[lat\]=redacted/);
+    assert.equal(pageViews().length, 0);
+
+    window.publicUniverseAnalytics.choose('all');
+    const consentedViews = pageViews().length;
+    assert.equal(consentedViews, 1);
+    assert.equal(pageViews()[0][2].page_location.includes('51.5'), false);
+    assert.equal(pageViews()[0][2].page_location.includes('SECRET'), false);
+
+    history.pushState({}, '', 'https://publicuniverse.net/about?lat=9.876');
+    assert.equal(pageViews().length, consentedViews);
+    assert.equal(plain().at(-1).page_location.includes('9.876'), false);
+
+    state.page = 'https://publicuniverse.net/about?lat=redacted';
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(pageViews().length, consentedViews + 1);
+    assert.equal(pageViews().at(-1)[2].page_location, state.page);
+    assert.equal(pageViews().at(-1)[2].page_location.includes('9.876'), false);
+    assert.equal(JSON.stringify(pageViews()).includes('51.5'), false);
+    assert.equal(JSON.stringify(pageViews()).includes('SECRET'), false);
 });
 
 test('Consent Mode v2 denies analytics storage and does not load Google before consent', () => {
