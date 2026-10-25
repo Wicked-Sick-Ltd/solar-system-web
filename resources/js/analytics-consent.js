@@ -644,7 +644,15 @@
     function deny() {
         clearAnalyticsCookies();
         // A leftover cookie_consent=all would still turn on the noscript image.
-        expireLegacyConsentCookie();
+        var mayExpireLegacy = readLegacyConsentCookie() !== 'essential';
+        try {
+            mayExpireLegacy = mayExpireLegacy || window.localStorage.getItem(STORAGE) === 'essential';
+        } catch (error) {
+            // Preserve a legacy opt-out if its replacement cannot be read.
+        }
+        if (mayExpireLegacy) {
+            expireLegacyConsentCookie();
+        }
         // Stops sendPageView(), including the livewire:navigated listener.
         window.__gaStorageGranted = false;
         if (typeof window.gtag !== 'function') {
