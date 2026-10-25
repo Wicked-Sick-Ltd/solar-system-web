@@ -71,7 +71,8 @@ it('reads only an explicit accept cookie as a server opt-in', function () {
 
 it('ships the consent script that Livewire navigation can call', function () {
     expect(Analytics::clientScript())
-        ->toContain("var COOKIE = '".Analytics::CONSENT_COOKIE."'")
+        ->toContain("var STORAGE = 'pu_cookie_consent'")
+        ->toContain("return read() !== 'essential'")
         ->toContain("analytics_storage: 'denied'")
         ->toContain('window.dataLayer.push({')
         ->toContain("window.gtag('set', {")

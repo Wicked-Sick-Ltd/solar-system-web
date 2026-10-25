@@ -32,7 +32,8 @@ it('exposes the measurement id and loads gtag on every page before any consent c
 
     expect($html)
         ->toContain('name="ga-measurement-id" content="G-TEST1234"')
-        ->toContain('cookie_consent')
+        ->toContain("var STORAGE = 'pu_cookie_consent'")
+        ->toContain("return read() !== 'essential'")
         ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
         ->toContain("window.gtag('config', id")
         ->toContain('window.__puGtagScriptTag = true;')
@@ -151,13 +152,17 @@ it('ignores a container id that is not a GTM id', function () {
         ->assertDontSee('gtm-container-id', escape: false);
 });
 
-it('defaults analytics storage to denied and sends page views after Livewire navigation', function () {
+it('defaults analytics storage to granted unless the visitor chose essential and sends page views after Livewire navigation', function () {
     config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
 
     $html = $this->get('/')->assertOk()->getContent();
 
     expect($html)
         ->toContain("gtag('consent', 'default'")
+        ->toContain("var STORAGE = 'pu_cookie_consent'")
+        ->toContain("return read() !== 'essential'")
+        ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
+        ->toContain("analytics_storage: 'granted'")
         ->toContain("analytics_storage: 'denied'")
         ->toContain("ad_storage: 'denied'")
         ->toContain("ad_user_data: 'denied'")
@@ -211,8 +216,9 @@ it('explains Google Analytics 4 and Consent Mode, with choices only when it is s
         ->assertSee('analytics storage')
         ->assertSee('Essential only')
         ->assertSee('Accept analytics')
+        ->assertSee('Analytics helps us make the site better.')
         ->assertSee("publicUniverseAnalytics.choose('essential')", false)
-        ->assertSee("publicUniverseAnalytics.choose('all')", false)
+        ->assertSee("publicUniverseAnalytics.choose('analytics')", false)
         ->assertDontSee('not currently switched on');
 });
 
@@ -271,7 +277,7 @@ it('shows the cookie banner and privacy choices when only Tag Manager is configu
         ->assertSee('Essential only')
         ->assertSee('Accept analytics')
         ->assertSee("publicUniverseAnalytics.choose('essential')", false)
-        ->assertSee("publicUniverseAnalytics.choose('all')", false)
+        ->assertSee("publicUniverseAnalytics.choose('analytics')", false)
         ->assertDontSee('not currently switched on');
 });
 

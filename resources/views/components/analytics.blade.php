@@ -4,7 +4,7 @@
     $script = ($gaId || $gtmId) ? \App\Support\Analytics::clientScript() : '';
 @endphp
 @if (($gaId || $gtmId) && $script !== '')
-    {{-- Consent Mode v2 and the redacted page location run before either Google tag. gtag.js is in the document whenever a measurement id is set; analytics storage stays denied until cookie_consent=all. data-cfasync keeps Cloudflare Rocket Loader from deferring the tags. --}}
+    {{-- Consent Mode v2 and the redacted page location run before either Google tag. gtag.js is in the document whenever a measurement id is set; analytics storage is granted unless localStorage pu_cookie_consent is essential. data-cfasync keeps Cloudflare Rocket Loader from deferring the tags. --}}
     @if ($gaId)
         <meta name="ga-measurement-id" content="{{ $gaId }}">
     @endif

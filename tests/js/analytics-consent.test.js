@@ -14,6 +14,12 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
     };
     const scripts = [];
     const jar = new Map();
+    const storage = new Map();
+    const localStorage = {
+        getItem(key) { return storage.has(key) ? storage.get(key) : null; },
+        setItem(key, value) { storage.set(key, String(value)); },
+        removeItem(key) { storage.delete(key); },
+    };
     const document = new EventTarget();
     document.title = 'Mars';
     document.head = { appendChild(node) { scripts.push(node); } };
@@ -60,13 +66,14 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
         location,
         history,
         addEventListener(type, fn) { historyListeners.push({ type, fn }); },
+        localStorage,
     };
-    if (consent) jar.set('cookie_consent', consent);
+    if (consent) localStorage.setItem('pu_cookie_consent', consent);
     if (scriptAlreadyPresent) window.__puGtagScriptTag = true;
     runInNewContext(source, { window, document, location, URL });
     const commands = () => window.dataLayer.map((entry) => Array.from(entry));
     const pageViews = () => commands().filter((entry) => entry[0] === 'event' && entry[1] === 'page_view');
-    return { state, scripts, jar, document, window, history, historyListeners, commands, pageViews };
+    return { state, scripts, jar, storage, document, window, history, historyListeners, commands, pageViews };
 }
 
 test('container initialization publishes the redacted page location and disables automatic page views', () => {
@@ -120,7 +127,7 @@ test('container initialization redacts coordinates in a same-origin page referre
     assert.equal(sets().at(-1)[1].page_referrer, published);
     assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
 
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     assert.equal(pageViews().length, 1);
     assert.equal(pageViews()[0][2].page_referrer, published);
     assert.equal(JSON.stringify(pageViews()).includes('51.5'), false);
@@ -200,7 +207,7 @@ test('back to the homepage keeps the previous page as page_referrer', () => {
 
     state.page = mars;
     document.dispatchEvent(new Event('livewire:navigated'));
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     const viewsOnMars = pageViews().length;
     assert.equal(pageViews().at(-1)[2].page_location, mars);
 
@@ -245,7 +252,7 @@ test('Livewire navigation uses the previous redacted page as page_referrer', () 
     assert.equal(sets().at(-1)[1].page_referrer, prior);
     assert.equal(plain().at(-1).page_referrer.includes('51.5'), false);
 
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     assert.equal(pageViews().length, 1);
     assert.equal(pageViews()[0][2].page_location, state.page);
     assert.equal(pageViews()[0][2].page_referrer, prior);
@@ -265,7 +272,7 @@ test('navigate, pushState, and navigated keep the origin as page_referrer for a 
     const destination = 'https://publicuniverse.net/privacy?lat[]=51.5';
     const phpDestination = 'https://publicuniverse.net/privacy?lat=redacted';
 
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     assert.equal(pageViews().length, 1);
     assert.equal(pageViews()[0][2].page_location, origin);
 
@@ -372,7 +379,7 @@ test('history changes publish the redacted page before later listeners and do no
     assert.match(decodeURIComponent(plain().at(-1).page_location), /p\[lat\]=redacted/);
     assert.equal(pageViews().length, 0);
 
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     const consentedViews = pageViews().length;
     assert.equal(consentedViews, 1);
     assert.equal(pageViews()[0][2].page_location.includes('51.5'), false);
@@ -391,19 +398,18 @@ test('history changes publish the redacted page before later listeners and do no
     assert.equal(JSON.stringify(pageViews()).includes('SECRET'), false);
 });
 
-test('Consent Mode v2 denies analytics storage but still loads gtag and sends a cookieless page view', () => {
+test('Consent Mode v2 grants analytics storage by default and still loads gtag and sends a page view', () => {
     const { scripts, commands, pageViews } = boot();
     const queued = commands();
     const consent = queued.find((entry) => entry[0] === 'consent' && entry[1] === 'default');
     const config = queued.find((entry) => entry[0] === 'config');
-    const passthrough = queued.find((entry) => entry[0] === 'set' && entry[1] === 'url_passthrough');
     const redaction = queued.find((entry) => entry[0] === 'set' && entry[1] === 'ads_data_redaction');
     assert.ok(consent);
-    assert.equal(consent[2].analytics_storage, 'denied');
+    assert.equal(consent[2].analytics_storage, 'granted');
     assert.equal(consent[2].ad_storage, 'denied');
     assert.equal(consent[2].ad_user_data, 'denied');
     assert.equal(consent[2].ad_personalization, 'denied');
-    assert.equal(passthrough[2], true);
+    assert.equal(queued.some((entry) => entry[0] === 'set' && entry[1] === 'url_passthrough'), false);
     assert.equal(redaction[2], true);
     assert.ok(config);
     assert.equal(queued.indexOf(consent) < queued.indexOf(config), true);
@@ -416,7 +422,7 @@ test('Consent Mode v2 denies analytics storage but still loads gtag and sends a 
 });
 
 test('an existing accept grants storage before config and does not inject a second gtag tag', () => {
-    const { scripts, commands, pageViews, window } = boot('G-TEST1234', null, '', 'all', true);
+    const { scripts, commands, pageViews, window } = boot('G-TEST1234', null, '', 'analytics', true);
     const queued = commands();
     const consent = queued.find((entry) => entry[0] === 'consent' && entry[1] === 'default');
     const config = queued.find((entry) => entry[0] === 'config');
@@ -434,8 +440,11 @@ test('an existing accept grants storage before config and does not inject a seco
 
 test('essential only keeps storage denied while gtag is already loaded', () => {
     const { scripts, commands, pageViews } = boot('G-TEST1234', null, '', 'essential');
-    const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    const queued = commands();
+    const consent = queued.find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    const passthrough = queued.find((entry) => entry[0] === 'set' && entry[1] === 'url_passthrough');
     assert.equal(consent[2].analytics_storage, 'denied');
+    assert.equal(passthrough[2], true);
     assert.equal(scripts.length, 1);
     assert.equal(pageViews().length, 1);
     assert.equal(commands().some((entry) => entry[0] === 'consent' && entry[1] === 'update'), false);
@@ -450,7 +459,7 @@ test('opting in loads gtag once and reports the redacted page, then Livewire nav
     assert.equal(scripts[0]['data-cfasync'], 'false');
     assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
 
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     assert.equal(scripts.length, 1);
     const granted = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'update');
     assert.equal(granted[2].analytics_storage, 'granted');
@@ -463,25 +472,25 @@ test('opting in loads gtag once and reports the redacted page, then Livewire nav
     assert.equal(config[2].send_page_view, false);
     assert.equal(config[2].page_location, state.page);
     assert.equal(queued.indexOf(consentDefault) < queued.indexOf(config), true);
-    assert.equal(pageViews().length, 2);
+    assert.equal(pageViews().length, 1);
     assert.equal(pageViews()[0][2].page_location, 'https://publicuniverse.net/objects/mars');
-    assert.equal(pageViews()[1][2].page_location, 'https://publicuniverse.net/objects/mars');
     assert.equal(JSON.stringify(pageViews()[0]).includes('SECRET'), false);
+    assert.equal(window.publicUniverseAnalytics.read(), 'analytics');
 
     document.dispatchEvent(new Event('livewire:navigated'));
-    assert.equal(pageViews().length, 2);
+    assert.equal(pageViews().length, 1);
 
     state.page = 'https://publicuniverse.net/privacy';
     document.title = 'Privacy & cookies';
     document.dispatchEvent(new Event('livewire:navigated'));
-    assert.equal(pageViews().length, 3);
-    assert.equal(pageViews()[2][2].page_location, 'https://publicuniverse.net/privacy');
-    assert.equal(pageViews()[2][2].page_referrer, 'https://publicuniverse.net/objects/mars');
-    assert.equal(pageViews()[2][2].page_title, 'Privacy & cookies');
+    assert.equal(pageViews().length, 2);
+    assert.equal(pageViews()[1][2].page_location, 'https://publicuniverse.net/privacy');
+    assert.equal(pageViews()[1][2].page_referrer, 'https://publicuniverse.net/objects/mars');
+    assert.equal(pageViews()[1][2].page_title, 'Privacy & cookies');
     assert.equal(scripts.length, 1);
 });
 
-test('essential only does not reload a cookieless tag, and withdrawing consent reloads after clearing analytics cookies', () => {
+test('essential only denies storage without reloading and clears analytics cookies', () => {
     const declined = boot();
     declined.window.publicUniverseAnalytics.choose('essential');
     assert.equal(declined.scripts.length, 1);
@@ -492,16 +501,17 @@ test('essential only does not reload a cookieless tag, and withdrawing consent r
     assert.equal(denial[2].analytics_storage, 'denied');
 
     const accepted = boot();
-    accepted.window.publicUniverseAnalytics.choose('all');
+    accepted.window.publicUniverseAnalytics.choose('analytics');
     accepted.document.cookie = '_ga=abc';
     accepted.document.cookie = '_ga_GTEST=1';
     accepted.document.cookie = '_gid=stay';
     accepted.window.publicUniverseAnalytics.choose('essential');
-    assert.equal(accepted.state.reloads, 1);
+    assert.equal(accepted.state.reloads, 0);
     assert.equal(accepted.jar.has('_ga'), false);
     assert.equal(accepted.jar.has('_ga_GTEST'), false);
     assert.equal(accepted.jar.has('_gid'), false);
-    assert.equal(accepted.jar.get('cookie_consent'), 'essential');
+    assert.equal(accepted.window.publicUniverseAnalytics.read(), 'essential');
+    assert.equal(accepted.storage.get('pu_cookie_consent'), 'essential');
     const withdrawn = accepted.commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
     assert.equal(withdrawn[2].analytics_storage, 'denied');
     assert.equal(withdrawn[2].ad_personalization, 'denied');
@@ -515,7 +525,7 @@ test('a tampered measurement id is not requested', () => {
 
 test('Tag Manager alone grants analytics storage without requesting gtag.js', () => {
     const { scripts, state, window, commands, pageViews } = boot(null, 'GTM-M8THNDPH');
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     assert.equal(scripts.length, 0);
     const granted = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'update');
     assert.equal(granted[2].analytics_storage, 'granted');
@@ -526,7 +536,8 @@ test('Tag Manager alone grants analytics storage without requesting gtag.js', ()
     assert.equal(pageViews()[0][2].page_location, 'https://publicuniverse.net/objects/mars');
 
     window.publicUniverseAnalytics.choose('essential');
-    assert.equal(state.reloads, 1);
+    assert.equal(state.reloads, 0);
+    assert.equal(window.publicUniverseAnalytics.read(), 'essential');
     const denial = commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
     assert.equal(denial[2].analytics_storage, 'denied');
 });
@@ -539,9 +550,9 @@ test('GA4 and Tag Manager together load gtag.js before consent and grant storage
     assert.equal(scripts.length, 1);
     assert.equal(scripts[0]['data-cfasync'], 'false');
     assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
-    assert.equal(consent[2].analytics_storage, 'denied');
+    assert.equal(consent[2].analytics_storage, 'granted');
     assert.equal(queued.indexOf(consent) < queued.indexOf(config), true);
-    window.publicUniverseAnalytics.choose('all');
+    window.publicUniverseAnalytics.choose('analytics');
     assert.equal(scripts.length, 1);
     const granted = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'update');
     assert.equal(granted[2].analytics_storage, 'granted');

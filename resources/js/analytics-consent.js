@@ -23,20 +23,21 @@
 // Enhanced Measurement history page views.
 // Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.
 // Automatic page views stay off. When a measurement id is set, gtag.js loads
-// on every page after the consent default. analytics_storage is 'denied'
-// unless cookie_consent is all, and a page_view is sent immediately so
-// Consent Mode records a cookieless ping. Accepting analytics updates storage
-// to granted and sends page_view again. Tag Manager alone still sends that
+// on every page after the consent default. analytics_storage is 'granted'
+// unless localStorage pu_cookie_consent is essential, and a page_view is sent
+// immediately. Accepting analytics stores analytics and updates storage to
+// granted without a second page view when that hit was already granted.
+// Essential only stores essential, updates storage to denied, and clears
+// analytics cookies without reloading. Tag Manager alone still sends that
 // page_view when the visitor accepts, and updates consent so the container's
-// tags may store cookies. Essential only never grants storage.
+// tags may store cookies.
 (function () {
     if (window.__puAnalyticsInit) {
         return;
     }
     window.__puAnalyticsInit = true;
 
-    var COOKIE = 'cookie_consent'; // App\Support\Analytics::CONSENT_COOKIE
-    var ONE_YEAR = 31536000;
+    var STORAGE = 'pu_cookie_consent';
     var lastLocation = null;
     // Committed page_location and the referrer that belonged to it. History
     // and livewire:navigate publish a provisional address first; only popstate
@@ -302,14 +303,19 @@
     }
 
     function read() {
-        var match = document.cookie.match(new RegExp('(?:^|; )' + COOKIE + '=([^;]*)'));
-
-        return match ? decodeURIComponent(match[1]) : null;
+        try {
+            return window.localStorage.getItem(STORAGE);
+        } catch (error) {
+            return null;
+        }
     }
 
     function write(value) {
-        document.cookie = COOKIE + '=' + encodeURIComponent(value) + '; Max-Age=' + ONE_YEAR + '; Path=/; SameSite=Lax' +
-            (location.protocol === 'https:' ? '; Secure' : '');
+        try {
+            window.localStorage.setItem(STORAGE, value);
+        } catch (error) {
+            // Private mode can throw. The banner still closes.
+        }
     }
 
     function isAnalyticsCookie(name) {
@@ -516,7 +522,9 @@
     }
 
     function analyticsStorageGranted() {
-        return read() === 'all';
+        // Granted unless the visitor explicitly chose essential cookies only.
+        // A missing choice, or any value other than essential, keeps analytics on.
+        return read() !== 'essential';
     }
 
     function configureMeasurement() {
@@ -543,24 +551,20 @@
     }
 
     function load() {
+        // Returning visitors who stored "analytics" call this from the banner.
+        // The landing hit is already granted when a measurement id is set, so
+        // this must not send a second page view or another consent update.
+        // Tag Manager alone has not sent a page view yet; send that one hit.
         if (window.__gaLoaded && window.__gaStorageGranted) {
+            return;
+        }
+        if (!analyticsStorageGranted()) {
             return;
         }
         var id = measurementId();
         var gtm = gtmContainerId();
         if (!id && !gtm) {
             return;
-        }
-        if (analyticsStorageGranted()) {
-            window.gtag('consent', 'update', {
-                analytics_storage: 'granted',
-            });
-            if (window.__gaStorageGranted !== true) {
-                window.__gaStorageGranted = true;
-                // The landing page_view was cookieless. Send it again now that
-                // storage is granted. Later navigations already carry the grant.
-                lastLocation = null;
-            }
         }
         window.__gaLoaded = true;
         if (id) {
@@ -569,11 +573,34 @@
         sendPageView();
     }
 
+    function acceptAnalytics() {
+        var id = measurementId();
+        var gtm = gtmContainerId();
+        if (!id && !gtm) {
+            return;
+        }
+        var alreadyGrantedHit = window.__gaLoaded === true && window.__gaStorageGranted === true;
+        window.gtag('consent', 'update', {
+            analytics_storage: 'granted',
+        });
+        window.__gaStorageGranted = true;
+        if (alreadyGrantedHit) {
+            return;
+        }
+        window.__gaLoaded = true;
+        if (id) {
+            configureMeasurement();
+        }
+        // The previous hit, if any, was cookieless. Send the page again now
+        // that storage is granted. A Tag Manager-only page has not sent one yet.
+        lastLocation = null;
+        sendPageView();
+    }
+
     function deny() {
-        var hadGrant = window.__gaStorageGranted === true;
         clearAnalyticsCookies();
         window.__gaStorageGranted = false;
-        if (!window.__gaLoaded || typeof window.gtag !== 'function') {
+        if (typeof window.gtag !== 'function') {
             return;
         }
         window.gtag('consent', 'update', {
@@ -582,21 +609,16 @@
             ad_personalization: 'denied',
             analytics_storage: 'denied',
         });
-        // A cookieless tag is already in denied mode. Reload only after a
-        // grant, so stored analytics cookies are dropped with the page.
-        if (hadGrant) {
-            window.location.reload();
-        }
     }
 
     function choose(value) {
-        if (value !== 'all' && value !== 'essential') {
+        if (value !== 'analytics' && value !== 'essential') {
             return;
         }
         write(value);
         closeBanner();
-        if (value === 'all') {
-            load();
+        if (value === 'analytics') {
+            acceptAnalytics();
             return;
         }
         deny();
@@ -604,9 +626,10 @@
 
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || gtag;
-    // Denied until cookie_consent=all, including when the visitor has not
-    // chosen yet. This runs before gtag('config') so the first hit is a
-    // cookieless Consent Mode ping.
+    // Granted unless pu_cookie_consent is essential, including when the
+    // visitor has not chosen yet. This runs before gtag('config'). Essential
+    // only starts denied and sends a cookieless ping when a measurement id
+    // is set.
     var granted = analyticsStorageGranted();
     window.gtag('consent', 'default', {
         ad_storage: 'denied',
