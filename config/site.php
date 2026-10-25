@@ -43,6 +43,12 @@ return [
     // Legal entity named in the privacy policy.
     'operator' => env('SITE_OPERATOR', 'Wicked Sick Ltd'),
 
+    // Read here so `php artisan config:cache` keeps a deployment's allowlist.
+    // bootstrap/app.php must not call env(): .env is not loaded once this file
+    // is cached. '*' trusts every peer. Otherwise this is a comma-separated
+    // list of IPs or CIDRs. X-Forwarded-Host is never trusted.
+    'trusted_proxies' => env('TRUSTED_PROXIES', '127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'),
+
     // Google Tag Manager and Google Analytics 4.
     // GTM_CONTAINER_ID defaults to the Public Universe container so production
     // renders it before .env is updated. An empty or invalid value renders nothing.

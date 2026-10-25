@@ -18,22 +18,33 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Local nginx/PHP-FPM forwards the visitor scheme. Trust that peer
         // (and private LAN ranges) for For/Port/Proto only. A client-supplied
-        // X-Forwarded-Host is ignored so it cannot spoof the host. Set
-        // TRUSTED_PROXIES=* only when every connecting peer is a proxy.
-        $trustedProxies = env('TRUSTED_PROXIES', '127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16');
-        $trustedProxies = is_string($trustedProxies) ? trim($trustedProxies) : '';
-        $trustedProxies = $trustedProxies === '*'
-            ? '*'
-            : array_values(array_filter(
-                array_map(trim(...), explode(',', $trustedProxies)),
-                static fn (string $proxy): bool => $proxy !== '',
-            ));
-        $middleware->trustProxies(
-            at: $trustedProxies,
-            headers: Request::HEADER_X_FORWARDED_FOR
-                | Request::HEADER_X_FORWARDED_PORT
-                | Request::HEADER_X_FORWARDED_PROTO,
-        );
+        // X-Forwarded-Host is ignored so it cannot spoof the host. The
+        // allowlist is config('site.trusted_proxies'), which config:cache
+        // freezes from TRUSTED_PROXIES. Set TRUSTED_PROXIES=* only when every
+        // connecting peer is a proxy. The kernel is resolved before
+        // LoadConfiguration, so the allowlist is applied once config exists.
+        $applyTrustedProxies = static function () use ($middleware): void {
+            $trustedProxies = config('site.trusted_proxies', '127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16');
+            $trustedProxies = is_string($trustedProxies) ? trim($trustedProxies) : '';
+            $trustedProxies = $trustedProxies === '*'
+                ? '*'
+                : array_values(array_filter(
+                    array_map(trim(...), explode(',', $trustedProxies)),
+                    static fn (string $proxy): bool => $proxy !== '',
+                ));
+            $middleware->trustProxies(
+                at: $trustedProxies,
+                headers: Request::HEADER_X_FORWARDED_FOR
+                    | Request::HEADER_X_FORWARDED_PORT
+                    | Request::HEADER_X_FORWARDED_PROTO,
+            );
+        };
+        $app = Application::getInstance();
+        if ($app->bound('config')) {
+            $applyTrustedProxies();
+        } else {
+            $app->booted($applyTrustedProxies);
+        }
         // Global prepend so on the response it runs outermost — after Livewire's
         // globally-pushed back-button-cache middleware — letting our public
         // Cache-Control win on the cacheable routes (interactive pages keep

@@ -25,12 +25,14 @@
 // Automatic page views stay off. When a measurement id is set, gtag.js loads
 // on every page after the consent default. analytics_storage is 'granted'
 // unless localStorage pu_cookie_consent is essential, and a page_view is sent
-// immediately. Accepting analytics stores analytics and updates storage to
-// granted without a second page view when that hit was already granted.
-// Essential only stores essential, updates storage to denied, and clears
-// analytics cookies without reloading. Tag Manager alone still sends that
-// page_view when the visitor accepts, and updates consent so the container's
-// tags may store cookies.
+// immediately. A Tag Manager container with no measurement id does the same
+// when storage is granted, including when the visitor has not chosen yet.
+// Accepting analytics stores analytics and updates storage to granted without
+// a second page view when that hit was already granted. Essential only stores
+// essential, updates storage to denied, expires a legacy cookie_consent
+// cookie, and clears analytics cookies without reloading. A missing
+// localStorage choice falls back to that legacy cookie, and essential there
+// keeps storage denied.
 (function () {
     if (window.__puAnalyticsInit) {
         return;
@@ -318,12 +320,35 @@
     }
 
     function read() {
-        readLegacyConsentCookie();
+        // pu_cookie_consent wins when this browser has stored a choice.
+        // Otherwise a legacy cookie_consent=essential still opts out. A
+        // missing or unreadable cookie is not a choice.
+        var stored = null;
         try {
-            return window.localStorage.getItem(STORAGE);
+            stored = window.localStorage.getItem(STORAGE);
         } catch (error) {
-            return null;
+            stored = null;
         }
+        if (typeof stored === 'string' && stored !== '') {
+            return stored;
+        }
+
+        return readLegacyConsentCookie();
+    }
+
+    function expireLegacyConsentCookie() {
+        var host = location.hostname;
+        var domains = [''];
+        if (host) {
+            domains.push(host);
+            var parts = host.split('.');
+            if (parts.length >= 2) {
+                domains.push('.' + parts.slice(-2).join('.'));
+            }
+        }
+        domains.forEach(function (domain) {
+            document.cookie = 'cookie_consent=; Max-Age=0; Path=/' + (domain ? '; Domain=' + domain : '') + '; SameSite=Lax';
+        });
     }
 
     function write(value) {
@@ -573,7 +598,8 @@
         // Returning visitors who stored "analytics" call this from the banner.
         // The landing hit is already granted when a measurement id is set, so
         // this must not send a second page view or another consent update.
-        // Tag Manager alone has not sent a page view yet; send that one hit.
+        // A granted Tag Manager landing hit is already recorded. This sends
+        // one only when that hit has not been sent yet.
         if (window.__gaLoaded && window.__gaStorageGranted) {
             return;
         }
@@ -610,14 +636,15 @@
         if (id) {
             configureMeasurement();
         }
-        // The previous hit, if any, was cookieless. Send the page again now
-        // that storage is granted. A Tag Manager-only page has not sent one yet.
+        // Storage was denied, so the landing hit was not sent. Send it now.
         lastLocation = null;
         sendPageView();
     }
 
     function deny() {
         clearAnalyticsCookies();
+        // A leftover cookie_consent=all would still turn on the noscript image.
+        expireLegacyConsentCookie();
         // Stops sendPageView(), including the livewire:navigated listener.
         window.__gaStorageGranted = false;
         if (typeof window.gtag !== 'function') {
@@ -665,9 +692,14 @@
     }
     installHistoryPublisher();
     publishPageLocation();
+    // gtag.js still loads when the visitor has opted out. Page views, including
+    // a Tag Manager container with no measurement id, are recorded only while
+    // storage is granted.
     if (measurementId()) {
-        window.__gaLoaded = true;
         configureMeasurement();
+    }
+    if (granted && (measurementId() || gtmContainerId())) {
+        window.__gaLoaded = true;
         sendPageView();
     }
 

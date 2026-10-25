@@ -45,7 +45,7 @@ it('exposes the measurement id and loads gtag on every page before any consent c
     // the boot sequence sets the consent default and then configures the tag,
     // and that the gtag.js element follows that script.
     $consent = strpos($html, "gtag('consent', 'default'");
-    $boot = strpos($html, "window.__gaLoaded = true;\n        configureMeasurement();\n        sendPageView();");
+    $boot = strpos($html, 'if (granted && (measurementId() || gtmContainerId()))');
     $tag = strpos($html, '<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>');
 
     expect($consent)->toBeInt()
@@ -292,7 +292,7 @@ it('keeps Consent Mode ahead of Tag Manager when GA4 is configured as well', fun
 
     $html = $this->get('/')->assertOk()->getContent();
     $consent = strpos($html, "gtag('consent', 'default'");
-    $boot = strpos($html, "window.__gaLoaded = true;\n        configureMeasurement();\n        sendPageView();");
+    $boot = strpos($html, 'if (granted && (measurementId() || gtmContainerId()))');
     $gtag = strpos($html, '<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>');
     $gtm = strpos($html, 'https://www.googletagmanager.com/gtm.js');
 
@@ -446,6 +446,62 @@ it('trusts forwarded proxy headers so the analytics page location is https', fun
         ->and($spoofedLocation)->not->toContain('evil.example')
         ->and(request()->secure())->toBeFalse()
         ->and(request()->ip())->toBe('203.0.113.8');
+});
+
+it('trusts a custom proxy allowlist after configuration is cached', function () {
+    $cache = base_path('bootstrap/cache/config.php');
+    $hadEnv = getenv('TRUSTED_PROXIES');
+    $set = function (?string $value): void {
+        if ($value === null) {
+            putenv('TRUSTED_PROXIES');
+            unset($_ENV['TRUSTED_PROXIES'], $_SERVER['TRUSTED_PROXIES']);
+
+            return;
+        }
+
+        putenv('TRUSTED_PROXIES='.$value);
+        $_ENV['TRUSTED_PROXIES'] = $value;
+        $_SERVER['TRUSTED_PROXIES'] = $value;
+    };
+
+    try {
+        $set('198.51.100.10');
+        $this->artisan('config:cache')->assertSuccessful();
+
+        // .env is not loaded once configuration is cached, so the process
+        // environment no longer has the custom allowlist. The cached config must.
+        $set(null);
+        $this->refreshApplication();
+        $this->withoutVite();
+        fakeSolar();
+
+        expect(config('site.trusted_proxies'))->toBe('198.51.100.10')
+            ->and(getenv('TRUSTED_PROXIES'))->toBeFalse();
+
+        config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
+
+        $trusted = $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.10'])
+            ->get('http://publicuniverse.net/', ['X-Forwarded-Proto' => 'https']);
+        $trusted->assertOk();
+        preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $trusted->getContent(), $meta);
+
+        expect(html_entity_decode($meta[1] ?? '', ENT_QUOTES))->toBe('https://publicuniverse.net')
+            ->and(request()->secure())->toBeTrue();
+
+        $loopback = $this->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+            ->get('http://publicuniverse.net/', ['X-Forwarded-Proto' => 'https']);
+        $loopback->assertOk();
+        preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $loopback->getContent(), $loop);
+
+        expect(html_entity_decode($loop[1] ?? '', ENT_QUOTES))->toBe('http://publicuniverse.net')
+            ->and(request()->secure())->toBeFalse();
+    } finally {
+        if (is_file($cache)) {
+            unlink($cache);
+        }
+        $set(is_string($hadEnv) ? $hadEnv : null);
+        $this->refreshApplication();
+    }
 });
 
 it('publishes a privacy policy page', function () {
