@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../../resources/js/analytics-consent.js', import.meta.url), 'utf8');
 
-function boot(id = 'G-TEST1234', gtm = null, referrer = '') {
+function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scriptAlreadyPresent = false) {
     const state = {
         id,
         gtm,
@@ -17,7 +17,11 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '') {
     const document = new EventTarget();
     document.title = 'Mars';
     document.head = { appendChild(node) { scripts.push(node); } };
-    document.createElement = () => ({ async: false, src: '' });
+    document.createElement = () => {
+        const node = { async: false, src: '' };
+        node.setAttribute = (name, value) => { node[name] = value; };
+        return node;
+    };
     document.getElementById = () => null;
     document.querySelector = (selector) => {
         if (selector === 'meta[name="ga-measurement-id"]') return state.id ? { getAttribute: () => state.id } : null;
@@ -57,6 +61,8 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '') {
         history,
         addEventListener(type, fn) { historyListeners.push({ type, fn }); },
     };
+    if (consent) jar.set('cookie_consent', consent);
+    if (scriptAlreadyPresent) window.__puGtagScriptTag = true;
     runInNewContext(source, { window, document, location, URL });
     const commands = () => window.dataLayer.map((entry) => Array.from(entry));
     const pageViews = () => commands().filter((entry) => entry[0] === 'event' && entry[1] === 'page_view');
@@ -385,59 +391,105 @@ test('history changes publish the redacted page before later listeners and do no
     assert.equal(JSON.stringify(pageViews()).includes('SECRET'), false);
 });
 
-test('Consent Mode v2 denies analytics storage and does not load Google before consent', () => {
-    const { scripts, commands } = boot();
-    const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+test('Consent Mode v2 denies analytics storage but still loads gtag and sends a cookieless page view', () => {
+    const { scripts, commands, pageViews } = boot();
+    const queued = commands();
+    const consent = queued.find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    const config = queued.find((entry) => entry[0] === 'config');
+    const passthrough = queued.find((entry) => entry[0] === 'set' && entry[1] === 'url_passthrough');
+    const redaction = queued.find((entry) => entry[0] === 'set' && entry[1] === 'ads_data_redaction');
     assert.ok(consent);
     assert.equal(consent[2].analytics_storage, 'denied');
     assert.equal(consent[2].ad_storage, 'denied');
     assert.equal(consent[2].ad_user_data, 'denied');
     assert.equal(consent[2].ad_personalization, 'denied');
+    assert.equal(passthrough[2], true);
+    assert.equal(redaction[2], true);
+    assert.ok(config);
+    assert.equal(queued.indexOf(consent) < queued.indexOf(config), true);
+    assert.equal(scripts.length, 1);
+    assert.equal(scripts[0].async, true);
+    assert.equal(scripts[0]['data-cfasync'], 'false');
+    assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
+    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews()[0][2].page_location, 'https://publicuniverse.net/objects/mars');
+});
+
+test('an existing accept grants storage before config and does not inject a second gtag tag', () => {
+    const { scripts, commands, pageViews, window } = boot('G-TEST1234', null, '', 'all', true);
+    const queued = commands();
+    const consent = queued.find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    const config = queued.find((entry) => entry[0] === 'config');
+    assert.equal(consent[2].analytics_storage, 'granted');
+    assert.equal(queued.some((entry) => entry[0] === 'set' && entry[1] === 'url_passthrough'), false);
+    assert.equal(queued.indexOf(consent) < queued.indexOf(config), true);
     assert.equal(scripts.length, 0);
-    assert.equal(commands().some((entry) => entry[1] === 'page_view'), false);
+    assert.equal(pageViews().length, 1);
+    assert.equal(queued.filter((entry) => entry[0] === 'consent' && entry[1] === 'update').length, 0);
+
+    window.publicUniverseAnalytics.load();
+    assert.equal(pageViews().length, 1);
+    assert.equal(commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').length, 0);
+});
+
+test('essential only keeps storage denied while gtag is already loaded', () => {
+    const { scripts, commands, pageViews } = boot('G-TEST1234', null, '', 'essential');
+    const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    assert.equal(consent[2].analytics_storage, 'denied');
+    assert.equal(scripts.length, 1);
+    assert.equal(pageViews().length, 1);
+    assert.equal(commands().some((entry) => entry[0] === 'consent' && entry[1] === 'update'), false);
 });
 
 test('opting in loads gtag once and reports the redacted page, then Livewire navigations', () => {
     const { state, scripts, document, window, commands, pageViews } = boot();
     document.dispatchEvent(new Event('livewire:navigated'));
-    assert.equal(pageViews().length, 0);
+    assert.equal(pageViews().length, 1);
+    assert.equal(scripts.length, 1);
+    assert.equal(scripts[0].async, true);
+    assert.equal(scripts[0]['data-cfasync'], 'false');
+    assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
 
     window.publicUniverseAnalytics.choose('all');
     assert.equal(scripts.length, 1);
-    assert.equal(scripts[0].async, true);
-    assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
     const granted = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'update');
     assert.equal(granted[2].analytics_storage, 'granted');
     assert.equal(granted[2].ad_storage, undefined);
     assert.equal(granted[2].ad_user_data, undefined);
     assert.equal(granted[2].ad_personalization, undefined);
-    const config = commands().find((entry) => entry[0] === 'config');
+    const queued = commands();
+    const config = queued.find((entry) => entry[0] === 'config');
+    const consentDefault = queued.find((entry) => entry[0] === 'consent' && entry[1] === 'default');
     assert.equal(config[2].send_page_view, false);
     assert.equal(config[2].page_location, state.page);
-    assert.equal(pageViews().length, 1);
+    assert.equal(queued.indexOf(consentDefault) < queued.indexOf(config), true);
+    assert.equal(pageViews().length, 2);
     assert.equal(pageViews()[0][2].page_location, 'https://publicuniverse.net/objects/mars');
+    assert.equal(pageViews()[1][2].page_location, 'https://publicuniverse.net/objects/mars');
     assert.equal(JSON.stringify(pageViews()[0]).includes('SECRET'), false);
 
     document.dispatchEvent(new Event('livewire:navigated'));
-    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews().length, 2);
 
     state.page = 'https://publicuniverse.net/privacy';
     document.title = 'Privacy & cookies';
     document.dispatchEvent(new Event('livewire:navigated'));
-    assert.equal(pageViews().length, 2);
-    assert.equal(pageViews()[1][2].page_location, 'https://publicuniverse.net/privacy');
-    assert.equal(pageViews()[1][2].page_referrer, 'https://publicuniverse.net/objects/mars');
-    assert.equal(pageViews()[1][2].page_title, 'Privacy & cookies');
+    assert.equal(pageViews().length, 3);
+    assert.equal(pageViews()[2][2].page_location, 'https://publicuniverse.net/privacy');
+    assert.equal(pageViews()[2][2].page_referrer, 'https://publicuniverse.net/objects/mars');
+    assert.equal(pageViews()[2][2].page_title, 'Privacy & cookies');
     assert.equal(scripts.length, 1);
 });
 
-test('essential only never loads Google, and withdrawing consent reloads after clearing analytics cookies', () => {
+test('essential only does not reload a cookieless tag, and withdrawing consent reloads after clearing analytics cookies', () => {
     const declined = boot();
     declined.window.publicUniverseAnalytics.choose('essential');
-    assert.equal(declined.scripts.length, 0);
+    assert.equal(declined.scripts.length, 1);
     assert.equal(declined.state.reloads, 0);
     assert.equal(declined.window.publicUniverseAnalytics.read(), 'essential');
-    assert.equal(declined.commands().some((entry) => entry[1] === 'page_view'), false);
+    assert.equal(declined.pageViews().length, 1);
+    const denial = declined.commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
+    assert.equal(denial[2].analytics_storage, 'denied');
 
     const accepted = boot();
     accepted.window.publicUniverseAnalytics.choose('all');
@@ -450,9 +502,9 @@ test('essential only never loads Google, and withdrawing consent reloads after c
     assert.equal(accepted.jar.has('_ga_GTEST'), false);
     assert.equal(accepted.jar.has('_gid'), false);
     assert.equal(accepted.jar.get('cookie_consent'), 'essential');
-    const denial = accepted.commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
-    assert.equal(denial[2].analytics_storage, 'denied');
-    assert.equal(denial[2].ad_personalization, 'denied');
+    const withdrawn = accepted.commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
+    assert.equal(withdrawn[2].analytics_storage, 'denied');
+    assert.equal(withdrawn[2].ad_personalization, 'denied');
 });
 
 test('a tampered measurement id is not requested', () => {
@@ -479,12 +531,20 @@ test('Tag Manager alone grants analytics storage without requesting gtag.js', ()
     assert.equal(denial[2].analytics_storage, 'denied');
 });
 
-test('GA4 and Tag Manager together still load gtag.js only after consent', () => {
-    const { scripts, window } = boot('G-TEST1234', 'GTM-M8THNDPH');
-    assert.equal(scripts.length, 0);
+test('GA4 and Tag Manager together load gtag.js before consent and grant storage on accept', () => {
+    const { scripts, window, commands } = boot('G-TEST1234', 'GTM-M8THNDPH');
+    const queued = commands();
+    const consent = queued.find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    const config = queued.find((entry) => entry[0] === 'config');
+    assert.equal(scripts.length, 1);
+    assert.equal(scripts[0]['data-cfasync'], 'false');
+    assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
+    assert.equal(consent[2].analytics_storage, 'denied');
+    assert.equal(queued.indexOf(consent) < queued.indexOf(config), true);
     window.publicUniverseAnalytics.choose('all');
     assert.equal(scripts.length, 1);
-    assert.equal(scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST1234');
+    const granted = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'update');
+    assert.equal(granted[2].analytics_storage, 'granted');
 });
 
 test('a tampered container id does not grant storage on its own', () => {

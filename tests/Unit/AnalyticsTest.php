@@ -84,7 +84,13 @@ it('ships the consent script that Livewire navigation can call', function () {
         ->toContain('history.pushState')
         ->toContain("bindHistoryMethod('replaceState')")
         ->toContain("addEventListener('popstate'")
-        ->toContain('googletagmanager.com/gtag/js');
+        ->toContain('googletagmanager.com/gtag/js')
+        ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
+        ->toContain("window.gtag('set', 'url_passthrough', true)")
+        ->toContain("window.gtag('set', 'ads_data_redaction', true)")
+        ->toContain("window.gtag('config', id")
+        ->toContain("script.setAttribute('data-cfasync', 'false')")
+        ->toContain('configureMeasurement();');
 });
 
 it('documents that GA4 history page views must be disabled for the Tag Manager container', function () {

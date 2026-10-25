@@ -1,7 +1,8 @@
 {{--
-    Cookie consent. Essential-only is the default; nothing non-essential runs
-    until the visitor explicitly accepts. The choice lives in a first-party
-    cookie (`cookie_consent` = essential | all) for a year.
+    Cookie consent. Analytics storage stays denied until the visitor accepts.
+    gtag.js still loads immediately and sends cookieless Consent Mode pings.
+    The choice lives in a first-party cookie (`cookie_consent` = essential | all)
+    for a year.
 
     Rendered when a valid GA4 measurement id, a Google Tag Manager container,
     or both are configured. Without either, the site sets essential cookies
@@ -15,7 +16,7 @@
      role="region" aria-label="{{ __('Cookie consent') }}">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm leading-relaxed" style="color: var(--text); max-width: 60ch;">
-            {{ __('We use an essential cookie to remember this choice. With your permission we also use Google Analytics 4 to see which pages are useful. Analytics storage stays off until you accept.') }}
+            {{ __('We use an essential cookie to remember this choice. Google Analytics 4 loads in cookieless Consent Mode so we can see which pages are useful before you choose. Analytics storage stays off until you accept.') }}
             <a class="link-quiet underline" href="{{ route('privacy') }}">{{ __('Privacy & cookies') }}</a>
         </p>
         <div class="flex shrink-0 gap-2">

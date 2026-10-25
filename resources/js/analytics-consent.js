@@ -22,11 +22,13 @@
 // does not disable GA4
 // Enhanced Measurement history page views.
 // Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.
-// Automatic page views stay off;
-// a page_view event is sent only after cookie_consent=all. gtag.js is
-// injected only after that choice, and only when a GA4 measurement id is
-// set. Accepting analytics with Tag Manager alone updates consent so the
-// container's tags may run. Essential only never grants storage.
+// Automatic page views stay off. When a measurement id is set, gtag.js loads
+// on every page after the consent default. analytics_storage is 'denied'
+// unless cookie_consent is all, and a page_view is sent immediately so
+// Consent Mode records a cookieless ping. Accepting analytics updates storage
+// to granted and sends page_view again. Tag Manager alone still sends that
+// page_view when the visitor accepts, and updates consent so the container's
+// tags may store cookies. Essential only never grants storage.
 (function () {
     if (window.__puAnalyticsInit) {
         return;
@@ -513,8 +515,35 @@
         });
     }
 
+    function analyticsStorageGranted() {
+        return read() === 'all';
+    }
+
+    function configureMeasurement() {
+        var id = measurementId();
+        if (!id || window.__gtagConfigured) {
+            return;
+        }
+        window.__gtagConfigured = true;
+        // The layout renders this tag when it can, ahead of Rocket Loader.
+        // Tests and a missing tag fall back to the same attributes.
+        if (!window.__puGtagScriptTag) {
+            var script = document.createElement('script');
+            script.async = true;
+            script.setAttribute('data-cfasync', 'false');
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+            document.head.appendChild(script);
+        }
+        window.gtag('js', new Date());
+        window.gtag('config', id, {
+            anonymize_ip: true,
+            page_location: pageLocation(),
+            send_page_view: false,
+        });
+    }
+
     function load() {
-        if (window.__gaLoaded) {
+        if (window.__gaLoaded && window.__gaStorageGranted) {
             return;
         }
         var id = measurementId();
@@ -522,29 +551,28 @@
         if (!id && !gtm) {
             return;
         }
-        window.__gaLoaded = true;
-        window.gtag('consent', 'update', {
-            analytics_storage: 'granted',
-        });
-        if (!id) {
-            sendPageView();
-            return;
+        if (analyticsStorageGranted()) {
+            window.gtag('consent', 'update', {
+                analytics_storage: 'granted',
+            });
+            if (window.__gaStorageGranted !== true) {
+                window.__gaStorageGranted = true;
+                // The landing page_view was cookieless. Send it again now that
+                // storage is granted. Later navigations already carry the grant.
+                lastLocation = null;
+            }
         }
-        var script = document.createElement('script');
-        script.async = true;
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
-        document.head.appendChild(script);
-        window.gtag('js', new Date());
-        window.gtag('config', id, {
-            anonymize_ip: true,
-            page_location: pageLocation(),
-            send_page_view: false,
-        });
+        window.__gaLoaded = true;
+        if (id) {
+            configureMeasurement();
+        }
         sendPageView();
     }
 
     function deny() {
+        var hadGrant = window.__gaStorageGranted === true;
         clearAnalyticsCookies();
+        window.__gaStorageGranted = false;
         if (!window.__gaLoaded || typeof window.gtag !== 'function') {
             return;
         }
@@ -554,7 +582,11 @@
             ad_personalization: 'denied',
             analytics_storage: 'denied',
         });
-        window.location.reload();
+        // A cookieless tag is already in denied mode. Reload only after a
+        // grant, so stored analytics cookies are dropped with the page.
+        if (hadGrant) {
+            window.location.reload();
+        }
     }
 
     function choose(value) {
@@ -572,17 +604,30 @@
 
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || gtag;
+    // Denied until cookie_consent=all, including when the visitor has not
+    // chosen yet. This runs before gtag('config') so the first hit is a
+    // cookieless Consent Mode ping.
+    var granted = analyticsStorageGranted();
     window.gtag('consent', 'default', {
         ad_storage: 'denied',
         ad_user_data: 'denied',
         ad_personalization: 'denied',
-        analytics_storage: 'denied',
+        analytics_storage: granted ? 'granted' : 'denied',
         wait_for_update: 500,
     });
     window.gtag('set', 'ads_data_redaction', true);
-    window.gtag('set', 'url_passthrough', false);
+    if (!granted) {
+        window.gtag('set', 'url_passthrough', true);
+    } else {
+        window.__gaStorageGranted = true;
+    }
     installHistoryPublisher();
     publishPageLocation();
+    if (measurementId()) {
+        window.__gaLoaded = true;
+        configureMeasurement();
+        sendPageView();
+    }
 
     window.publicUniverseAnalytics = {
         choose: choose,

@@ -46,10 +46,11 @@ return [
     // Google Tag Manager and Google Analytics 4.
     // GTM_CONTAINER_ID defaults to the Public Universe container so production
     // renders it before .env is updated. An empty or invalid value renders nothing.
-    // Leave GA4_MEASUREMENT_ID unset to skip the direct gtag.js property. Consent
-    // Mode v2 keeps analytics_storage denied until the visitor opts in
-    // (resources/js/analytics-consent.js). The cookie banner shows when either
-    // id is valid.
+    // Leave GA4_MEASUREMENT_ID unset to skip the direct gtag.js property. When it
+    // is set, gtag.js loads on every page. Consent Mode v2 keeps analytics_storage
+    // denied until cookie_consent=all, so a visitor who has not accepted still
+    // sends a cookieless ping (resources/js/analytics-consent.js). The cookie
+    // banner shows when either id is valid.
     // send_page_view: false does not disable GA4 Enhanced Measurement.
     // Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.
     'analytics' => [
