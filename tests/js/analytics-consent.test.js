@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../../resources/js/analytics-consent.js', import.meta.url), 'utf8');
 
-function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scriptAlreadyPresent = false) {
+function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scriptAlreadyPresent = false, cookies = null) {
     const state = {
         id,
         gtm,
@@ -68,6 +68,9 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
         addEventListener(type, fn) { historyListeners.push({ type, fn }); },
         localStorage,
     };
+    if (cookies) {
+        Object.entries(cookies).forEach(([name, value]) => jar.set(name, value));
+    }
     if (consent) localStorage.setItem('pu_cookie_consent', consent);
     if (scriptAlreadyPresent) window.__puGtagScriptTag = true;
     runInNewContext(source, { window, document, location, URL });
@@ -90,7 +93,8 @@ test('container initialization publishes the redacted page location and disables
     assert.equal(sets()[0][1].page_referrer, '');
     assert.equal(JSON.stringify(sets()).includes('SECRET'), false);
     assert.equal(plain()[0].page_location.includes('SECRET'), false);
-    assert.equal(pageViews().length, 0);
+    assert.equal(window.__gaLoaded, true);
+    assert.equal(pageViews().length, 1);
 
     const prior = state.page;
     state.page = 'https://publicuniverse.net/observe/night?lat=redacted&lon=redacted';
@@ -100,7 +104,8 @@ test('container initialization publishes the redacted page location and disables
     assert.equal(sets().at(-1)[1].page_referrer, prior);
     assert.equal(plain().at(-1).page_location, state.page);
     assert.equal(plain().at(-1).page_referrer, prior);
-    assert.equal(pageViews().length, 0);
+    assert.equal(pageViews().length, 2);
+    assert.equal(pageViews().at(-1)[2].page_location, state.page);
     assert.equal(JSON.stringify(sets()).includes('12.34567'), false);
 });
 
@@ -120,7 +125,7 @@ test('container initialization redacts coordinates in a same-origin page referre
     assert.equal(sets()[0][1].page_referrer, published);
     assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
     assert.equal(JSON.stringify(window.dataLayer).includes('-0.1'), false);
-    assert.equal(pageViews().length, 0);
+    assert.equal(pageViews().length, 1);
 
     document.dispatchEvent(new Event('livewire:navigated'));
     assert.equal(plain().at(-1).page_referrer, published);
@@ -253,9 +258,9 @@ test('Livewire navigation uses the previous redacted page as page_referrer', () 
     assert.equal(plain().at(-1).page_referrer.includes('51.5'), false);
 
     window.publicUniverseAnalytics.choose('analytics');
-    assert.equal(pageViews().length, 1);
-    assert.equal(pageViews()[0][2].page_location, state.page);
-    assert.equal(pageViews()[0][2].page_referrer, prior);
+    assert.equal(pageViews().length, 2);
+    assert.equal(pageViews()[1][2].page_location, state.page);
+    assert.equal(pageViews()[1][2].page_referrer, prior);
 
     const next = 'https://publicuniverse.net/about';
     state.page = next;
@@ -356,14 +361,14 @@ test('history changes publish the redacted page before later listeners and do no
     assert.equal(published.includes('51.5'), false);
     assert.equal(published.includes('SECRET'), false);
     assert.equal(plain().at(-1).page_referrer, prior);
-    assert.equal(pageViews().length, 0);
+    assert.equal(pageViews().length, 1);
     assert.equal(JSON.stringify(window.dataLayer).includes('51.5'), false);
     assert.equal(JSON.stringify(window.dataLayer).includes('SECRET'), false);
 
     history.replaceState({}, '', '/observe/night?lat=12.34567');
     assert.equal(plain().at(-1).page_location.includes('12.34567'), false);
     assert.equal(decodeURIComponent(plain().at(-1).page_location).includes('lat=redacted'), true);
-    assert.equal(pageViews().length, 0);
+    assert.equal(pageViews().length, 1);
 
     window.location.href = 'https://publicuniverse.net/catalogue?lon=1.23456&s=TOKEN';
     const pop = historyListeners.find((entry) => entry.type === 'popstate');
@@ -372,12 +377,12 @@ test('history changes publish the redacted page before later listeners and do no
     assert.equal(plain().at(-1).page_location.includes('1.23456'), false);
     assert.equal(plain().at(-1).page_location.includes('TOKEN'), false);
     assert.equal(decodeURIComponent(plain().at(-1).page_location).includes('lon=redacted'), true);
-    assert.equal(pageViews().length, 0);
+    assert.equal(pageViews().length, 1);
 
     document.dispatchEvent(new CustomEvent('livewire:navigate', { detail: { url: 'https://publicuniverse.net/api?p[lat]=51.5&p[lon]=-0.1' } }));
     assert.equal(plain().at(-1).page_location.includes('51.5'), false);
     assert.match(decodeURIComponent(plain().at(-1).page_location), /p\[lat\]=redacted/);
-    assert.equal(pageViews().length, 0);
+    assert.equal(pageViews().length, 1);
 
     window.publicUniverseAnalytics.choose('analytics');
     const consentedViews = pageViews().length;
@@ -446,7 +451,7 @@ test('essential only keeps storage denied while gtag is already loaded', () => {
     assert.equal(consent[2].analytics_storage, 'denied');
     assert.equal(passthrough[2], true);
     assert.equal(scripts.length, 1);
-    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews().length, 0);
     assert.equal(commands().some((entry) => entry[0] === 'consent' && entry[1] === 'update'), false);
 });
 
@@ -515,6 +520,50 @@ test('essential only denies storage without reloading and clears analytics cooki
     const withdrawn = accepted.commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
     assert.equal(withdrawn[2].analytics_storage, 'denied');
     assert.equal(withdrawn[2].ad_personalization, 'denied');
+
+    accepted.state.page = 'https://publicuniverse.net/privacy';
+    accepted.document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(accepted.pageViews().length, 1);
+    assert.equal(accepted.window.__gaStorageGranted, false);
+});
+
+test('a legacy essential cookie denies storage when localStorage has no choice', () => {
+    const { commands, pageViews, window } = boot('G-TEST1234', null, '', null, false, { cookie_consent: 'essential' });
+    const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+
+    assert.equal(window.publicUniverseAnalytics.read(), 'essential');
+    assert.equal(consent[2].analytics_storage, 'denied');
+    assert.equal(pageViews().length, 0);
+});
+
+test('localStorage takes precedence over a legacy essential cookie', () => {
+    const { commands, window } = boot('G-TEST1234', null, '', 'analytics', false, { cookie_consent: 'essential' });
+    const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+
+    assert.equal(window.publicUniverseAnalytics.read(), 'analytics');
+    assert.equal(consent[2].analytics_storage, 'granted');
+});
+
+test('essential only expires a legacy cookie_consent=all cookie', () => {
+    const accepted = boot('G-TEST1234', null, '', null, false, { cookie_consent: 'all' });
+    assert.equal(accepted.window.publicUniverseAnalytics.read(), 'all');
+    assert.equal(accepted.jar.has('cookie_consent'), true);
+
+    accepted.window.publicUniverseAnalytics.choose('essential');
+    assert.equal(accepted.jar.has('cookie_consent'), false);
+    assert.equal(accepted.storage.get('pu_cookie_consent'), 'essential');
+    assert.equal(accepted.window.publicUniverseAnalytics.read(), 'essential');
+});
+
+test('a malformed cookie_consent value does not throw before consent defaults', () => {
+    const { commands, window } = boot('G-TEST1234', null, '', null, false, { cookie_consent: '%' });
+    const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    const published = window.dataLayer.find((entry) => entry && entry.page_location && entry[0] === undefined);
+
+    assert.equal(window.publicUniverseAnalytics.read(), null);
+    assert.ok(consent);
+    assert.equal(consent[2].analytics_storage, 'granted');
+    assert.equal(published.page_location, 'https://publicuniverse.net/objects/mars');
 });
 
 test('a tampered measurement id is not requested', () => {
@@ -523,8 +572,24 @@ test('a tampered measurement id is not requested', () => {
     assert.equal(scripts.length, 0);
 });
 
+test('Tag Manager alone records a page view without an accept click', () => {
+    const { scripts, state, document, window, pageViews } = boot(null, 'GTM-M8THNDPH');
+    assert.equal(scripts.length, 0);
+    assert.equal(window.__gaLoaded, true);
+    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews()[0][2].page_location, 'https://publicuniverse.net/objects/mars');
+
+    state.page = 'https://publicuniverse.net/privacy';
+    document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(pageViews().length, 2);
+    assert.equal(pageViews()[1][2].page_location, state.page);
+    assert.equal(pageViews()[1][2].page_referrer, 'https://publicuniverse.net/objects/mars');
+});
+
 test('Tag Manager alone grants analytics storage without requesting gtag.js', () => {
     const { scripts, state, window, commands, pageViews } = boot(null, 'GTM-M8THNDPH');
+    assert.equal(window.__gaLoaded, true);
+    assert.equal(pageViews().length, 1);
     window.publicUniverseAnalytics.choose('analytics');
     assert.equal(scripts.length, 0);
     const granted = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'update');
