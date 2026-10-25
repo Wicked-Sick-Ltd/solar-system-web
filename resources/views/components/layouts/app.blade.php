@@ -34,6 +34,9 @@
 
     <x-seo />
     @stack('head')
+    @if (filled(config('services.cookieyes.script_id')))
+        <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/{{ config('services.cookieyes.script_id') }}/script.js" data-cfasync="false"></script>
+    @endif
     <x-analytics />
 
     @vite(['resources/css/app.css'])

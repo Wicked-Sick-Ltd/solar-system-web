@@ -22,19 +22,24 @@
 // does not disable GA4
 // Enhanced Measurement history page views.
 // Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.
-// Automatic page views stay off;
-// a page_view event is sent only after cookie_consent=all. gtag.js is
-// injected only after that choice, and only when a GA4 measurement id is
-// set. Accepting analytics with Tag Manager alone updates consent so the
-// container's tags may run. Essential only never grants storage.
+// Automatic page views stay off. When a measurement id is set, gtag.js loads
+// on every page after the consent default. analytics_storage is 'granted'
+// unless localStorage pu_cookie_consent is essential, and a page_view is sent
+// immediately. A Tag Manager container with no measurement id does the same
+// when storage is granted, including when the visitor has not chosen yet.
+// Accepting analytics stores analytics and updates storage to granted without
+// a second page view when that hit was already granted. Essential only stores
+// essential, updates storage to denied, expires a legacy cookie_consent
+// cookie, and clears analytics cookies without reloading. A missing
+// localStorage choice falls back to that legacy cookie, and essential there
+// keeps storage denied.
 (function () {
     if (window.__puAnalyticsInit) {
         return;
     }
     window.__puAnalyticsInit = true;
 
-    var COOKIE = 'cookie_consent'; // App\Support\Analytics::CONSENT_COOKIE
-    var ONE_YEAR = 31536000;
+    var STORAGE = 'pu_cookie_consent';
     var lastLocation = null;
     // Committed page_location and the referrer that belonged to it. History
     // and livewire:navigate publish a provisional address first; only popstate
@@ -299,15 +304,59 @@
         return committedPageReferrer === null ? '' : committedPageReferrer;
     }
 
-    function read() {
-        var match = document.cookie.match(new RegExp('(?:^|; )' + COOKIE + '=([^;]*)'));
+    function readLegacyConsentCookie() {
+        // cookie_consent is the legacy server cookie. A value such as "%" is
+        // not valid encoding. Decoding must not throw, or Consent Mode and
+        // page redaction never start. An unreadable cookie is no choice.
+        var match = document.cookie.match(/(?:^|; )cookie_consent=([^;]*)/);
+        if (!match) {
+            return null;
+        }
+        try {
+            return decodeURIComponent(match[1]);
+        } catch (error) {
+            return null;
+        }
+    }
 
-        return match ? decodeURIComponent(match[1]) : null;
+    function read() {
+        // pu_cookie_consent wins when this browser has stored a choice.
+        // Otherwise a legacy cookie_consent=essential still opts out. A
+        // missing or unreadable cookie is not a choice.
+        var stored = null;
+        try {
+            stored = window.localStorage.getItem(STORAGE);
+        } catch (error) {
+            stored = null;
+        }
+        if (typeof stored === 'string' && stored !== '') {
+            return stored;
+        }
+
+        return readLegacyConsentCookie();
+    }
+
+    function expireLegacyConsentCookie() {
+        var host = location.hostname;
+        var domains = [''];
+        if (host) {
+            domains.push(host);
+            var parts = host.split('.');
+            if (parts.length >= 2) {
+                domains.push('.' + parts.slice(-2).join('.'));
+            }
+        }
+        domains.forEach(function (domain) {
+            document.cookie = 'cookie_consent=; Max-Age=0; Path=/' + (domain ? '; Domain=' + domain : '') + '; SameSite=Lax';
+        });
     }
 
     function write(value) {
-        document.cookie = COOKIE + '=' + encodeURIComponent(value) + '; Max-Age=' + ONE_YEAR + '; Path=/; SameSite=Lax' +
-            (location.protocol === 'https:' ? '; Secure' : '');
+        try {
+            window.localStorage.setItem(STORAGE, value);
+        } catch (error) {
+            // Private mode can throw. The banner still closes.
+        }
     }
 
     function isAnalyticsCookie(name) {
@@ -497,7 +546,10 @@
     }
 
     function sendPageView() {
-        if (!window.__gaLoaded || typeof window.gtag !== 'function') {
+        // Essential only clears __gaStorageGranted. Later Livewire navigations
+        // still publish the redacted address, but they must not record another
+        // analytics page_view for this session.
+        if (!window.__gaLoaded || window.__gaStorageGranted !== true || typeof window.gtag !== 'function') {
             return;
         }
         var page = pageLocation();
@@ -513,8 +565,45 @@
         });
     }
 
+    function analyticsStorageGranted() {
+        // Granted unless the visitor explicitly chose essential cookies only.
+        // A missing choice, or any value other than essential, keeps analytics on.
+        return read() !== 'essential';
+    }
+
+    function configureMeasurement() {
+        var id = measurementId();
+        if (!id || window.__gtagConfigured) {
+            return;
+        }
+        window.__gtagConfigured = true;
+        // The layout renders this tag when it can, ahead of Rocket Loader.
+        // Tests and a missing tag fall back to the same attributes.
+        if (!window.__puGtagScriptTag) {
+            var script = document.createElement('script');
+            script.async = true;
+            script.setAttribute('data-cfasync', 'false');
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+            document.head.appendChild(script);
+        }
+        window.gtag('js', new Date());
+        window.gtag('config', id, {
+            anonymize_ip: true,
+            page_location: pageLocation(),
+            send_page_view: false,
+        });
+    }
+
     function load() {
-        if (window.__gaLoaded) {
+        // Returning visitors who stored "analytics" call this from the banner.
+        // The landing hit is already granted when a measurement id is set, so
+        // this must not send a second page view or another consent update.
+        // A granted Tag Manager landing hit is already recorded. This sends
+        // one only when that hit has not been sent yet.
+        if (window.__gaLoaded && window.__gaStorageGranted) {
+            return;
+        }
+        if (!analyticsStorageGranted()) {
             return;
         }
         var id = measurementId();
@@ -523,29 +612,50 @@
             return;
         }
         window.__gaLoaded = true;
+        if (id) {
+            configureMeasurement();
+        }
+        sendPageView();
+    }
+
+    function acceptAnalytics() {
+        var id = measurementId();
+        var gtm = gtmContainerId();
+        if (!id && !gtm) {
+            return;
+        }
+        var alreadyGrantedHit = window.__gaLoaded === true && window.__gaStorageGranted === true;
         window.gtag('consent', 'update', {
             analytics_storage: 'granted',
         });
-        if (!id) {
-            sendPageView();
+        window.__gaStorageGranted = true;
+        if (alreadyGrantedHit) {
             return;
         }
-        var script = document.createElement('script');
-        script.async = true;
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
-        document.head.appendChild(script);
-        window.gtag('js', new Date());
-        window.gtag('config', id, {
-            anonymize_ip: true,
-            page_location: pageLocation(),
-            send_page_view: false,
-        });
+        window.__gaLoaded = true;
+        if (id) {
+            configureMeasurement();
+        }
+        // Storage was denied, so the landing hit was not sent. Send it now.
+        lastLocation = null;
         sendPageView();
     }
 
     function deny() {
         clearAnalyticsCookies();
-        if (!window.__gaLoaded || typeof window.gtag !== 'function') {
+        // A leftover cookie_consent=all would still turn on the noscript image.
+        var mayExpireLegacy = readLegacyConsentCookie() !== 'essential';
+        try {
+            mayExpireLegacy = mayExpireLegacy || window.localStorage.getItem(STORAGE) === 'essential';
+        } catch (error) {
+            // Preserve a legacy opt-out if its replacement cannot be read.
+        }
+        if (mayExpireLegacy) {
+            expireLegacyConsentCookie();
+        }
+        // Stops sendPageView(), including the livewire:navigated listener.
+        window.__gaStorageGranted = false;
+        if (typeof window.gtag !== 'function') {
             return;
         }
         window.gtag('consent', 'update', {
@@ -554,17 +664,16 @@
             ad_personalization: 'denied',
             analytics_storage: 'denied',
         });
-        window.location.reload();
     }
 
     function choose(value) {
-        if (value !== 'all' && value !== 'essential') {
+        if (value !== 'analytics' && value !== 'essential') {
             return;
         }
         write(value);
         closeBanner();
-        if (value === 'all') {
-            load();
+        if (value === 'analytics') {
+            acceptAnalytics();
             return;
         }
         deny();
@@ -572,17 +681,35 @@
 
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || gtag;
+    // Granted unless pu_cookie_consent is essential, including when the
+    // visitor has not chosen yet. This runs before gtag('config'). Essential
+    // only starts denied and does not record analytics page views.
+    var granted = analyticsStorageGranted();
     window.gtag('consent', 'default', {
         ad_storage: 'denied',
         ad_user_data: 'denied',
         ad_personalization: 'denied',
-        analytics_storage: 'denied',
+        analytics_storage: granted ? 'granted' : 'denied',
         wait_for_update: 500,
     });
     window.gtag('set', 'ads_data_redaction', true);
-    window.gtag('set', 'url_passthrough', false);
+    if (!granted) {
+        window.gtag('set', 'url_passthrough', true);
+    } else {
+        window.__gaStorageGranted = true;
+    }
     installHistoryPublisher();
     publishPageLocation();
+    // gtag.js still loads when the visitor has opted out. Page views, including
+    // a Tag Manager container with no measurement id, are recorded only while
+    // storage is granted.
+    if (measurementId()) {
+        configureMeasurement();
+    }
+    if (granted && (measurementId() || gtmContainerId())) {
+        window.__gaLoaded = true;
+        sendPageView();
+    }
 
     window.publicUniverseAnalytics = {
         choose: choose,

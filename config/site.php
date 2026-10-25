@@ -43,13 +43,21 @@ return [
     // Legal entity named in the privacy policy.
     'operator' => env('SITE_OPERATOR', 'Wicked Sick Ltd'),
 
+    // Read here so `php artisan config:cache` keeps a deployment's allowlist.
+    // bootstrap/app.php must not call env(): .env is not loaded once this file
+    // is cached. '*' trusts every peer. Otherwise this is a comma-separated
+    // list of IPs or CIDRs. X-Forwarded-Host is never trusted.
+    'trusted_proxies' => env('TRUSTED_PROXIES', '127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'),
+
     // Google Tag Manager and Google Analytics 4.
     // GTM_CONTAINER_ID defaults to the Public Universe container so production
     // renders it before .env is updated. An empty or invalid value renders nothing.
-    // Leave GA4_MEASUREMENT_ID unset to skip the direct gtag.js property. Consent
-    // Mode v2 keeps analytics_storage denied until the visitor opts in
-    // (resources/js/analytics-consent.js). The cookie banner shows when either
-    // id is valid.
+    // Leave GA4_MEASUREMENT_ID unset to skip the direct gtag.js property. When it
+    // is set, gtag.js loads on every page. Consent Mode v2 grants analytics_storage
+    // unless localStorage pu_cookie_consent is essential, so a visitor who has not
+    // opted out is measured (resources/js/analytics-consent.js). Essential only
+    // denies storage and stops later analytics page views. The cookie banner shows when
+    // either id is valid and COOKIEYES_SCRIPT_ID is empty.
     // send_page_view: false does not disable GA4 Enhanced Measurement.
     // Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.
     'analytics' => [
