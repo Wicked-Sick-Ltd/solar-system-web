@@ -97,6 +97,12 @@ return [
         'cache_seconds' => (int) env('OPEN_METEO_CACHE_SECONDS', 1800),
     ],
 
+    // CookieYes CMP. Leave the script id empty to keep the built-in cookie banner.
+    // A non-empty id loads CookieYes before gtag.js and hides that banner.
+    'cookieyes' => [
+        'script_id' => env('COOKIEYES_SCRIPT_ID'),
+    ],
+
     // JPL Horizons — geocentric vectors for close-approach diagrams. No API key.
     // Reads are cached; a failure falls back to a labelled two-body path.
     'horizons' => [

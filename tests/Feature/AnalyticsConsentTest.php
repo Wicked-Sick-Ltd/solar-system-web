@@ -22,19 +22,35 @@ it('ships no analytics and no consent banner when neither GA4 nor Tag Manager is
         ->assertDontSee('id="cookie-banner"', escape: false);
 });
 
-it('exposes the measurement id but never loads gtag server-side, only behind consent', function () {
+it('exposes the measurement id and loads gtag on every page before any consent choice', function () {
     config([
         'site.analytics.ga_measurement_id' => 'G-TEST1234',
         'site.analytics.gtm_container_id' => null,
     ]);
 
-    $this->get('/')
-        ->assertOk()
-        ->assertSee('name="ga-measurement-id" content="G-TEST1234"', escape: false)
-        ->assertDontSee('<script async src="https://www.googletagmanager.com', escape: false)
-        ->assertDontSee('gtm.js?id=', escape: false)
-        ->assertDontSee('ns.html?id=', escape: false)
-        ->assertSee('cookie_consent', escape: false);
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('name="ga-measurement-id" content="G-TEST1234"')
+        ->toContain("var STORAGE = 'pu_cookie_consent'")
+        ->toContain("return read() !== 'essential'")
+        ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
+        ->toContain("window.gtag('config', id")
+        ->toContain('window.__puGtagScriptTag = true;')
+        ->toContain('<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>')
+        ->not->toContain('gtm.js?id=')
+        ->not->toContain('ns.html?id=');
+
+    // The config call is declared above the boot sequence. What matters is that
+    // the boot sequence sets the consent default and then configures the tag,
+    // and that the gtag.js element follows that script.
+    $consent = strpos($html, "gtag('consent', 'default'");
+    $boot = strpos($html, "window.__gaLoaded = true;\n        configureMeasurement();\n        sendPageView();");
+    $tag = strpos($html, '<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>');
+
+    expect($consent)->toBeInt()
+        ->and($boot)->toBeGreaterThan($consent)
+        ->and($tag)->toBeGreaterThan($boot);
 });
 
 it('tells gtag where it is instead of letting it read the address bar', function () {
@@ -136,13 +152,17 @@ it('ignores a container id that is not a GTM id', function () {
         ->assertDontSee('gtm-container-id', escape: false);
 });
 
-it('defaults analytics storage to denied and sends page views after Livewire navigation', function () {
+it('defaults analytics storage to granted unless the visitor chose essential and sends page views after Livewire navigation', function () {
     config(['site.analytics.ga_measurement_id' => 'G-TEST1234']);
 
     $html = $this->get('/')->assertOk()->getContent();
 
     expect($html)
         ->toContain("gtag('consent', 'default'")
+        ->toContain("var STORAGE = 'pu_cookie_consent'")
+        ->toContain("return read() !== 'essential'")
+        ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
+        ->toContain("analytics_storage: 'granted'")
         ->toContain("analytics_storage: 'denied'")
         ->toContain("ad_storage: 'denied'")
         ->toContain("ad_user_data: 'denied'")
@@ -151,7 +171,9 @@ it('defaults analytics storage to denied and sends page views after Livewire nav
         ->toContain('send_page_view: false')
         ->toContain("addEventListener('livewire:navigated'")
         ->toContain("gtag('event', 'page_view'")
-        ->not->toContain('<script async src="https://www.googletagmanager.com')
+        ->toContain("window.gtag('set', 'url_passthrough', true)")
+        ->toContain("window.gtag('set', 'ads_data_redaction', true)")
+        ->toContain('<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>')
         ->not->toContain('page_location: location.href');
 
     $document = new DOMDocument;
@@ -159,9 +181,15 @@ it('defaults analytics storage to denied and sends page views after Livewire nav
     $document->loadHTML($html);
     libxml_clear_errors();
     libxml_use_internal_errors($previous);
+    $gtag = false;
     foreach ($document->getElementsByTagName('script') as $script) {
-        expect($script->getAttribute('src'))->not->toContain('googletagmanager.com');
+        if (str_contains($script->getAttribute('src'), 'googletagmanager.com/gtag/js')) {
+            $gtag = true;
+            expect($script->getAttribute('data-cfasync'))->toBe('false')
+                ->and($script->hasAttribute('async'))->toBeTrue();
+        }
     }
+    expect($gtag)->toBeTrue();
 });
 
 it('explains Google Analytics 4 and Consent Mode, with choices only when it is switched on', function () {
@@ -188,8 +216,9 @@ it('explains Google Analytics 4 and Consent Mode, with choices only when it is s
         ->assertSee('analytics storage')
         ->assertSee('Essential only')
         ->assertSee('Accept analytics')
+        ->assertSee('Analytics helps us make the site better.')
         ->assertSee("publicUniverseAnalytics.choose('essential')", false)
-        ->assertSee("publicUniverseAnalytics.choose('all')", false)
+        ->assertSee("publicUniverseAnalytics.choose('analytics')", false)
         ->assertDontSee('not currently switched on');
 });
 
@@ -202,6 +231,8 @@ it('renders the default Google Tag Manager container in the head and at the star
     expect($html)
         ->toContain("})(window,document,'script','dataLayer','GTM-M8THNDPH');")
         ->toContain("j.src=\n'https://www.googletagmanager.com/gtm.js?id='+i+dl;")
+        ->toContain("j.setAttribute('data-cfasync','false');")
+        ->toContain('<script data-cfasync="false">(function(w,d,s,l,i){')
         ->toContain('name="gtm-container-id" content="GTM-M8THNDPH"')
         ->toContain('name="ga-page-location"')
         ->toContain('id="cookie-banner"')
@@ -246,7 +277,7 @@ it('shows the cookie banner and privacy choices when only Tag Manager is configu
         ->assertSee('Essential only')
         ->assertSee('Accept analytics')
         ->assertSee("publicUniverseAnalytics.choose('essential')", false)
-        ->assertSee("publicUniverseAnalytics.choose('all')", false)
+        ->assertSee("publicUniverseAnalytics.choose('analytics')", false)
         ->assertDontSee('not currently switched on');
 });
 
@@ -257,7 +288,9 @@ it('keeps Consent Mode ahead of Tag Manager when GA4 is configured as well', fun
     ]);
 
     $html = $this->get('/')->assertOk()->getContent();
-    $consent = strpos($html, "analytics_storage: 'denied'");
+    $consent = strpos($html, "gtag('consent', 'default'");
+    $boot = strpos($html, "window.__gaLoaded = true;\n        configureMeasurement();\n        sendPageView();");
+    $gtag = strpos($html, '<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>');
     $gtm = strpos($html, 'https://www.googletagmanager.com/gtm.js');
 
     expect($html)
@@ -265,8 +298,12 @@ it('keeps Consent Mode ahead of Tag Manager when GA4 is configured as well', fun
         ->toContain('name="gtm-container-id" content="GTM-M8THNDPH"')
         ->toContain('name="ga-page-location"')
         ->toContain('id="cookie-banner"')
+        ->toContain("analytics_storage: 'denied'")
+        ->toContain("j.setAttribute('data-cfasync','false');")
         ->and($consent)->toBeInt()
-        ->and($gtm)->toBeGreaterThan($consent);
+        ->and($boot)->toBeGreaterThan($consent)
+        ->and($gtag)->toBeGreaterThan($boot)
+        ->and($gtm)->toBeGreaterThan($gtag);
 
     $this->get('/privacy')
         ->assertOk()
@@ -348,6 +385,49 @@ it('omits the no-JavaScript Tag Manager image unless the server can read an acce
         ->assertSee('no-JavaScript Tag Manager image is left out')
         ->assertSee('Without JavaScript the banner cannot record a choice')
         ->assertSee('not stored in a shared cache');
+});
+
+it('trusts forwarded proxy headers so the analytics page location is https', function () {
+    config([
+        'site.analytics.ga_measurement_id' => 'G-4H1XSCFT9J',
+        'site.analytics.gtm_container_id' => 'GTM-M8THNDPH',
+    ]);
+
+    $plain = $this->get('http://publicuniverse.net/privacy?lat=51.5')->assertOk()->getContent();
+    preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $plain, $http);
+    $httpLocation = html_entity_decode($http[1] ?? '', ENT_QUOTES);
+
+    expect($httpLocation)->toBe('http://publicuniverse.net/privacy?lat=redacted')
+        ->and(request()->secure())->toBeFalse()
+        ->and(url()->current())->toBe('http://publicuniverse.net/privacy');
+
+    $forwarded = $this->get('http://publicuniverse.net/privacy?lat=51.5', [
+        'X-Forwarded-For' => '203.0.113.5',
+        'X-Forwarded-Host' => 'publicuniverse.net',
+        'X-Forwarded-Port' => '443',
+        'X-Forwarded-Proto' => 'https',
+    ])->assertOk()->getContent();
+    preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $forwarded, $https);
+    $httpsLocation = html_entity_decode($https[1] ?? '', ENT_QUOTES);
+
+    expect($httpsLocation)->toBe('https://publicuniverse.net/privacy?lat=redacted')
+        ->and($httpsLocation)->not->toContain('51.5')
+        ->and($httpsLocation)->not->toContain(':80')
+        ->and(request()->secure())->toBeTrue()
+        ->and(request()->getScheme())->toBe('https')
+        ->and(url()->current())->toBe('https://publicuniverse.net/privacy');
+
+    // Cloudflare sends the proto without a port. The canonical location must
+    // still be https on the default port, not https://host:80.
+    $protoOnly = $this->get('http://publicuniverse.net/', [
+        'X-Forwarded-Proto' => 'https',
+    ])->assertOk()->getContent();
+    preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $protoOnly, $proto);
+    $protoLocation = html_entity_decode($proto[1] ?? '', ENT_QUOTES);
+
+    expect($protoLocation)->toBe('https://publicuniverse.net')
+        ->and(request()->secure())->toBeTrue()
+        ->and(url()->current())->toBe('https://publicuniverse.net');
 });
 
 it('publishes a privacy policy page', function () {

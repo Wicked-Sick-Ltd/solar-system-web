@@ -38,14 +38,15 @@ final class Analytics
     public const string REDACTED = 'redacted';
 
     /**
-     * First-party cookie set from the browser when the visitor chooses.
-     * It is not encrypted: the page script has to read and write it, and the
-     * server has to read the same value to decide whether a no-JavaScript
-     * Tag Manager image is allowed.
+     * Legacy first-party cookie the server can still read for the no-JavaScript
+     * Tag Manager image. The banner stores the visitor's choice in localStorage
+     * (`pu_cookie_consent`), which this request cannot see, so the image stays
+     * out unless a request still carries cookie_consent=all. It is not encrypted
+     * so that leftover cookie can be read as written.
      */
     public const string CONSENT_COOKIE = 'cookie_consent';
 
-    /** The only value that records an explicit analytics opt-in. */
+    /** The only cookie value that records an explicit analytics opt-in for the noscript image. */
     public const string CONSENT_ACCEPTED = 'all';
 
     /**
@@ -89,10 +90,11 @@ final class Analytics
     }
 
     /**
-     * True when this request carries the cookie written by "Accept analytics".
-     * Anything else, including a missing cookie or "Essential only", is not consent.
-     * The no-JavaScript Tag Manager image needs this check: that image cannot
-     * run Consent Mode, and the banner cannot ask.
+     * True when this request still carries the legacy cookie_consent=all cookie.
+     * The banner no longer writes that cookie. Anything else, including a missing
+     * cookie, is not a server opt-in. The no-JavaScript Tag Manager image needs
+     * this check: that image cannot run Consent Mode, and the server cannot see
+     * localStorage.
      */
     public static function hasServerOptIn(?Request $request = null): bool
     {

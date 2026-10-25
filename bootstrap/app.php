@@ -7,6 +7,7 @@ use App\Http\Middleware\SetResponseHeaders;
 use App\Support\Analytics;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Cloudflare and nginx terminate TLS and forward the original scheme.
+        // Without this, request()->secure(), url()->current() and the analytics
+        // page location stay http:// on the public site.
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR
+                | Request::HEADER_X_FORWARDED_HOST
+                | Request::HEADER_X_FORWARDED_PORT
+                | Request::HEADER_X_FORWARDED_PROTO,
+        );
         // Global prepend so on the response it runs outermost — after Livewire's
         // globally-pushed back-button-cache middleware — letting our public
         // Cache-Control win on the cacheable routes (interactive pages keep
