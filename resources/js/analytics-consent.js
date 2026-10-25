@@ -302,7 +302,23 @@
         return committedPageReferrer === null ? '' : committedPageReferrer;
     }
 
+    function readLegacyConsentCookie() {
+        // cookie_consent is the legacy server cookie. A value such as "%" is
+        // not valid encoding. Decoding must not throw, or Consent Mode and
+        // page redaction never start. An unreadable cookie is no choice.
+        var match = document.cookie.match(/(?:^|; )cookie_consent=([^;]*)/);
+        if (!match) {
+            return null;
+        }
+        try {
+            return decodeURIComponent(match[1]);
+        } catch (error) {
+            return null;
+        }
+    }
+
     function read() {
+        readLegacyConsentCookie();
         try {
             return window.localStorage.getItem(STORAGE);
         } catch (error) {
@@ -505,7 +521,10 @@
     }
 
     function sendPageView() {
-        if (!window.__gaLoaded || typeof window.gtag !== 'function') {
+        // Essential only clears __gaStorageGranted. Later Livewire navigations
+        // still publish the redacted address, but they must not record another
+        // analytics page_view for this session.
+        if (!window.__gaLoaded || window.__gaStorageGranted !== true || typeof window.gtag !== 'function') {
             return;
         }
         var page = pageLocation();
@@ -599,6 +618,7 @@
 
     function deny() {
         clearAnalyticsCookies();
+        // Stops sendPageView(), including the livewire:navigated listener.
         window.__gaStorageGranted = false;
         if (typeof window.gtag !== 'function') {
             return;
@@ -628,8 +648,7 @@
     window.gtag = window.gtag || gtag;
     // Granted unless pu_cookie_consent is essential, including when the
     // visitor has not chosen yet. This runs before gtag('config'). Essential
-    // only starts denied and sends a cookieless ping when a measurement id
-    // is set.
+    // only starts denied and does not record analytics page views.
     var granted = analyticsStorageGranted();
     window.gtag('consent', 'default', {
         ad_storage: 'denied',

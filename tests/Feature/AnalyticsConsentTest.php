@@ -217,6 +217,9 @@ it('explains Google Analytics 4 and Consent Mode, with choices only when it is s
         ->assertSee('Essential only')
         ->assertSee('Accept analytics')
         ->assertSee('Analytics helps us make the site better.')
+        ->assertSee('is enabled by default')
+        ->assertSee('disables analytics storage')
+        ->assertSee('stops subsequent analytics page-view hits for the session')
         ->assertSee("publicUniverseAnalytics.choose('essential')", false)
         ->assertSee("publicUniverseAnalytics.choose('analytics')", false)
         ->assertDontSee('not currently switched on');
@@ -428,6 +431,21 @@ it('trusts forwarded proxy headers so the analytics page location is https', fun
     expect($protoLocation)->toBe('https://publicuniverse.net')
         ->and(request()->secure())->toBeTrue()
         ->and(url()->current())->toBe('https://publicuniverse.net');
+
+    // A peer outside the trusted list cannot turn the page location into https
+    // or replace the client address by sending forwarded headers.
+    $untrusted = $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.8'])
+        ->get('http://publicuniverse.net/privacy?lat=51.5', [
+            'X-Forwarded-Proto' => 'https',
+            'X-Forwarded-Host' => 'evil.example',
+        ])->assertOk()->getContent();
+    preg_match('/<meta name="ga-page-location" content="([^"]*)">/', $untrusted, $spoofed);
+    $spoofedLocation = html_entity_decode($spoofed[1] ?? '', ENT_QUOTES);
+
+    expect($spoofedLocation)->toBe('http://publicuniverse.net/privacy?lat=redacted')
+        ->and($spoofedLocation)->not->toContain('evil.example')
+        ->and(request()->secure())->toBeFalse()
+        ->and(request()->ip())->toBe('203.0.113.8');
 });
 
 it('publishes a privacy policy page', function () {

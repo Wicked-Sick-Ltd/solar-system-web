@@ -50,7 +50,7 @@ return [
     // is set, gtag.js loads on every page. Consent Mode v2 grants analytics_storage
     // unless localStorage pu_cookie_consent is essential, so a visitor who has not
     // opted out is measured (resources/js/analytics-consent.js). Essential only
-    // denies storage and sends a cookieless ping. The cookie banner shows when
+    // denies storage and stops later analytics page views. The cookie banner shows when
     // either id is valid and COOKIEYES_SCRIPT_ID is empty.
     // send_page_view: false does not disable GA4 Enhanced Measurement.
     // Disable 'Page changes based on browser history events' under GA4 Enhanced Measurement when configuring the GA4 tag in GTM-M8THNDPH, as SPA page_view events are dispatched manually after URL redaction.

@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../../resources/js/analytics-consent.js', import.meta.url), 'utf8');
 
-function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scriptAlreadyPresent = false) {
+function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scriptAlreadyPresent = false, cookies = null) {
     const state = {
         id,
         gtm,
@@ -68,6 +68,9 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
         addEventListener(type, fn) { historyListeners.push({ type, fn }); },
         localStorage,
     };
+    if (cookies) {
+        Object.entries(cookies).forEach(([name, value]) => jar.set(name, value));
+    }
     if (consent) localStorage.setItem('pu_cookie_consent', consent);
     if (scriptAlreadyPresent) window.__puGtagScriptTag = true;
     runInNewContext(source, { window, document, location, URL });
@@ -446,7 +449,7 @@ test('essential only keeps storage denied while gtag is already loaded', () => {
     assert.equal(consent[2].analytics_storage, 'denied');
     assert.equal(passthrough[2], true);
     assert.equal(scripts.length, 1);
-    assert.equal(pageViews().length, 1);
+    assert.equal(pageViews().length, 0);
     assert.equal(commands().some((entry) => entry[0] === 'consent' && entry[1] === 'update'), false);
 });
 
@@ -515,6 +518,22 @@ test('essential only denies storage without reloading and clears analytics cooki
     const withdrawn = accepted.commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').at(-1);
     assert.equal(withdrawn[2].analytics_storage, 'denied');
     assert.equal(withdrawn[2].ad_personalization, 'denied');
+
+    accepted.state.page = 'https://publicuniverse.net/privacy';
+    accepted.document.dispatchEvent(new Event('livewire:navigated'));
+    assert.equal(accepted.pageViews().length, 1);
+    assert.equal(accepted.window.__gaStorageGranted, false);
+});
+
+test('a malformed cookie_consent value does not throw before consent defaults', () => {
+    const { commands, window } = boot('G-TEST1234', null, '', null, false, { cookie_consent: '%' });
+    const consent = commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    const published = window.dataLayer.find((entry) => entry && entry.page_location && entry[0] === undefined);
+
+    assert.equal(window.publicUniverseAnalytics.read(), null);
+    assert.ok(consent);
+    assert.equal(consent[2].analytics_storage, 'granted');
+    assert.equal(published.page_location, 'https://publicuniverse.net/objects/mars');
 });
 
 test('a tampered measurement id is not requested', () => {

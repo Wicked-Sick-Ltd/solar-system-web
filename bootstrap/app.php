@@ -16,13 +16,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Cloudflare and nginx terminate TLS and forward the original scheme.
-        // Without this, request()->secure(), url()->current() and the analytics
-        // page location stay http:// on the public site.
+        // Local nginx/PHP-FPM forwards the visitor scheme. Trust that peer
+        // (and private LAN ranges) for For/Port/Proto only. A client-supplied
+        // X-Forwarded-Host is ignored so it cannot spoof the host. Set
+        // TRUSTED_PROXIES=* only when every connecting peer is a proxy.
+        $trustedProxies = env('TRUSTED_PROXIES', '127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16');
+        $trustedProxies = is_string($trustedProxies) ? trim($trustedProxies) : '';
+        $trustedProxies = $trustedProxies === '*'
+            ? '*'
+            : array_values(array_filter(
+                array_map(trim(...), explode(',', $trustedProxies)),
+                static fn (string $proxy): bool => $proxy !== '',
+            ));
         $middleware->trustProxies(
-            at: '*',
+            at: $trustedProxies,
             headers: Request::HEADER_X_FORWARDED_FOR
-                | Request::HEADER_X_FORWARDED_HOST
                 | Request::HEADER_X_FORWARDED_PORT
                 | Request::HEADER_X_FORWARDED_PROTO,
         );
