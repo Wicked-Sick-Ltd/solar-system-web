@@ -45,6 +45,8 @@ jobs:
         env:
           # Regression: PHPUnit must pin production runtime selection before bootstrap.
           APP_DEBUG: 'true'
+          # Reviewed Semgrep FP: all-zero throwaway CI APP_KEY, not a Telegram bot token.
+          # nosemgrep: generic.secrets.security.detected-telegram-bot-api-key.detected-telegram-bot-api-key
           APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           PERFORMANCE_REQUIRED: '1'
           PERFORMANCE_MACHINE: GitHub hosted ubuntu-latest; hardware varies
