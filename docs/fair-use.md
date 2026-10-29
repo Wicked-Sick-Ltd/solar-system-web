@@ -6,16 +6,19 @@ anonymous. Bulk and automated use of the catalogue API sends a key.
 The public site is this repository. The API that enforces key tiers is
 [solar-system-db](https://github.com/Wicked-Sick-Ltd/solar-system-db)
 (`api/fair_use.py`). Cloudflare rate limits at the edge are separate. Because
-the edge exempts any request that merely carries `X-PU-Api-Key`, the API
-treats a missing, blank, unknown, or revoked key as anonymous per-IP traffic
-and also limits invalid-key attempts per IP.
+the edge exempts any request that merely carries `X-PU-Api-Key` from a
+stricter anonymous rule, the API treats a missing, blank, unknown, or
+revoked key as anonymous per-IP traffic and also limits invalid-key attempts
+per IP. Cloudflare Pro still caps **all** traffic, including keyed calls, at
+**300 requests per minute per IP**. `/api-access` can record egress CIDR
+ranges so operators can allowlist a high-volume institution at the edge.
 
 ## Pages
 
 | Path | What it does |
 | --- | --- |
 | `/fair-use` | The policy, linked from the footer. |
-| `/api-access` | Request form. Stores a row in `api_access_requests`. |
+| `/api-access` | Request form. Stores a row in `api_access_requests`, including optional egress CIDRs. |
 
 `public/robots.txt` and `RobotsController` carry a short comment and the
 fair-use link. They still allow `/` and publish the sitemap. Nothing in this
@@ -48,6 +51,11 @@ Enforced in solar-system-db, not in this app. Defaults:
 | Anonymous (also missing, invalid, revoked keys) | 60/minute and 1,000/day per IP |
 | Free key | 300/minute and 10,000/day per key |
 | Institution key | 5,000/minute and 100,000/day per key (`PU_INSTITUTION_PER_DAY`) |
+
+Those application budgets sit behind the Cloudflare Pro edge cap of 300
+requests per minute per IP, which applies to keyed traffic as well. A higher
+burst needs an edge allowlist. The access form stores optional egress CIDRs
+for that.
 
 A 429 carries `Retry-After` and a link to `/api-access`. Responses on `/api/`
 include `X-PU-Key-Tier` so the edge can tell keyed traffic from anonymous

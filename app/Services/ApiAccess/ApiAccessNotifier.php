@@ -69,6 +69,9 @@ final class ApiAccessNotifier
             'Contact: '.$request->contact_name,
             'Email: '.$request->email,
             'Expected volume: '.$volume,
+            'Egress IP ranges (CIDR): '.($request->egress_cidrs !== null && $request->egress_cidrs !== ''
+                ? str_replace("\n", ', ', $request->egress_cidrs)
+                : 'none supplied'),
             $tier,
             'Use case:',
             $request->use_case,

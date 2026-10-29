@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $email
  * @property string $use_case
  * @property string $expected_volume
+ * @property string|null $egress_cidrs
  * @property bool $institution_eligible
  */
 final class ApiAccessRequest extends Model
@@ -23,6 +24,7 @@ final class ApiAccessRequest extends Model
         'email',
         'use_case',
         'expected_volume',
+        'egress_cidrs',
         'institution_eligible',
     ];
 

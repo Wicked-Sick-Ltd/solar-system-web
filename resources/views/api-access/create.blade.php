@@ -1,7 +1,7 @@
 <x-layouts.app>
     <div class="mx-auto max-w-2xl">
         <x-page-header :title="__('Request API access')" :eyebrow="__('For bulk and automated use')"
-            :lead="__('Tell us who you are and what you need. Academic email addresses are flagged for the free institution tier. We review the request before a key is issued.')" />
+            :lead="__('Tell us who you are and what you need. Academic email addresses are flagged for the free institution tier. Cloudflare Pro caps every caller, including keyed traffic, at 300 requests per minute per IP. We review the request before a key is issued.')" />
 
         @if (session('api_access_sent'))
             <p class="surface mb-6 p-5" role="status">
@@ -55,6 +55,12 @@
                     @endforeach
                 </select>
                 @error('expected_volume')<p class="mt-2 text-sm">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="egress_cidrs" class="block font-semibold">{{ __('Egress IP ranges (CIDR)') }} <span class="text-sm font-normal">{{ __('(optional)') }}</span></label>
+                <p id="egress-help" class="mt-1 text-sm" style="color: var(--muted);">{{ __('Cloudflare Pro caps all traffic, including keyed calls, at 300 requests per minute per IP. List the public ranges you call from if you need a higher burst, one CIDR per line, such as 203.0.113.0/24 or 2001:db8::/48. Up to 20 ranges. We can allowlist them at the edge. Leave this blank when 300 per minute per address is enough.') }}</p>
+                <textarea id="egress_cidrs" name="egress_cidrs" rows="4" maxlength="2000" aria-describedby="egress-help" class="mt-2 w-full rounded-lg border p-3 font-mono text-sm" style="border-color: var(--border); background: var(--bg-elevated); color: var(--text);">{{ old('egress_cidrs') }}</textarea>
+                @error('egress_cidrs')<p class="mt-2 text-sm">{{ $message }}</p>@enderror
             </div>
             <div hidden aria-hidden="true">
                 <label for="website">{{ __('Leave this field empty') }}</label>

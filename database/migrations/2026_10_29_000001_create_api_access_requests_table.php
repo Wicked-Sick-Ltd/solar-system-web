@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('email', 254);
             $table->text('use_case');
             $table->string('expected_volume', 40);
+            $table->text('egress_cidrs')->nullable();
             $table->boolean('institution_eligible')->default(false);
             $table->timestamps();
         });

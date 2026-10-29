@@ -36,6 +36,8 @@ it('shows the request form without sending notifications', function (): void {
         ->assertSee('.ac.uk')
         ->assertSee('name="_token"', false)
         ->assertSee('name="website"', false)
+        ->assertSee('Egress IP ranges (CIDR)')
+        ->assertSee('300 requests per minute per IP')
         ->assertHeader('Cache-Control', 'no-store, private');
 
     Http::assertNothingSent();
@@ -67,20 +69,30 @@ it('notifies slack and asana only when those settings are present', function ():
         'api_access.asana_project_id' => '1220017034322863',
     ]);
 
-    $this->post(route('api-access.store'), accessPayload())
-        ->assertSessionHas('api_access_sent', true);
+    $this->post(route('api-access.store'), accessPayload([
+        'egress_cidrs' => "203.0.113.5/24\n2001:db8::1/48",
+    ]))->assertSessionHas('api_access_sent', true);
+
+    expect(ApiAccessRequest::query()->first()?->egress_cidrs)->toBe("203.0.113.0/24\n2001:db8::/48");
 
     Http::assertSent(function ($request): bool {
         return $request->url() === 'https://hooks.slack.com/services/T00/B00/secret'
             && str_contains((string) $request['text'], 'ada@cam.ac.uk')
-            && str_contains((string) $request['text'], 'free institution tier');
+            && str_contains((string) $request['text'], 'free institution tier')
+            && str_contains((string) $request['text'], '203.0.113.0/24, 2001:db8::/48');
     });
     Http::assertSent(function ($request): bool {
         return $request->url() === 'https://app.asana.com/api/1.0/tasks'
             && $request->hasHeader('Authorization', 'Bearer asana-token')
             && ($request['data']['projects'][0] ?? null) === '1220017034322863'
-            && str_contains((string) ($request['data']['notes'] ?? ''), 'Institute of Astronomy');
+            && str_contains((string) ($request['data']['notes'] ?? ''), 'Institute of Astronomy')
+            && str_contains((string) ($request['data']['notes'] ?? ''), '203.0.113.0/24, 2001:db8::/48');
     });
+});
+
+it('stores a request with no egress ranges', function (): void {
+    $this->post(route('api-access.store'), accessPayload())->assertSessionHas('api_access_sent', true);
+    expect(ApiAccessRequest::query()->first()?->egress_cidrs)->toBeNull();
 });
 
 it('stores the request when a webhook fails and when only one asana setting is set', function (): void {
@@ -115,6 +127,10 @@ it('rejects invalid and spam submissions without storing them', function (array 
     [['use_case' => 'too short'], 'use_case'],
     [['use_case' => str_repeat('x', 5001)], 'use_case'],
     [['expected_volume' => 'unlimited'], 'expected_volume'],
+    [['egress_cidrs' => '203.0.113.5'], 'egress_cidrs'],
+    [['egress_cidrs' => '203.0.113.0/33'], 'egress_cidrs'],
+    [['egress_cidrs' => '0.0.0.0/0'], 'egress_cidrs'],
+    [['egress_cidrs' => "203.0.113.0/24\nnot-a-cidr"], 'egress_cidrs'],
     [['website' => 'https://spam.example'], 'website'],
 ]);
 

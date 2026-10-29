@@ -15,6 +15,7 @@ it('publishes fair use and links it from the footer', function (): void {
         ->assertSee('60 requests per minute')
         ->assertSee('1,000 per day')
         ->assertSee('100,000')
+        ->assertSee('300 requests per minute per IP')
         ->assertSee('Verified search')
         ->assertSee(route('api-access'), false)
         ->assertHeader('Cache-Control', 'max-age=0, public, s-maxage=600, stale-while-revalidate=86400');
