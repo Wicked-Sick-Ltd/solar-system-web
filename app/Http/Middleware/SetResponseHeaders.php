@@ -31,7 +31,7 @@ final class SetResponseHeaders
      * When Mailchimp is configured the shared footer mounts a Livewire signup
      * form, so these routes need the session too and are skipped at runtime.
      */
-    private const CACHEABLE_ROUTES = ['home', 'planets.index', 'about', 'educators', 'higher-education', 'higher-education.handout', 'plugin', 'api', 'dwarf-planets', 'today.show'];
+    private const CACHEABLE_ROUTES = ['home', 'planets.index', 'about', 'educators', 'higher-education', 'higher-education.handout', 'plugin', 'api', 'fair-use', 'dwarf-planets', 'today.show'];
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -46,7 +46,7 @@ final class SetResponseHeaders
         // Shared caches must select the anonymous representation before lookup,
         // and account pages must not remain in the browser cache after logout.
         $response->setVary('Cookie', false);
-        if ($request->is('feedback', 'observe/night', PrivateNightWeather::PATH, PrivateObservingShortlist::PATH, 'observatory/what3words', 'observatory/what3words/*')) {
+        if ($request->is('feedback', 'api-access', 'observe/night', PrivateNightWeather::PATH, PrivateObservingShortlist::PATH, 'observatory/what3words', 'observatory/what3words/*')) {
             // Include validation, throttle and exception responses for this private form.
             $response->headers->set('Cache-Control', 'private, no-store');
             $response->headers->set('Referrer-Policy', 'no-referrer');

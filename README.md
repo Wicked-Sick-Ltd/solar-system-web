@@ -135,11 +135,19 @@ Filter/search/page state lives in the **URL**, so every view is linkable.
 | `/search`                          | `SearchPage`               |
 | `/orrery`                          | `Orrery`                   |
 | `/about`, `/api`                   | `AboutPage`, `ApiPage`     |
+| `/fair-use`                        | `FairUsePage`              |
+| `/api-access`                      | `ApiAccessController`      |
 | `/privacy`                         | `PrivacyPage`              |
 | `/login`, `/register`              | Auth controllers + Blade forms |
 | `/alerts`                          | `VisibilityAlertController@index` |
 | `/random`                          | `RandomObjectController`   |
 | `/sitemap.xml`, `/robots.txt`      | `SitemapController`, `RobotsController` |
+
+`/fair-use` explains anonymous limits, keyed bulk use, and that verified
+search and AI crawlers are welcome. `/api-access` stores a key request.
+`PU_SITES_SLACK_WEBHOOK_URL` and the Asana pair
+(`PU_ASANA_ACCESS_TOKEN`, `PU_ASANA_PROJECT_ID`) notify the team when set
+and do nothing when unset. See [fair use](docs/fair-use.md).
 
 Object permalinks use the backend's stable `id` as the slug (e.g.
 `/objects/planet-saturn`). `/planets/{slug}` reuses the object template but

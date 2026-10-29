@@ -31,6 +31,12 @@
             <p>{{ __('The form uses an essential session cookie, CSRF protection and a short-lived request limit keyed to your connection to reduce spam. Normal web-server access logs still apply. Please avoid including passwords, exact observing locations or other sensitive details in your message.') }}</p>
         </section>
 
+        <section id="api-access" class="scroll-mt-24 space-y-3" aria-labelledby="api-access-heading">
+            <h2 id="api-access-heading" class="pt-2 font-serif text-2xl font-medium">{{ __('API access requests') }}</h2>
+            <p>{{ __('The API access form stores your organisation, contact name, email address, use case and expected volume so we can decide whether to issue a key. An academic email domain is recorded as a flag for the free institution tier. The request is kept until the enquiry is finished, including follow-up about the key. Email :email to ask us to delete it.', ['email' => $email]) }}</p>
+            <p>{{ __('When a Slack webhook or an Asana token is configured, a copy of the same details is sent to that tool. If those settings are unset, nothing is sent. The form uses a honeypot field, CSRF protection and a short request limit. It does not create an account.') }}</p>
+        </section>
+
         <h2 class="pt-2 font-serif text-2xl font-medium">{{ __('Cookies and local storage') }}</h2>
         <div class="surface overflow-x-auto">
             <table class="w-full text-sm">

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiAccessController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CataloguePathRedirect;
@@ -33,6 +34,7 @@ use App\Livewire\ExoplanetDetail;
 use App\Livewire\Exoplanets;
 use App\Livewire\ExoplanetSystem;
 use App\Livewire\ExplorePage;
+use App\Livewire\FairUsePage;
 use App\Livewire\Galaxy;
 use App\Livewire\HigherEducationPage;
 use App\Livewire\Home;
@@ -145,6 +147,9 @@ Route::get('/higher-education/{activity}/handout', HigherEducationHandoutControl
 Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback');
 Route::post('/feedback', [FeedbackController::class, 'store'])->middleware('throttle:3,10,feedback')->name('feedback.store');
 Route::get('/api', ApiPage::class)->name('api');
+Route::get('/fair-use', FairUsePage::class)->name('fair-use');
+Route::get('/api-access', [ApiAccessController::class, 'create'])->name('api-access');
+Route::post('/api-access', [ApiAccessController::class, 'store'])->middleware('throttle:5,60,api-access')->name('api-access.store');
 // Catalogue paths are not pages on this host. GET follows them to the API.
 Route::get('/api/v1/{path}', CataloguePathRedirect::class)
     ->where('path', '.*')

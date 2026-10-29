@@ -1,6 +1,6 @@
 <div class="mx-auto max-w-4xl">
     <x-page-header :title="__('Catalogue API')" :eyebrow="__('For developers')"
-        :lead="__('A free, read-only HTTP catalogue of solar-system and exoplanet data, plus a streamable HTTP MCP server. No API key and no account.')" />
+        :lead="__('A free, read-only HTTP catalogue of solar-system and exoplanet data, plus a streamable HTTP MCP server. Anonymous reads need no account. Bulk and automated use needs an API key.')" />
 
     <x-section-navigation :sections="[
         ['id' => 'overview', 'label' => __('Overview')],
@@ -195,7 +195,7 @@
             <h2 id="limits" tabindex="-1" class="font-serif text-2xl">{{ __('Limits and attribution') }}</h2>
             <h3 class="mt-4 text-xl">{{ __('Rate limits') }}</h3>
             <ul class="mt-2 list-disc space-y-2 pl-6">
-                <li>{{ __('Catalogue routes are limited to 60 requests per minute per IP. A route-specific limit replaces the application default of 60 per minute and 1,000 per day.') }}</li>
+                <li>{{ __('Anonymous catalogue use is limited to 60 requests per minute and 1,000 per day per IP. Send a valid key in the X-PU-Api-Key header for a higher daily limit. A missing, invalid, or revoked key stays on that anonymous limit.') }} <a class="underline" href="{{ route('fair-use') }}">{{ __('Fair use') }}</a></li>
                 <li>{{ __('Night planning, GET /api/v1/observing/night, is limited to 10 requests per minute per IP.') }}</li>
                 <li>{{ __('The public MCP endpoint allows 60 requests per minute and request bodies up to 64 kB.') }}</li>
                 @if ($plannerNight)

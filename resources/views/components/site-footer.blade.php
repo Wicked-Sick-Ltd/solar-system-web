@@ -44,6 +44,8 @@
                 <li><a class="link-quiet" href="{{ route('plugin') }}">{{ __('Astronomy plugin') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('feedback') }}">{{ __('Feedback & contact') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('api') }}">{{ __('Use the API') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('fair-use') }}">{{ __('Fair use') }}</a></li>
+                <li><a class="link-quiet" href="{{ route('api-access') }}">{{ __('Request API access') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('random') }}">{{ __('Random object') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('settings') }}">{{ __('Your settings') }}</a></li>
                 <li><a class="link-quiet" href="{{ route('privacy') }}">{{ __('Privacy & cookies') }}</a></li>
