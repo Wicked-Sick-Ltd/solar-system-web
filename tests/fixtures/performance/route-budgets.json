@@ -5,7 +5,7 @@
         "upstream_bytes": 1500,
         "response_bytes": 58000,
         "gzip_bytes": 12000,
-        "dom_elements": 330
+        "dom_elements": 340
     },
     "saturn": {
         "cold_calls": 7,
