@@ -45,7 +45,7 @@ final class SitemapBuilder
         'home', 'explore', 'observe', 'learn', 'objects.index', 'planets.index', 'dwarf-planets',
         'asteroids', 'comets', 'tnos', 'close-approaches', 'orrery', 'exoplanets.index', 'systems.index',
         'galaxy', 'meteor-showers.index', 'releases.index', 'about', 'educators', 'higher-education',
-        'plugin', 'feedback', 'api', 'privacy',
+        'plugin', 'feedback', 'api', 'fair-use', 'api-access', 'privacy',
     ];
 
     public function __construct(private SolarApiClient $api) {}

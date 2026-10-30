@@ -34,3 +34,14 @@ object, the cached close-approach window for the next-pass card, and one
 Horizons vector request for that card’s flyby diagram. A miss is cached, so
 the warm ceiling stays 0. The upstream body ceiling is 1,500 bytes to include
 the small close-approach fixture.
+
+The homepage element ceiling is 340. The deterministic performance job for the
+fair-use footer measured 334 homepage elements. Fair use and Request API access
+each add one list item and one anchor in the shared footer, four elements on
+every HTML workload. The previous ceiling of 330 matched the homepage count
+before those links. That same run kept the homepage within 58,000 response
+bytes and 12,000 gzip bytes. The other nine workloads stayed inside their
+existing ceilings: Saturn 440 elements, search 339, the exoplanet page 387,
+the 5,000-host directory 595, the galaxy page 284, orrery 284, the night form
+280, and the eight-target night 23,940. The new ceiling sits six elements
+above the measured homepage.

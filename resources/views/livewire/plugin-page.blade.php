@@ -34,7 +34,7 @@ cd ai-marketplace/{{ $pluginPath }}</code></pre>
             <dl class="mt-2 grid gap-2 text-sm sm:grid-cols-[auto_1fr] sm:gap-x-5">
                 <dt class="font-semibold">{{ __('Server name') }}</dt><dd><code>solar-system-db</code></dd>
                 <dt class="font-semibold">{{ __('Transport') }}</dt><dd>Streamable HTTP</dd>
-                <dt class="font-semibold">{{ __('Authentication') }}</dt><dd>{{ __('The public service is intended to require no API key.') }}</dd>
+                <dt class="font-semibold">{{ __('Authentication') }}</dt><dd>{{ __('The public MCP service is intended to require no API key. Bulk REST use sends a key in the X-PU-Api-Key header.') }} <a class="underline" href="{{ route('fair-use') }}">{{ __('Fair use') }}</a></dd>
             </dl>
             <pre tabindex="0" aria-label="{{ __('MCP server URL') }}" class="mt-3 overflow-x-auto rounded-lg p-4 text-sm" style="background: var(--bg);"><code>{{ $mcpUrl }}</code></pre>
         </section>
