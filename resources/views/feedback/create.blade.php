@@ -3,9 +3,9 @@
         <x-page-header :title="__('Feedback & contact')" :eyebrow="__('Help shape Public Universe')"
             :lead="__('Suggest a feature, tell us about a problem, or simply say hello. Your message goes privately to our team.')" />
 
-        @if (session('feedback_sent'))
+        @session('feedback_sent')
             <p class="surface mb-6 p-5" role="status">{{ __('Thank you — your message has been sent to our inbox. If you included an email address, we can reply there.') }}</p>
-        @endif
+        @endsession
         @if ($errors->any())
             <div class="surface mb-6 border p-5" role="alert" tabindex="-1" id="feedback-errors">
                 <h2 class="font-semibold">{{ __('Please check your message') }}</h2>
