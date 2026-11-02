@@ -7,6 +7,8 @@ namespace App\Console\Commands;
 use App\Services\Sitemap\SitemapBuilder;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
@@ -17,12 +19,10 @@ use Throwable;
  * the exact client calls the landing pages make so the right cache keys are
  * primed. Scheduled daily; safe to run by hand any time.
  */
+#[Signature('solar:warm-cache')]
+#[Description('Pre-warm the Solar API caches for the hot landing pages')]
 final class WarmCache extends Command
 {
-    protected $signature = 'solar:warm-cache';
-
-    protected $description = 'Pre-warm the Solar API caches for the hot landing pages';
-
     public function handle(SolarApiClient $api): int
     {
         // Warm shared reference + listing calls (same signatures the pages use).

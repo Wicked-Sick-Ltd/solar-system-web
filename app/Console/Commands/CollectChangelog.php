@@ -6,21 +6,17 @@ namespace App\Console\Commands;
 
 use App\Services\Changelog\ChangelogNotes;
 use App\Services\Changelog\GitHubMergedPullRequests;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use JsonException;
 use RuntimeException;
 use Throwable;
 
+#[Signature('universe:changelog:collect {--repository= : GitHub owner/name} {--output= : Path of the JSON notes file to write} {--input= : Local JSON pull-request file; skips the network} {--check : Fail when the committed notes differ from the collected ones}')]
+#[Description('Collect merged pull requests into visitor-facing release notes')]
 final class CollectChangelog extends Command
 {
-    protected $signature = 'universe:changelog:collect
-        {--repository= : GitHub owner/name}
-        {--output= : Path of the JSON notes file to write}
-        {--input= : Local JSON pull-request file; skips the network}
-        {--check : Fail when the committed notes differ from the collected ones}';
-
-    protected $description = 'Collect merged pull requests into visitor-facing release notes';
-
     public function handle(ChangelogNotes $notes, GitHubMergedPullRequests $github): int
     {
         $repository = (string) ($this->option('repository') ?: config('changelog.repository'));
