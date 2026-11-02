@@ -6,11 +6,11 @@
         @session('api_access_sent')
             <p class="surface mb-6 p-5" role="status">
                 {{ __('Thank you. Your request is stored and the team has been notified when those notifications are configured.') }}
-                @session('api_access_institution')
+                @if (session('api_access_institution'))
                     {{ __('This address looks academic, so the request is flagged as eligible for the free institution tier.') }}
                 @else
                     {{ __('This address was not flagged as academic. You can still ask for a free key, or write from an academic address if the institution tier is the one you need.') }}
-                @endsession
+                @endif
             </p>
         @endsession
         @if ($errors->any())
