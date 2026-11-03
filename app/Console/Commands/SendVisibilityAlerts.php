@@ -8,16 +8,16 @@ use App\Models\VisibilityAlert;
 use App\Notifications\VisibilityUpAfterDarkNotification;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\SolarApiClient;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
 
+#[Signature('alerts:send-visibility')]
+#[Description('Email users when a saved object is up after dark from their saved location')]
 final class SendVisibilityAlerts extends Command
 {
-    protected $signature = 'alerts:send-visibility';
-
-    protected $description = 'Email users when a saved object is up after dark from their saved location';
-
     public function handle(SolarApiClient $api): int
     {
         // Covers manual invocations as well as the scheduler. Production must

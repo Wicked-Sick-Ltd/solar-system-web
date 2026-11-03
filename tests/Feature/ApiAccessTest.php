@@ -49,6 +49,15 @@ it('stores a request and flags academic domains', function (string $email, bool 
         ->assertSessionHas('api_access_sent', true)
         ->assertSessionHas('api_access_institution', $eligible);
 
+    $page = $this->get(route('api-access'))->assertOk();
+    if ($eligible) {
+        $page->assertSee('This address looks academic')
+            ->assertDontSee('This address was not flagged as academic');
+    } else {
+        $page->assertSee('This address was not flagged as academic')
+            ->assertDontSee('This address looks academic');
+    }
+
     $row = ApiAccessRequest::query()->first();
     expect($row)->not->toBeNull()
         ->and($row->email)->toBe($email)
