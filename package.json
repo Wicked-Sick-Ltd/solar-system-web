@@ -16,7 +16,7 @@
     "dependencies": {
         "@fontsource/inter": "^5.3.0",
         "@fontsource/newsreader": "^5.3.0",
-        "three": "^0.186.1"
+        "three": "^0.187.0"
     },
     "overrides": {
         "shell-quote": "1.11.0",
