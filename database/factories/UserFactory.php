@@ -14,8 +14,6 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    protected $model = User::class;
-
     /** The project doesn't ship Faker, so uniqueness comes from a counter. */
     private static int $sequence = 0;
 

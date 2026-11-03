@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Services\Releases\ReleasePublisher;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Throwable;
 
+#[Signature('universe:releases:publish {--commit= : Exact deployed build commit}')]
+#[Description('Publish reviewed notes to the local ledger after exact live build readiness verification')]
 final class PublishCommunityRelease extends Command
 {
-    protected $signature = 'universe:releases:publish {--commit= : Exact deployed build commit}';
-
-    protected $description = 'Publish reviewed notes to the local ledger after exact live build readiness verification';
-
     public function handle(ReleasePublisher $publisher): int
     {
         try {
