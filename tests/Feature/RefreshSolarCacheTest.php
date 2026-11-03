@@ -6,6 +6,8 @@ use App\Jobs\RefreshSolarCache;
 use App\Services\SolarApi\CatalogueContext;
 use App\Services\SolarApi\SolarApiClient;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -56,6 +58,16 @@ afterEach(function () {
 function refreshProcess(string $directory, string $mode): Process
 {
     return new Process([PHP_BINARY, base_path('tests/fixtures/performance/refresh-worker.php'), base_path(), $directory, $mode], env: ['APP_ENV' => 'testing']);
+}
+
+function queueAttribute(string $attribute, string $argument): int
+{
+    $attributes = (new ReflectionClass(RefreshSolarCache::class))->getAttributes($attribute);
+    if ($attributes === []) {
+        throw new RuntimeException($attribute.' is not declared on '.RefreshSolarCache::class);
+    }
+
+    return $attributes[0]->newInstance()->{$argument};
 }
 
 it('queues one refresh for 100 stale reads across independent producers and keeps the lock through execution', function () {
@@ -115,12 +127,13 @@ it('deduplicates by the full cache key while allowing different resources or fil
 });
 
 it('bounds abandoned unique locks while reserving time for a complete worker attempt', function () {
-    $job = new RefreshSolarCache('/stats', [], $this->key, 60);
-    expect($job->uniqueFor)->toBe(900)->and($job->timeout)->toBe(60)
-        ->and($job->uniqueFor)->toBeGreaterThan($job->timeout)
-        ->and($job->timeout)->toBeLessThan(config('queue.connections.refresh_performance.retry_after'));
+    $uniqueFor = queueAttribute(UniqueFor::class, 'uniqueFor');
+    $timeout = queueAttribute(Timeout::class, 'timeout');
+    expect($uniqueFor)->toBe(900)->and($timeout)->toBe(60)
+        ->and($uniqueFor)->toBeGreaterThan($timeout)
+        ->and($timeout)->toBeLessThan(config('queue.connections.refresh_performance.retry_after'));
     app(SolarApiClient::class)->stats();
-    $this->travel($job->uniqueFor - 1)->seconds();
+    $this->travel($uniqueFor - 1)->seconds();
     app(SolarApiClient::class)->stats();
     expect(DB::connection('refresh_performance')->table('jobs')->count())->toBe(1);
     $this->travel(2)->seconds();

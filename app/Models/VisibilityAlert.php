@@ -4,22 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[Fillable('user_id', 'object_id', 'latitude', 'longitude', 'active', 'last_state_up_after_dark', 'last_checked_at', 'last_triggered_at')]
 class VisibilityAlert extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'object_id',
-        'latitude',
-        'longitude',
-        'active',
-        'last_state_up_after_dark',
-        'last_checked_at',
-        'last_triggered_at',
-    ];
-
     protected function casts(): array
     {
         return [

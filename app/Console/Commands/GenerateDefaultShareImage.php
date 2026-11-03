@@ -7,17 +7,17 @@ namespace App\Console\Commands;
 use App\Services\Og\CatalogueFigures;
 use App\Services\Og\OgImageRenderer;
 use App\Support\ShareImage;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Throwable;
 
 /** Regenerate the committed fallback after changing public branding or card design. */
+#[Signature('og:generate-default')]
+#[Description('Render the default share image using the configured public name, tagline and current catalogue counts')]
 final class GenerateDefaultShareImage extends Command
 {
-    protected $signature = 'og:generate-default';
-
-    protected $description = 'Render the default share image using the configured public name, tagline and current catalogue counts';
-
     public function handle(OgImageRenderer $renderer, CatalogueFigures $catalogue): int
     {
         try {

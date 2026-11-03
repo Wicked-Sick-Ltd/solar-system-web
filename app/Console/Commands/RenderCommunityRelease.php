@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Services\Releases\ReleaseCatalog;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\QueryException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+#[Signature('universe:releases:render {version?} {--format=markdown : markdown or json}')]
+#[Description('Render reviewed community copy locally for review; never send or publish it')]
 final class RenderCommunityRelease extends Command
 {
-    protected $signature = 'universe:releases:render {version?} {--format=markdown : markdown or json}';
-
-    protected $description = 'Render reviewed community copy locally for review; never send or publish it';
-
     public function handle(ReleaseCatalog $catalog): int
     {
         $version = (string) ($this->argument('version') ?? config('releases.version'));

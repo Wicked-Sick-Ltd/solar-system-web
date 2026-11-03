@@ -3,7 +3,7 @@
         <x-page-header :title="__('Request API access')" :eyebrow="__('For bulk and automated use')"
             :lead="__('Tell us who you are and what you need. Academic email addresses are flagged for the free institution tier. Cloudflare Pro caps every caller, including keyed traffic, at 300 requests per minute per IP. We review the request before a key is issued.')" />
 
-        @if (session('api_access_sent'))
+        @session('api_access_sent')
             <p class="surface mb-6 p-5" role="status">
                 {{ __('Thank you. Your request is stored and the team has been notified when those notifications are configured.') }}
                 @if (session('api_access_institution'))
@@ -12,7 +12,7 @@
                     {{ __('This address was not flagged as academic. You can still ask for a free key, or write from an academic address if the institution tier is the one you need.') }}
                 @endif
             </p>
-        @endif
+        @endsession
         @if ($errors->any())
             <div class="surface mb-6 border p-5" role="alert" tabindex="-1" id="api-access-errors">
                 <h2 class="font-semibold">{{ __('Please check the form') }}</h2>
