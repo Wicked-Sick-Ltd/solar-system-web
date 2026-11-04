@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Services\SolarApi\Data\Position;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\OrreryQuery;
 use App\Support\Seo;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -72,9 +73,13 @@ final class Orrery extends Component
 
     public function render(SolarApiClient $api): View
     {
-        app(Seo::class)
+        $seo = app(Seo::class)
             ->title(__('Orrery'))
-            ->description(__('An approximate 2D model of solar-system positions for a selected date, using catalogue orbital elements.'));
+            ->description(__('An approximate 2D model of solar-system positions for a selected date, using catalogue orbital elements.'))
+            ->canonical(route('orrery'));
+        if (request()->query->count() > 0) {
+            $seo->noindex();
+        }
 
         $validDate = $this->validatedDate();
         $apiDown = $validDate !== null && ! $api->reachable();
@@ -149,17 +154,12 @@ final class Orrery extends Component
 
     private function validatedDate(): ?CarbonImmutable
     {
-        if (! is_string($this->date) || ! preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $this->date)
-            || (int) substr($this->date, 0, 4) < 1) {
+        $value = OrreryQuery::validDate($this->date);
+        if ($value === null) {
             return null;
         }
-        try {
-            $date = CarbonImmutable::createFromFormat('!Y-m-d', $this->date, 'UTC');
 
-            return $date && $date->toDateString() === $this->date ? $date : null;
-        } catch (\Throwable) {
-            return null;
-        }
+        return CarbonImmutable::createFromFormat('!Y-m-d', $value, 'UTC') ?: null;
     }
 
     private function dateAfter(int $days): ?string

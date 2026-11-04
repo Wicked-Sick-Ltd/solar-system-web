@@ -25,6 +25,7 @@ use App\Http\Controllers\StarterCatalogueController;
 use App\Http\Controllers\SystemsDirectoryController;
 use App\Http\Controllers\TodayRedirectController;
 use App\Http\Controllers\VisibilityAlertController;
+use App\Http\Middleware\NormalizeOrreryQuery;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
 use App\Livewire\Category;
@@ -106,8 +107,9 @@ Route::get('/tnos', Category::class)->defaults('kind', 'tno')->name('tnos');
 
 Route::get('/search', SearchPage::class)->name('search');
 
-// Interactive orrery (2D solar-system map at a chosen date)
-Route::get('/orrery', Orrery::class)->name('orrery');
+// Interactive orrery (2D solar-system map at a chosen date).
+// Date steps are view state. Unknown query keys are redirected so they cannot multiply URLs.
+Route::get('/orrery', Orrery::class)->middleware(NormalizeOrreryQuery::class)->name('orrery');
 
 Route::get('/exoplanets', Exoplanets::class)->name('exoplanets.index');
 Route::get('/exoplanets/export/{format}', ExoplanetExportController::class)->whereIn('format', ['csv', 'json'])->middleware('throttle:30,1')->name('exoplanets.export');
