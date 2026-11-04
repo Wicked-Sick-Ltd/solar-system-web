@@ -15,6 +15,13 @@ use Carbon\CarbonImmutable;
 final class OrreryQuery
 {
     /**
+     * Days either side of today that step links may pass equity to.
+     * Further dates still render for people, but those ±1/±30 anchors are nofollow
+     * so a crawler cannot walk the calendar out to year 0001 or 9999.
+     */
+    public const int CRAWL_WINDOW_DAYS = 366;
+
+    /**
      * @param  array<string, mixed>  $query
      * @return array<string, string>
      */
@@ -57,5 +64,18 @@ final class OrreryQuery
         }
 
         return $date && $date->year <= 9999 && $date->toDateString() === $value ? $value : null;
+    }
+
+    public static function inCrawlWindow(string $date, ?CarbonImmutable $today = null): bool
+    {
+        if (self::validDate($date) === null) {
+            return false;
+        }
+
+        $origin = ($today ?? CarbonImmutable::now('UTC'))->utc()->startOfDay();
+        $min = $origin->subDays(self::CRAWL_WINDOW_DAYS)->toDateString();
+        $max = $origin->addDays(self::CRAWL_WINDOW_DAYS)->toDateString();
+
+        return $date >= $min && $date <= $max;
     }
 }

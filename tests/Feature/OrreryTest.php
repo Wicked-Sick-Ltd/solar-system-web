@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use App\Livewire\Orrery;
 use App\Support\OrreryQuery;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 beforeEach(fn () => fakeSolar());
+afterEach(fn () => CarbonImmutable::setTestNow());
 
 it('clamps the orrery query to one real date and drops everything else', function () {
     expect(OrreryQuery::clamp([
@@ -23,6 +25,13 @@ it('clamps the orrery query to one real date and drops everything else', functio
         ->and(OrreryQuery::clamp(['date' => '0000-01-01']))->toBe([])
         ->and(OrreryQuery::clamp(['date' => ['2026-06-01']]))->toBe([])
         ->and(OrreryQuery::clamp(['date' => '2028-02-29']))->toBe(['date' => '2028-02-29']);
+
+    $today = CarbonImmutable::parse('2026-06-01', 'UTC');
+    expect(OrreryQuery::inCrawlWindow('2026-06-01', $today))->toBeTrue()
+        ->and(OrreryQuery::inCrawlWindow('2027-06-02', $today))->toBeTrue()
+        ->and(OrreryQuery::inCrawlWindow('2027-06-03', $today))->toBeFalse()
+        ->and(OrreryQuery::inCrawlWindow('2025-05-31', $today))->toBeTrue()
+        ->and(OrreryQuery::inCrawlWindow('2025-05-30', $today))->toBeFalse();
 });
 
 it('redirects unknown or impossible orrery queries to the clamped url', function (string $query, string $target) {
@@ -55,29 +64,45 @@ it('keeps a bare orrery indexable and a dated one canonical but noindex', functi
     $bare->assertSee($canonical, escape: false)
         ->assertSee('<meta name="robots" content="index, follow, max-image-preview:large">', escape: false)
         ->assertDontSee('noindex', false);
-    expect(orreryQueryHrefs($bare->getContent()))->toBe([]);
 
     $dated = $this->get('/orrery?date=2026-06-01')->assertOk();
     $dated->assertSee($canonical, escape: false)
-        ->assertSee('<meta name="robots" content="noindex, follow">', escape: false)
-        ->assertSee('wire:click="step(-1)"', escape: false)
-        ->assertSee('wire:click="step(1)"', escape: false)
-        ->assertDontSee('/orrery?date=2026-05-31', false)
-        ->assertDontSee('/orrery?date=2026-06-02', false);
-    expect(orreryQueryHrefs($dated->getContent()))->toBe([]);
+        ->assertSee('<meta name="robots" content="noindex, follow">', escape: false);
+});
+
+it('nofollows day-step links that leave the crawl window and follows those inside it', function () {
+    CarbonImmutable::setTestNow('2026-06-01 12:00:00');
+
+    $near = orreryDateAnchors($this->get('/orrery?date=2026-06-01')->assertOk()->getContent());
+    expect($near)->toHaveCount(4)
+        ->and(array_column($near, 'nofollow'))->each->toBeFalse()
+        ->and(array_column($near, 'href'))->toContain(route('orrery', ['date' => '2026-05-31']))
+        ->and(array_column($near, 'href'))->toContain(route('orrery', ['date' => '2026-06-02']));
+
+    $edge = orreryDateAnchors($this->get('/orrery?date=2027-06-02')->assertOk()->getContent());
+    $edgeByDate = [];
+    foreach ($edge as $link) {
+        $edgeByDate[substr($link['href'], -10)] = $link['nofollow'];
+    }
+    expect($edgeByDate['2027-06-01'])->toBeFalse()
+        ->and($edgeByDate['2027-06-03'])->toBeTrue();
+
+    $far = orreryDateAnchors($this->get('/orrery?date=1000-06-01')->assertOk()->getContent());
+    expect($far)->toHaveCount(4)->and(array_column($far, 'nofollow'))->each->toBeTrue();
+    expect($this->get('/orrery?date=1000-06-01')->getContent())
+        ->toContain('rel="nofollow"')
+        ->toContain(route('orrery', ['date' => '1000-05-31']))
+        ->toContain(route('orrery', ['date' => '1000-06-02']));
 });
 
 it('uses the exact leap date and supplies native date and stepping controls', function () {
+    CarbonImmutable::setTestNow('2028-02-29 12:00:00');
     $this->get('/orrery?date=2028-02-29')->assertOk()
         ->assertSee('name="date" type="date" value="2028-02-29"', escape: false)
         ->assertSee('method="get"', escape: false)
         ->assertSee('Apply date')
-        ->assertSee('wire:click="step(-1)"', escape: false)
-        ->assertSee('wire:click="step(1)"', escape: false)
-        ->assertSee('wire:click="step(-30)"', escape: false)
-        ->assertSee('wire:click="step(30)"', escape: false)
-        ->assertDontSee(route('orrery', ['date' => '2028-02-28']), escape: false)
-        ->assertDontSee(route('orrery', ['date' => '2028-03-01']), escape: false)
+        ->assertSee(route('orrery', ['date' => '2028-02-28']), escape: false)
+        ->assertSee(route('orrery', ['date' => '2028-03-01']), escape: false)
         ->assertSee('Back 30 days')
         ->assertSee('Plotted bodies and distances from the Sun');
     Http::assertSent(fn ($request) => str_contains($request->url(), '/positions/') && $request['date'] === '2028-02-29');
@@ -124,13 +149,22 @@ it('labels omitted positions and excludes nonphysical or missing distance data f
         ->assertDontSee('r="NAN"', escape: false);
 });
 
-/** @return list<string> */
-function orreryQueryHrefs(string $html): array
+/**
+ * @return list<array{href:string,nofollow:bool}>
+ */
+function orreryDateAnchors(string $html): array
 {
-    preg_match_all('/<a\b[^>]*\bhref="([^"]*)"/i', $html, $matches);
+    preg_match_all('/<a\b([^>]*)>/i', $html, $tags);
+    $links = [];
+    foreach ($tags[1] as $attrs) {
+        if (! preg_match('/\bhref="([^"]*\/orrery\?date=[^"]*)"/', $attrs, $href)) {
+            continue;
+        }
+        $links[] = [
+            'href' => html_entity_decode($href[1], ENT_QUOTES),
+            'nofollow' => (bool) preg_match('/\brel="[^"]*\bnofollow\b/', $attrs),
+        ];
+    }
 
-    return array_values(array_filter(
-        $matches[1],
-        fn (string $href): bool => str_contains($href, '/orrery?'),
-    ));
+    return $links;
 }

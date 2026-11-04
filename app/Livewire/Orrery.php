@@ -90,13 +90,19 @@ final class Orrery extends Component
             $bodies = $this->plot($positions);
         }
 
+        $stepDates = [-30 => $this->dateAfter(-30), -1 => $this->dateAfter(-1), 1 => $this->dateAfter(1), 30 => $this->dateAfter(30)];
+
         return view('livewire.orrery', [
             'apiDown' => $apiDown,
             'bodies' => $bodies,
             'dateValue' => is_string($this->date) ? $this->date : '',
             'invalidDate' => $validDate === null,
             'prettyDate' => $validDate?->isoFormat('D MMMM YYYY'),
-            'stepDates' => [-30 => $this->dateAfter(-30), -1 => $this->dateAfter(-1), 1 => $this->dateAfter(1), 30 => $this->dateAfter(30)],
+            'stepDates' => $stepDates,
+            'stepInWindow' => array_map(
+                static fn (?string $date): bool => $date !== null && OrreryQuery::inCrawlWindow($date),
+                $stepDates,
+            ),
             'expectedBodies' => count(self::BODIES),
             'missingBodies' => array_values(array_map(fn ($id) => self::BODIES[$id]['label'], array_diff(array_keys(self::BODIES), array_column($bodies, 'slug')))),
         ]);
