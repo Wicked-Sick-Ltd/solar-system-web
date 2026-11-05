@@ -2,11 +2,12 @@
     <x-page-header :title="__('Orrery')" :eyebrow="__('Where the worlds are')"
                    :lead="__('A top-down model of the solar system out to Pluto, positioned for a selected date from catalogue orbital elements. Distances use a square-root scale so the inner and outer worlds are both legible — it is not to scale.')" />
 
-    {{-- Native GET controls remain usable without JavaScript. --}}
+    {{-- Native GET controls stay usable without JavaScript. Step targets more than
+         a year from today are nofollow so crawlers cannot walk the whole calendar. --}}
     <form action="{{ route('orrery') }}" method="get" wire:submit="$refresh" aria-label="{{ __('Orrery date') }}" class="mb-6 flex flex-wrap items-center gap-3">
         @foreach ([-30 => __('Back 30 days'), -1 => __('Back one day')] as $days => $label)
             @if ($stepDates[$days] !== null)
-                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);"><span aria-hidden="true">{{ $days }}d</span><span class="sr-only">{{ $label }}</span></a>
+                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" @unless ($stepInWindow[$days]) rel="nofollow" @endunless wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);"><span aria-hidden="true">{{ $days }}d</span><span class="sr-only">{{ $label }}</span></a>
             @endif
         @endforeach
         <label class="sr-only" for="orrery-date">{{ __('Date (UTC)') }}</label>
@@ -17,7 +18,7 @@
         <button type="submit" class="min-h-11 rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border);">{{ __('Apply date') }}</button>
         @foreach ([1 => __('Forward one day'), 30 => __('Forward 30 days')] as $days => $label)
             @if ($stepDates[$days] !== null)
-                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);"><span aria-hidden="true">+{{ $days }}d</span><span class="sr-only">{{ $label }}</span></a>
+                <a href="{{ route('orrery', ['date' => $stepDates[$days]]) }}" @unless ($stepInWindow[$days]) rel="nofollow" @endunless wire:navigate class="inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm" style="border-color: var(--border); color: var(--text);"><span aria-hidden="true">+{{ $days }}d</span><span class="sr-only">{{ $label }}</span></a>
             @endif
         @endforeach
         <a href="{{ route('orrery') }}" wire:navigate class="inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium" style="background-color: var(--accent-fill); color: var(--on-accent);">{{ __('Today') }}</a>
