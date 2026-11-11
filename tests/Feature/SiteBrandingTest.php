@@ -17,6 +17,38 @@ it('uses the public name in metadata and contact links independently of the appl
         ->assertSee('subject='.rawurlencode('Public Universe Observatory — data correction'), escape: false);
 });
 
+it('falls back to the published download host when SOLAR_DOWNLOAD_URL is unset', function () {
+    $snapshot = [
+        'env' => getenv('SOLAR_DOWNLOAD_URL'),
+        '_ENV' => $_ENV['SOLAR_DOWNLOAD_URL'] ?? null,
+        '_SERVER' => $_SERVER['SOLAR_DOWNLOAD_URL'] ?? null,
+    ];
+    putenv('SOLAR_DOWNLOAD_URL');
+    unset($_ENV['SOLAR_DOWNLOAD_URL'], $_SERVER['SOLAR_DOWNLOAD_URL']);
+
+    try {
+        /** @var array{download_url: string} $site */
+        $site = require base_path('config/site.php');
+        expect($site['download_url'])->toBe('https://download.publicuniverse.net/latest.json');
+    } finally {
+        if ($snapshot['env'] === false) {
+            putenv('SOLAR_DOWNLOAD_URL');
+        } else {
+            putenv('SOLAR_DOWNLOAD_URL='.$snapshot['env']);
+        }
+        if ($snapshot['_ENV'] === null) {
+            unset($_ENV['SOLAR_DOWNLOAD_URL']);
+        } else {
+            $_ENV['SOLAR_DOWNLOAD_URL'] = $snapshot['_ENV'];
+        }
+        if ($snapshot['_SERVER'] === null) {
+            unset($_SERVER['SOLAR_DOWNLOAD_URL']);
+        } else {
+            $_SERVER['SOLAR_DOWNLOAD_URL'] = $snapshot['_SERVER'];
+        }
+    }
+});
+
 it('keeps the configured API and download endpoints while using the new brand', function () {
     config([
         'site.name' => 'Public Universe',

@@ -11,7 +11,7 @@ body:
     id: object
     attributes:
       label: Object id or page URL
-      placeholder: dwarf-pluto, or https://sol.wickedsick.com/objects/dwarf-pluto
+      placeholder: dwarf-pluto, or https://publicuniverse.net/objects/dwarf-pluto
     validations:
       required: true
   - type: input

@@ -40,10 +40,14 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+# New prints use the published Public Universe hosts. Paper already issued
+# still points at sol.wickedsick.com, including its QR codes, and some older
+# sheets also name download.sol.wickedsick.com. Those aliases must keep
+# working. This generator does not redirect them.
 DEFAULT_API = "https://api.publicuniverse.net/api/v1"
 DEFAULT_SITE_NAME = "Public Universe"
 DEFAULT_SITE_URL = "https://publicuniverse.net"
-DEFAULT_DOWNLOAD_URL = "https://download.sol.wickedsick.com/latest.json"
+DEFAULT_DOWNLOAD_URL = "https://download.publicuniverse.net/latest.json"
 J2000_JD = 2451545.0
 AU_KM = 149_597_870.7
 HTTP_TIMEOUT = 30
@@ -455,7 +459,7 @@ def main() -> None:
         description="Build the two-page A4 Public Universe handout as a PDF.")
     parser.add_argument("--api-base", type=public_http_url,
                         default=os.environ.get("API_BASE_URL", DEFAULT_API),
-                        help="REST API root (API_BASE_URL, otherwise the existing public API)")
+                        help="REST API root (API_BASE_URL, otherwise https://api.publicuniverse.net/api/v1)")
     parser.add_argument("--site-name", default=os.environ.get("SITE_NAME", DEFAULT_SITE_NAME),
                         help="printed name (SITE_NAME, otherwise Public Universe)")
     parser.add_argument("--site-url", type=public_http_url,
@@ -463,7 +467,7 @@ def main() -> None:
                         help="website URL (SITE_URL / APP_URL, otherwise publicuniverse.net)")
     parser.add_argument("--download-url", type=public_http_url,
                         default=os.environ.get("SOLAR_DOWNLOAD_URL", DEFAULT_DOWNLOAD_URL),
-                        help="manifest URL (SOLAR_DOWNLOAD_URL, otherwise the existing download manifest)")
+                        help="manifest URL (SOLAR_DOWNLOAD_URL, otherwise https://download.publicuniverse.net/latest.json)")
     parser.add_argument("--date", default=None,
                         help="UTC instant for the planet positions, ISO 8601 "
                              "(default: now, rounded down to the hour)")

@@ -1,7 +1,9 @@
-# Contributing to Solar
+# Contributing to Public Universe
 
 Thanks for taking an interest. This repo is the **front end** for
-[sol.wickedsick.com](https://sol.wickedsick.com). All the data comes from
+[publicuniverse.net](https://publicuniverse.net). `sol.wickedsick.com` keeps
+serving the same site in parallel: paper already issued, including QR codes,
+still points there and must keep working. All the data comes from
 [`solar-system-db`](https://github.com/Wicked-Sick-Ltd/solar-system-db) — if
 you've spotted a wrong number on the site, that's almost certainly a data
 correction for the backend repo, not a change here. Its
