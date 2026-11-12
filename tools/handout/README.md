@@ -5,6 +5,14 @@ The planetary pages remain a solar-system snapshot generated from API data.
 The classroom handouts on `/educators` are a separate, hand-designed set; see
 `config/educators.php`.
 
+New prints default to `https://publicuniverse.net` for the website (the URL a
+QR code on a new sheet should encode), `https://api.publicuniverse.net` for
+the API, MCP and docs links, and
+`https://download.publicuniverse.net/latest.json` for the catalogue manifest.
+Paper already issued still points at `sol.wickedsick.com`, including its QR
+codes, and some older sheets also name `download.sol.wickedsick.com`. Those
+addresses must keep working. This generator does not redirect them.
+
 - **Page 1** — what Public Universe is, the catalogue counts, the free REST API, the MCP
   server and the nightly database download.
 - **Page 2** — a dated snapshot of where the eight planets are, one dial each.
@@ -42,7 +50,7 @@ brew install --cask wkhtmltopdf       # macOS
 | `--api-base http://127.0.0.1:8003/api/v1` | Build against a local `solar-system-db`; also controls printed API/MCP/docs links |
 | `--site-name "Public Universe"` | Visitor-facing title and introduction |
 | `--site-url https://publicuniverse.net` | Printed website links (default: `$SITE_URL` / `$APP_URL`, else publicuniverse.net) |
-| `--download-url https://download.sol.wickedsick.com/latest.json` | Printed catalogue manifest link |
+| `--download-url https://download.publicuniverse.net/latest.json` | Printed catalogue manifest link |
 | `--keep-html` | Keep the intermediate HTML beside the PDF |
 | `--html-only` | Write the HTML and stop — no wkhtmltopdf needed |
 | `--wkhtmltopdf /path/to/bin` | Use a wkhtmltopdf that isn't on `PATH` |
@@ -118,17 +126,25 @@ science.
 
 Command-line flags override `SITE_NAME`, `APP_URL`, `API_BASE_URL` and
 `SOLAR_DOWNLOAD_URL` environment variables, respectively. The generator does
-not load Laravel or read `.env` files. Defaults print **Public Universe** while
-retaining the existing website/API origins and the download manifest default
-`https://download.sol.wickedsick.com/latest.json`. Merely changing the brand does not move a service.
-API documentation and MCP links use the configured API origin plus `/docs` and
-`/mcp`; website and download links can be configured independently. Printed
-public URLs must use HTTP(S) without credentials, query parameters or fragments.
-Brand text and URL substitutions are HTML-escaped.
+not load Laravel or read `.env` files. With those variables unset, a new print
+uses **Public Universe**, `https://publicuniverse.net`,
+`https://api.publicuniverse.net/api/v1` and
+`https://download.publicuniverse.net/latest.json`. Merely changing the brand
+does not move a service. API documentation and MCP links use the configured
+API origin plus `/docs` and `/mcp`; website and download links can be
+configured independently. Printed public URLs must use HTTP(S) without
+credentials, query parameters or fragments. Brand text and URL substitutions
+are HTML-escaped.
+
+Paper already issued still points at `https://sol.wickedsick.com`, including
+QR codes on the classroom sheets, and some older prints name
+`https://download.sol.wickedsick.com/latest.json`. Keep those hosts serving.
+Pass the old URL as a flag only when you are deliberately reprinting a sheet
+that must match that paper.
 
 The default `solar-handout-<date>.pdf` filename and workflow artifact name are
-retained for automation compatibility. Before a domain cutover, configure the
-verified new endpoints explicitly and check the links in the generated artifact.
+retained for automation compatibility. New prints already use the published
+hosts above. Check the links in a generated artifact before handing it out.
 Source-specific reuse terms apply; the repositories' MIT licences do not make
 all contributed scientific data public domain.
 

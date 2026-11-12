@@ -7,11 +7,12 @@ use App\Support\ShareImage;
 use Carbon\CarbonImmutable;
 
 /*
- * The site answers on more than one hostname (publicuniverse.net is canonical;
- * sol.wickedsick.com stays live as an alias because printed handouts and QR
- * codes point at it). Whichever host serves a request, everything search
- * engines and link previews read must name the canonical one — without any
- * redirect, so the alias keeps working.
+ * Published hosts are publicuniverse.net, api.publicuniverse.net and
+ * download.publicuniverse.net (Craig, 11 Nov 2026). sol.wickedsick.com keeps
+ * serving in parallel: paper already issued, including QR codes, still points
+ * there, and the website 301 is on hold. There is no application redirect and
+ * no API/MCP redirect. Whichever host serves a request, search engines and
+ * link previews read the canonical host (APP_URL).
  */
 
 beforeEach(function () {

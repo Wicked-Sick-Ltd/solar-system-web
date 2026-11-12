@@ -3,7 +3,8 @@
 ## Supported versions
 
 Only the `main` branch is supported. It is what runs at
-<https://sol.wickedsick.com>; there are no tagged releases.
+<https://publicuniverse.net>. `sol.wickedsick.com` keeps serving the same
+site in parallel. There are no tagged releases.
 
 ## Reporting a vulnerability
 

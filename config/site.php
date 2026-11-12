@@ -24,7 +24,7 @@ return [
     'backend_repo' => 'https://github.com/Wicked-Sick-Ltd/solar-system-db',
     'api_docs_url' => env('API_DOCS_URL'), // backend /docs; falls back to base_url host
     // Manifest of the nightly published database (whole catalogue, one SQLite file).
-    'download_url' => env('SOLAR_DOWNLOAD_URL', 'https://download.sol.wickedsick.com/latest.json'),
+    'download_url' => env('SOLAR_DOWNLOAD_URL', 'https://download.publicuniverse.net/latest.json'),
     'contact_email' => env('CONTACT_EMAIL', 'hello@wickedsick.com'),
 
     // Official social profiles. Only non-empty entries render (footer, /about,

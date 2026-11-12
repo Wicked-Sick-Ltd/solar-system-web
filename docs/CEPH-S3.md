@@ -75,7 +75,7 @@ renders cards.
 
 ```bash
 # After deploy, hit a card and confirm a PNG comes back, then that it landed in S3:
-curl -sI https://sol.wickedsick.com/og/objects/planet-saturn.png | grep -i content-type
+curl -sI https://publicuniverse.net/og/objects/planet-saturn.png | grep -i content-type
 aws --profile wizroot s3 ls s3://solar-system-web/og/ --recursive | head
 ```
 

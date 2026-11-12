@@ -6,7 +6,7 @@ body:
     id: url
     attributes:
       label: Page URL
-      placeholder: https://sol.wickedsick.com/objects/planet-saturn
+      placeholder: https://publicuniverse.net/objects/planet-saturn
     validations:
       required: true
   - type: textarea

@@ -1,13 +1,21 @@
 # Public Universe domain migration
 
-Status: reconciled with main PR #97 on 2 October 2026. The website policy is
-`publicuniverse.net` canonical with `sol.wickedsick.com` served indefinitely
-as an alias, without a redirect. See [hostnames](../DEPLOYMENT.md#hostnames-canonical-and-alias).
-The API hostname moved on 13 October 2026: `api.publicuniverse.net` is the
-advertised address and `api.sol.wickedsick.com` stays served indefinitely as an
-alias of the same Forge site, without a redirect. The download hostname move
-remains a proposal. This document does not authorize DNS, infrastructure, mail
-or live service changes.
+Status: **published hosts (Craig Fletcher, 11 November 2026).**
+
+`publicuniverse.net`, `api.publicuniverse.net` and `download.publicuniverse.net`
+are the published hosts. `sol.wickedsick.com`, `api.sol.wickedsick.com` and
+`download.sol.wickedsick.com` keep serving in parallel. The website 301 from
+`sol.wickedsick.com` to `publicuniverse.net` is still on hold for Craig.
+There are no API or MCP redirects. `APP_URL` stays `https://publicuniverse.net`.
+This application adds no hostname redirect. See
+[hostnames](../DEPLOYMENT.md#hostnames-canonical-and-alias).
+
+Earlier notes (reconciled with main PR #97 on 2 October 2026, API hostname on
+13 October 2026) treated the download move as a proposal and described the
+wickedsick.com names as indefinite aliases with no future redirect. The 11
+November decision makes the `.net` names the ones we advertise. It leaves the
+aliases in service and leaves the website 301 for Craig. This document does
+not authorize DNS, infrastructure, mail or live service changes.
 
 ## Names and compatibility
 
@@ -18,21 +26,24 @@ API and download service addresses remain independently configured.
 `APP_NAME` is an operational identifier too: changing it can change default
 session-cookie names and cache prefixes. Leave existing values unchanged.
 
-Proposed addresses, subject to provisioning and production approval:
+Published addresses (11 November 2026). Confirm the live download host before
+relying on the new manifest default in production:
 
-| Surface | Current configuration/address | Proposed address |
+| Surface | Published address | Parallel alias |
 | --- | --- | --- |
-| Website | `APP_URL`, currently `https://sol.wickedsick.com` | `https://publicuniverse.net` |
-| REST | `API_PUBLIC_URL=https://api.publicuniverse.net/api/v1` (done; `api.sol.wickedsick.com` alias retained) | — |
-| MCP | API host plus `/mcp` | `https://api.publicuniverse.net/mcp` |
-| OpenAPI / docs | API host plus `/openapi.json` and `/docs`; `API_DOCS_URL` override | Same paths on new API host |
-| Download manifest | `SOLAR_DOWNLOAD_URL`, default `https://download.sol.wickedsick.com/latest.json` | `https://download.publicuniverse.net/latest.json` |
+| Website | `APP_URL` = `https://publicuniverse.net` | `https://sol.wickedsick.com` (website 301 on hold) |
+| REST | `API_PUBLIC_URL=https://api.publicuniverse.net/api/v1` | `https://api.sol.wickedsick.com` (no API redirect) |
+| MCP | `https://api.publicuniverse.net/mcp` | `https://api.sol.wickedsick.com/mcp` (no MCP redirect) |
+| OpenAPI / docs | `https://api.publicuniverse.net/openapi.json` and `/docs`; `API_DOCS_URL` can override docs | Same paths on the API alias |
+| Download manifest | `SOLAR_DOWNLOAD_URL` default `https://download.publicuniverse.net/latest.json` | `https://download.sol.wickedsick.com/latest.json` |
 | Public contact | `CONTACT_EMAIL`, default `hello@wickedsick.com` | Retain until a replacement mailbox is verified |
 | Transactional sender | `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, provider configuration | Decide and verify separately from the web move |
 
-Inventory actual deployed values rather than assuming defaults. In particular,
-older handouts advertise `download.sol.wickedsick.com`: test and retain that
-alias if it has been published. Do not change defaults to unprovisioned hosts.
+Inventory actual deployed values rather than assuming defaults. Paper already
+issued still points at `sol.wickedsick.com`, including QR codes, and older
+handouts also name `download.sol.wickedsick.com`. Those aliases must keep
+working. Ship the download default only once `download.publicuniverse.net`
+serves the same `latest.json` as the alias.
 
 ## Preparation and rehearsal
 
@@ -76,10 +87,13 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
   versioning a URL cannot change the text already baked into its image.
   Confirm image content, not only the image URL. No production invalidation or
   CDN configuration has been performed by this development change.
-- The handout template and generator now use Public Universe with escaped,
-  configurable branding and public URLs. The website defaults to the canonical `publicuniverse.net` origin; API and
-  download defaults remain unchanged. Set approved overrides when generating new
-  material. Eleven offline tests cover generation and malformed-data handling.
+- The handout template and generator use Public Universe with escaped,
+  configurable branding and public URLs. New prints default to
+  `https://publicuniverse.net`, `https://api.publicuniverse.net` and
+  `https://download.publicuniverse.net/latest.json`. Paper already issued
+  still points at `sol.wickedsick.com` and must keep working. Set overrides
+  when a reprint must match that paper. Offline tests cover generation and
+  malformed-data handling.
   Actual wkhtmltopdf now renders both variants as two/three A4 pages; all five
   pages have been visually reviewed, with link and text-bound checks. This closes
   the default-layout renderer gap using a clearly labelled retained QA fixture;
@@ -93,19 +107,24 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
 1. Complete the evidence checklist below, approve the production change window
    and communicate sign-in/preferences expectations through the site. Keep the
    broader information-architecture redesign separate from the domain switch.
-2. Set `APP_URL` to the approved new origin; keep `API_BASE_URL` and download
-   configuration on compatible working endpoints until their own checks pass.
-   Set `SITE_NAME` independently. Rebuild Laravel configuration and relevant
-   URL-bearing caches, restart long-lived workers, and ensure scheduled mail
-   generates links for the new origin. Run only one alert scheduler.
+2. Leave `APP_URL` at `https://publicuniverse.net`. Keep `API_BASE_URL` on the
+   working transport (loopback on php01). Point `SOLAR_DOWNLOAD_URL` at
+   `https://download.publicuniverse.net/latest.json` only after that host
+   serves the same manifest as `download.sol.wickedsick.com`; until then an
+   explicit old value in an existing `.env` stays in force. Set `SITE_NAME`
+   independently. Rebuild Laravel configuration and relevant URL-bearing
+   caches, restart long-lived workers, and ensure scheduled mail generates
+   links for `https://publicuniverse.net`. Run only one alert scheduler.
 3. Configure both serving hosts and their TLS certificates. `APP_URL` drives
    canonical tags, OG URLs, JSON-LD, sitemap entries and the robots sitemap URL
    through `Links::canonical()`. Navigation, assets and Livewire stay on the
    serving host. Verify both hosts and mail links after rebuilding URL caches.
-4. Keep `sol.wickedsick.com` serving all existing paths indefinitely, including
-   `/educators` and `/handouts/*.pdf`; printed QR codes depend on it. Do not
-   redirect it to the canonical host. Only `www.publicuniverse.net` redirects
-   to the apex, preserving paths and query strings.
+4. Keep `sol.wickedsick.com` serving all existing paths, including
+   `/educators` and `/handouts/*.pdf`. Paper already issued, including QR
+   codes, still points at that host and must keep working. The website 301
+   is on hold for Craig (11 November 2026) and belongs at the edge after that
+   approval, outside this application. `www.publicuniverse.net` redirects to
+   the apex, preserving paths and query strings.
 5. Test login/logout/Livewire/form POSTs and open tabs on both hosts. Cookies
    and browser storage are origin-specific; canonical SEO does not transfer
    sessions or settings between them.
@@ -116,20 +135,23 @@ alias if it has been published. Do not change defaults to unprovisioned hosts.
 
 ## API, MCP and download compatibility
 
-Do not introduce redirects for existing API or MCP traffic. Existing clients
+There are no API or MCP redirects (Craig, 11 November 2026). Existing clients
 may reject redirects, change methods, lose auth headers or fail streaming.
-Prefer serving both API hostnames through the same compatible backend and
-keeping old MCP endpoints available. Test complete old- and new-host client
+Serve both API hostnames through the same compatible backend and keep the
+alias MCP endpoint available. Test complete old- and new-host client
 sessions, including POSTs, error bodies and stream termination. Update example
 configuration and plugin metadata after verification. Any deprecation needs a
 separate measured client migration, published notice and retention decision.
 
-For downloads, dual serving is safest for scripts and frozen manifests. If a
-redirect is needed, test the actual downloader's redirect behaviour and every
-referenced archive/checksum URL. Keep old immutable files available. Do not
-rewrite manifests in a way that makes an existing snapshot irreproducible.
+The published manifest is `https://download.publicuniverse.net/latest.json`.
+`https://download.sol.wickedsick.com/latest.json` keeps serving in parallel
+for scripts and frozen manifests. A download redirect is a later edge
+decision, after a downloader test, and is outside this application. Keep old
+immutable files available. Leave historical archive URLs in already published
+manifests as they are.
 [HTTP 308 preserves the request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/308),
-but it does not establish API/MCP client compatibility.
+and it still does not establish API/MCP client compatibility, so those aliases
+stay on dual-serve.
 
 ## Accounts, preferences and mail
 

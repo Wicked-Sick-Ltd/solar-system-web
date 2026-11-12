@@ -32,7 +32,8 @@ sessions. On an existing installation, inspect configuration before editing it.
 | `DB_CONNECTION`, `DB_DATABASE` | Existing account database; absolute path for SQLite |
 | `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` | If using a database server |
 | `API_BASE_URL` | Catalogue REST root **used for fetching**. On php01 the API is on loopback: `http://127.0.0.1:8003/api/v1`. Only use the public hostname from a box that cannot reach the API directly. |
-| `API_PUBLIC_URL` | Catalogue REST root **shown to visitors** (the `/api` page, docs/MCP links, `/api/v1/*` redirects): `https://api.publicuniverse.net/api/v1` (the Forge site `api.sol.wickedsick.com` on php01 serves both names; the old one stays live, no redirect). Defaults to `API_BASE_URL`; set it whenever that is internal. |
+| `API_PUBLIC_URL` | Catalogue REST root **shown to visitors** (the `/api` page, docs/MCP links, `/api/v1/*` redirects): `https://api.publicuniverse.net/api/v1`. The Forge site on php01 also answers `api.sol.wickedsick.com`; that alias keeps serving in parallel. There are no API or MCP redirects (Craig, 11 November 2026). Defaults to `API_BASE_URL`; set it whenever that is internal. |
+| `SOLAR_DOWNLOAD_URL` | Published catalogue manifest. Unset, the application uses `https://download.publicuniverse.net/latest.json`. Leave an existing deployment value unchanged until that host serves the same `latest.json`. `download.sol.wickedsick.com` keeps serving the same object in parallel. |
 | `SOLAR_API_TIMEOUT` | HTTP timeout, defaults to 8 seconds |
 | `CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION` | `redis` recommended |
 | `CACHE_PREFIX` | Stable, application-specific; retain during branding changes |
@@ -192,22 +193,32 @@ restrict log access and retention, and never call that a delivery test.
 
 ## Hostnames: canonical and alias
 
+Published hosts (Craig Fletcher, 11 November 2026):
+
+| Surface | Published host | Parallel alias, still served |
+| --- | --- | --- |
+| Website | `https://publicuniverse.net` (`APP_URL`; leave it there) | `https://sol.wickedsick.com` |
+| REST and MCP | `https://api.publicuniverse.net` | `https://api.sol.wickedsick.com` |
+| Catalogue manifest | `https://download.publicuniverse.net/latest.json` | `https://download.sol.wickedsick.com/latest.json` |
+
+The wickedsick.com names keep serving in parallel. The website 301 from
+`sol.wickedsick.com` to `publicuniverse.net` is still on hold for Craig.
+There are no API or MCP redirects. This application adds no hostname
+redirect. Paper already issued, including classroom QR codes, still points
+at `sol.wickedsick.com` and must keep working. New prints from
+`tools/handout` default to the `.net` hosts.
+
 Configure one Forge site with `publicuniverse.net` as its canonical hostname,
 `www.publicuniverse.net` and `sol.wickedsick.com` as aliases, and a valid TLS
 certificate covering all three. Keep the document root at `public/`. The
 hostname policy below supplements the account-safe release procedure above.
 
-The site answers on more than one hostname. **`publicuniverse.net` is
-canonical**; **`sol.wickedsick.com` is an alias that stays live
-indefinitely** — the printed classroom handouts on `/educators` and their QR
-codes carry `sol.wickedsick.com`, and paper does not get redeployed.
-
 What that means in practice:
 
-- **No host redirect.** There is deliberately no middleware or edge rule that
-  301s the alias to the canonical host. A visitor who scans a handout lands on
-  `sol.wickedsick.com` and browses there; every link, asset and Livewire
-  round-trip stays on the host that served the page.
+- **The alias keeps answering while the website 301 is on hold.** A visitor
+  who scans a handout already in circulation lands on `sol.wickedsick.com`
+  and browses there; every link, asset and Livewire round-trip stays on the
+  host that served the page.
 - **SEO surfaces always name the canonical host.** `<link rel="canonical">`,
   the Open Graph / Twitter URLs and images, JSON-LD, every `<loc>` in
   `sitemap.xml` and the `Sitemap:` line in `robots.txt` are rewritten onto
@@ -215,40 +226,47 @@ What that means in practice:
   used by `Seo`, `SitemapController` and `RobotsController`). Search engines
   therefore treat the alias as a duplicate of the canonical host rather than a
   second site. Covered by `tests/Feature/CanonicalHostTest.php`.
-- **Nothing hard-codes a hostname at runtime.** `APP_URL` is the single source
-  of truth (also for the Mailchimp signup tag and the `tools/handout`
-  generator's printed URL). Add a hostname in Forge + Cloudflare and the app
-  needs no change.
+- **`APP_URL` stays `https://publicuniverse.net`.** It is the source for
+  canonical URLs and the Mailchimp signup tag. The handout generator's
+  printed website URL defaults to the same origin when `SITE_URL` and
+  `APP_URL` are unset in that tool's environment. Adding a hostname in Forge
+  and Cloudflare needs no application redirect.
 - **`/educators` uses root-relative URLs** for the PDFs and page images, so the
   same markup works on both hosts.
 
 **Cloudflare (`publicuniverse.net` zone)**
 
 1. DNS: `A`/`AAAA` (or `CNAME`) for the **apex** and **`www`** → the Forge
-   server, both **proxied** (orange cloud).
+   server, both **proxied** (orange cloud). `api.publicuniverse.net` points
+   at the same origin as the API site. `download.publicuniverse.net` is the
+   R2 custom domain for the catalogue manifest (same objects as
+   `download.sol.wickedsick.com`).
 2. SSL/TLS → **Full (strict)**; *Always Use HTTPS* on. The origin presents the
-   Let's Encrypt certificate Forge issued for the aliases above.
+   Let's Encrypt certificate Forge issued for the website aliases above.
 3. **Redirect `www` → apex**: a Redirect Rule — *if* hostname equals
    `www.publicuniverse.net`, *then* dynamic redirect to
    `concat("https://publicuniverse.net", http.request.uri.path)`, status
-   **301**, *preserve query string* ticked. `www` is the one hostname that
-   *does* redirect — nothing printed points at it.
+   **301**, *preserve query string* ticked. `www` is the hostname that
+   redirects to the apex — nothing printed points at it.
 4. Cache rule for the cookie-less pages, as in *Headers and edge caching*.
 
 **Cloudflare (`wickedsick.com` zone)** — leave the existing proxied
-`sol.wickedsick.com` record and its *Full (strict)* setting exactly as they
-are. Do **not** add a redirect rule for it.
+`sol.wickedsick.com`, `api.sol.wickedsick.com` and
+`download.sol.wickedsick.com` records and their *Full (strict)* settings
+exactly as they are. The website 301 is on hold: add no redirect rule for
+`sol.wickedsick.com` until Craig approves it. Add no redirect for the API,
+MCP or download aliases.
 
-**If `sol.wickedsick.com` is ever retired** (it should not be): it must
-**301 permanently, path for path, to the same path on `publicuniverse.net`** —
-every path, including `/orrery` (printed on the handouts), `/api`,
-`/educators` and the PDF paths under `/handouts/*.pdf`, with the query string
-preserved — and that redirect must stay in place forever, because the printed
-URLs cannot be recalled. Do it as a Cloudflare Redirect Rule on the
-`wickedsick.com` zone (hostname equals `sol.wickedsick.com` → dynamic
+**When Craig approves the website 301**, it must **301 permanently, path
+for path, to the same path on `publicuniverse.net`** — every path, including
+`/orrery` (printed on the handouts), `/api`, `/educators` and the PDF paths
+under `/handouts/*.pdf`, with the query string preserved — and that redirect
+must stay in place forever, because the printed URLs cannot be recalled. Do
+it as a Cloudflare Redirect Rule on the `wickedsick.com` zone (hostname
+equals `sol.wickedsick.com` → dynamic
 `concat("https://publicuniverse.net", http.request.uri.path)`, 301, preserve
-query string), *not* in application code, so it keeps working even if the app
-is down or moves host again.
+query string), outside this application, so it keeps working even if the app
+is down or moves host again. API and MCP stay on dual-serve with no redirect.
 
 > **Backend dependency:** the API subdomain must be deployed and reachable
 > before launch — the front end is a pure consumer. If it's down the site still

@@ -44,7 +44,7 @@ With `after` (an empty string for the first page) it is keyset-paginated:
 page" and `offset` as "ignored when `after` is given", `find_objects` applies
 `o.id > :after ORDER BY o.id`, and the response's `next_after` is the last
 returned id while a full page came back. Backend `main` and the deployed API
-(`https://api.publicuniverse.net/api/v1/objects?type=asteroid&after=`, previously served as `api.sol.wickedsick.com`) both
+(`https://api.publicuniverse.net/api/v1/objects?type=asteroid&after=`; `api.sol.wickedsick.com` still serves the same API in parallel, with no redirect) both
 behave this way; the committed `objects`/`next_objects` fixtures are its
 recorded page 1 and page 2.
 

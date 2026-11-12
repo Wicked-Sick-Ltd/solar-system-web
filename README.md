@@ -13,9 +13,12 @@ front end stores lightweight user accounts, email visibility alerts and public r
 own database. Consult individual source references and reuse terms when using
 the data; the repository's MIT licence applies to the code.
 
-The project is preparing to move to **publicuniverse.net**. Existing website,
-API, MCP and download addresses remain in use until a separately authorized
-cutover. See the [migration runbook](docs/PUBLIC-UNIVERSE-MIGRATION.md).
+Published hosts are **[publicuniverse.net](https://publicuniverse.net)** (the
+site), **api.publicuniverse.net** (REST and MCP) and
+**download.publicuniverse.net** (the catalogue manifest).
+`sol.wickedsick.com`, `api.sol.wickedsick.com` and `download.sol.wickedsick.com`
+keep serving in parallel. The website 301 is on hold, and there are no API or
+MCP redirects. See the [migration runbook](docs/PUBLIC-UNIVERSE-MIGRATION.md).
 
 This is an **astronomy** site, not astrology. The original solar-system-only
 product brief in [`BRIEF.md`](BRIEF.md) is historical. Deployment instructions
@@ -66,7 +69,7 @@ Website branding, website URLs and backend endpoints are configured separately:
 | -------------- | ---------------------------------------------------- | ---------------------------------------- |
 | `SITE_NAME` | Visitor-facing name; independent of operational `APP_NAME` | `Public Universe` |
 | `API_DOCS_URL` | Optional documentation URL override | `https://api.publicuniverse.net/docs` |
-| `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://download.sol.wickedsick.com/latest.json` |
+| `SOLAR_DOWNLOAD_URL` | Published catalogue manifest | `https://download.publicuniverse.net/latest.json` |
 | `CONTACT_EMAIL` | Public contact address | `hello@wickedsick.com` |
 | `API_BASE_URL` | The backend REST API root this server fetches from   | `http://127.0.0.1:8003/api/v1`            |
 | `API_PUBLIC_URL` | The root shown to visitors (defaults to `API_BASE_URL`) | `https://api.publicuniverse.net/api/v1`  |
@@ -74,9 +77,11 @@ Website branding, website URLs and backend endpoints are configured separately:
 
 `APP_NAME` also influences default session-cookie and cache names. Keep its
 existing value during a branding-only release and change `SITE_NAME` instead.
-MCP and OpenAPI URLs are derived from `API_BASE_URL`; the download manifest is
-independent. Set `APP_URL` to the actual serving origin. During a domain move,
-configure the web server/proxy's canonical host and verify generated links too.
+MCP and OpenAPI URLs shown to visitors come from `API_PUBLIC_URL` (falling
+back to `API_BASE_URL`). The download manifest is independent and defaults to
+`https://download.publicuniverse.net/latest.json`. Production `APP_URL` stays
+`https://publicuniverse.net`. The wickedsick.com names keep serving in
+parallel; this application does not redirect them.
 
 **Running the backend locally for development.** The backend repo can be cloned
 and run alongside this one. It ships a committed SQLite database and a FastAPI
