@@ -861,7 +861,8 @@ class SolarApiClient
     /**
      * Low-level GET. Returns the decoded body, or null for a 404. Throws
      * {@see SolarApiUnavailableException} when the host can't be reached and
-     * {@see SolarApiException} for other non-2xx responses.
+     * {@see SolarApiException} for other non-2xx responses or a successful
+     * body that is not a JSON object or array.
      *
      * @param  array<string,mixed>  $query
      * @return array<mixed>|null
@@ -906,8 +907,13 @@ class SolarApiClient
         }
 
         $json = $response->json();
+        if (! is_array($json)) {
+            Log::warning('Solar API returned a non-catalogue body', ['path' => $path, 'status' => $response->status()]);
 
-        return is_array($json) ? $json : null;
+            throw new SolarApiException("Solar API returned a malformed body for {$path}");
+        }
+
+        return $json;
     }
 
     private function putCached(string $key, mixed $value, int $ttl, bool $allowStale = true): void

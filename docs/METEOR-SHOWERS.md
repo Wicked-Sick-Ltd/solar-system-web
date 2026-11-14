@@ -66,11 +66,12 @@ The backend's top-level `parent` is selected from one parameter set. It cannot
 represent all campaigns. Website parent links therefore use each set's own
 `parent_object_id` and `parent_body`; text-only proposed parents remain text.
 
-A blank or whitespace code, and a detail response with no shower record, is
+A blank or whitespace code, and a detail 404 with no shower record, is
 HTTP 404. The not-found page does not publish a canonical URL for that path.
 A successful record containing no parameter sets is separately labelled as
-such. A temporary request failure uses the standard catalogue-unavailable
-panel and keeps the uppercase URL when the code is non-blank.
+such. A temporary failure, or a successful response that is not a shower
+record, uses the standard catalogue-unavailable panel and keeps the
+uppercase URL when the code is non-blank.
 
 The real REST envelopes and field names are represented in
 `tests/Feature/MeteorShowersTest.php` using test-local payloads. Tests exercise

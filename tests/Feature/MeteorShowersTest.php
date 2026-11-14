@@ -168,6 +168,27 @@ it('handles a temporarily unavailable detail honestly', function () {
     $this->get('/meteor-showers/GEM')->assertOk()->assertSee('reach the catalogue');
 });
 
+it('treats a successful non-record shower body as unavailable rather than missing', function (string $body) {
+    Cache::flush();
+    Http::preventStrayRequests();
+    Http::fake(function ($request) use ($body) {
+        $path = parse_url($request->url(), PHP_URL_PATH);
+        if (str_contains((string) $path, '/meteor-showers/')) {
+            return Http::response($body, 200, ['Content-Type' => 'application/json']);
+        }
+
+        return Http::response(['status' => 'ok']);
+    });
+
+    $this->get('/meteor-showers/GEM')->assertOk()
+        ->assertSee('reach the catalogue')
+        ->assertDontSee('Lost in space');
+})->with([
+    'invalid json' => ['{'],
+    'json null' => ['null'],
+    'json string' => ['"not-a-record"'],
+]);
+
 it('degrades rather than dropping or rendering a malformed campaign', function (string $field, mixed $value) {
     fakeMeteorCatalogue([array_replace(meteorParameterPayload(), [$field => $value])]);
     $this->get('/meteor-showers')->assertOk()->assertSee('reach the catalogue')
