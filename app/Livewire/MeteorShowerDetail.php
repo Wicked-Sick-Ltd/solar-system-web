@@ -34,9 +34,12 @@ final class MeteorShowerDetail extends Component
             $apiDown = true;
         }
         $code = MeteorShowerPage::canonicalCode($shower !== null ? $shower->code : $this->code);
-        $seo = app(Seo::class)
-            ->canonical(route('meteor-showers.show', ['code' => $code]))
-            ->noindex($shower === null);
+        $seo = app(Seo::class)->noindex($shower === null);
+        // A whitespace slug normalises to nothing. route() would throw, and the
+        // missing-record page is the response that slug already has.
+        if ($code !== '') {
+            $seo->canonical(route('meteor-showers.show', ['code' => $code]));
+        }
         if ($shower !== null) {
             $seo->title(MeteorShowerPage::title($shower))
                 ->description(MeteorShowerPage::description($shower));

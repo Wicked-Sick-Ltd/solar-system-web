@@ -128,6 +128,13 @@ it('does not invent a parent link or parameter values', function () {
         ->assertDontSee('/objects/ast-aggregate-parent', escape: false)->assertDontSee('/objects/ast-phaethon', escape: false);
 });
 
+it('renders the missing-record page for a whitespace shower code', function () {
+    fakeMeteorCatalogue();
+    $this->get('/meteor-showers/%20')->assertOk()
+        ->assertSee('No shower record available')
+        ->assertSee('noindex, follow');
+});
+
 it('explains a missing record or older backend without asserting which occurred', function () {
     fakeMeteorCatalogue();
     $this->get('/meteor-showers/MISSING')->assertOk()->assertSee('No shower record available')
