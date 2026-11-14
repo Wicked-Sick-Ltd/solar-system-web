@@ -26,6 +26,10 @@ final class MeteorShowerDetail extends Component
 
     public function render(SolarApiClient $api): View
     {
+        if (MeteorShowerPage::canonicalCode($this->code) === '') {
+            abort(404);
+        }
+
         $shower = null;
         $apiDown = false;
         try {
@@ -33,10 +37,12 @@ final class MeteorShowerDetail extends Component
         } catch (SolarApiException) {
             $apiDown = true;
         }
+        if ($shower === null && ! $apiDown) {
+            abort(404);
+        }
+
         $code = MeteorShowerPage::canonicalCode($shower !== null ? $shower->code : $this->code);
         $seo = app(Seo::class)->noindex($shower === null);
-        // A whitespace slug normalises to nothing. route() would throw, and the
-        // missing-record page is the response that slug already has.
         if ($code !== '') {
             $seo->canonical(route('meteor-showers.show', ['code' => $code]));
         }

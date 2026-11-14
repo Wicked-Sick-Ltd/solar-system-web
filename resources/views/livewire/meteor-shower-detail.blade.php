@@ -4,11 +4,6 @@
     @if($apiDown)
         <x-page-header :title="__('Meteor shower')" />
         <x-api-down :section="__('This meteor shower')" />
-    @elseif(!$shower)
-        <x-page-header :title="__('No shower record available')" />
-        <x-empty-state :title="__('The catalogue returned no record for this code or name')">
-            {{ __('The shower may be missing, or this backend may not yet support meteor showers. Try the catalogue list or return later.') }}
-        </x-empty-state>
     @else
         <x-page-header :title="$shower->name" :eyebrow="__('IAU :number · :code', ['number' => $shower->iauNo, 'code' => MeteorShowerPage::canonicalCode($shower->code)])"
             :lead="__('Measurements from the IAU Meteor Data Center. Each parameter set describes an observation campaign; values and proposed parent bodies may differ between sets.')" />

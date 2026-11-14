@@ -66,14 +66,15 @@ The backend's top-level `parent` is selected from one parameter set. It cannot
 represent all campaigns. Website parent links therefore use each set's own
 `parent_object_id` and `parent_body`; text-only proposed parents remain text.
 
-A detail 404 cannot distinguish an unknown shower, an absent table or an older
-backend without this route. The website returns an explanatory page with
-`noindex` rather than asserting which happened. A successful record containing
-no parameter sets is separately labelled as such. A temporary request failure
-uses the standard catalogue-unavailable panel.
+A blank or whitespace code, and a detail response with no shower record, is
+HTTP 404. The not-found page does not publish a canonical URL for that path.
+A successful record containing no parameter sets is separately labelled as
+such. A temporary request failure uses the standard catalogue-unavailable
+panel and keeps the uppercase URL when the code is non-blank.
 
 The real REST envelopes and field names are represented in
 `tests/Feature/MeteorShowersTest.php` using test-local payloads. Tests exercise
 IAU identity grouping, URL filters, invalid/leap dates, cap uncertainty, all
 parameter sets, conflicting parent associations, escaped references and
-empty/older/unavailable backend responses without live network access.
+unknown and blank codes as HTTP 404, and empty or unavailable backend
+responses without live network access.

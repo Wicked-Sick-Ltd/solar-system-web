@@ -128,18 +128,35 @@ it('does not invent a parent link or parameter values', function () {
         ->assertDontSee('/objects/ast-aggregate-parent', escape: false)->assertDontSee('/objects/ast-phaethon', escape: false);
 });
 
-it('renders the missing-record page for a whitespace shower code', function () {
+it('returns 404 for a shower code with no catalogue record and does not canonicalise that url', function (string $path) {
     fakeMeteorCatalogue();
-    $this->get('/meteor-showers/%20')->assertOk()
-        ->assertSee('No shower record available')
-        ->assertSee('noindex, follow');
-});
 
-it('explains a missing record or older backend without asserting which occurred', function () {
-    fakeMeteorCatalogue();
-    $this->get('/meteor-showers/MISSING')->assertOk()->assertSee('No shower record available')
-        ->assertSee('may not yet support meteor showers')->assertSee('noindex, follow');
-});
+    $this->get($path)
+        ->assertNotFound()
+        ->assertSee('Lost in space')
+        ->assertDontSee('No shower record available')
+        ->assertDontSee('rel="canonical"', false);
+})->with([
+    'unknown code' => ['/meteor-showers/ZZZZ'],
+    'whitespace' => ['/meteor-showers/%20'],
+]);
+
+it('redirects a valid lowercase shower code once and serves the uppercase page with its own canonical', function (string $lower, string $upper) {
+    $set = array_replace(meteorParameterPayload(), ['code' => $upper]);
+    fakeMeteorCatalogue(detail: array_replace(meteorDetailPayload([$set]), ['code' => $upper]));
+
+    $this->get('/meteor-showers/'.$lower)
+        ->assertStatus(301)
+        ->assertRedirect('/meteor-showers/'.$upper);
+
+    $this->get('/meteor-showers/'.$upper)
+        ->assertOk()
+        ->assertSee('<link rel="canonical" href="'.url('/meteor-showers/'.$upper).'">', false);
+})->with([
+    'leonids' => ['leo', 'LEO'],
+    'perseids' => ['per', 'PER'],
+    'geminids' => ['gem', 'GEM'],
+]);
 
 it('handles an empty detail honestly', function () {
     fakeMeteorCatalogue(detail: meteorDetailPayload([]));

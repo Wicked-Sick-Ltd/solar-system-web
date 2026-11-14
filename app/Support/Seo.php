@@ -30,6 +30,9 @@ class Seo
 
     private bool $nofollow = false;
 
+    /** A not-found response must not name the missing URL as canonical. */
+    private bool $publishCanonical = true;
+
     /** @var list<array<string,mixed>> */
     private array $jsonLd = [];
 
@@ -86,6 +89,13 @@ class Seo
     {
         $this->noindex = $noindex;
         $this->nofollow = $nofollow;
+
+        return $this;
+    }
+
+    public function publishCanonical(bool $publish = true): static
+    {
+        $this->publishCanonical = $publish;
 
         return $this;
     }
@@ -149,6 +159,11 @@ class Seo
     public function isNofollow(): bool
     {
         return $this->nofollow;
+    }
+
+    public function publishesCanonical(): bool
+    {
+        return $this->publishCanonical;
     }
 
     /**
