@@ -128,18 +128,35 @@ it('does not invent a parent link or parameter values', function () {
         ->assertDontSee('/objects/ast-aggregate-parent', escape: false)->assertDontSee('/objects/ast-phaethon', escape: false);
 });
 
-it('renders the missing-record page for a whitespace shower code', function () {
+it('returns 404 for a shower code with no catalogue record and does not canonicalise that url', function (string $path) {
     fakeMeteorCatalogue();
-    $this->get('/meteor-showers/%20')->assertOk()
-        ->assertSee('No shower record available')
-        ->assertSee('noindex, follow');
-});
 
-it('explains a missing record or older backend without asserting which occurred', function () {
-    fakeMeteorCatalogue();
-    $this->get('/meteor-showers/MISSING')->assertOk()->assertSee('No shower record available')
-        ->assertSee('may not yet support meteor showers')->assertSee('noindex, follow');
-});
+    $this->get($path)
+        ->assertNotFound()
+        ->assertSee('Lost in space')
+        ->assertDontSee('No shower record available')
+        ->assertDontSee('rel="canonical"', false);
+})->with([
+    'unknown code' => ['/meteor-showers/ZZZZ'],
+    'whitespace' => ['/meteor-showers/%20'],
+]);
+
+it('redirects a valid lowercase shower code once and serves the uppercase page with its own canonical', function (string $lower, string $upper) {
+    $set = array_replace(meteorParameterPayload(), ['code' => $upper]);
+    fakeMeteorCatalogue(detail: array_replace(meteorDetailPayload([$set]), ['code' => $upper]));
+
+    $this->get('/meteor-showers/'.$lower)
+        ->assertStatus(301)
+        ->assertRedirect('/meteor-showers/'.$upper);
+
+    $this->get('/meteor-showers/'.$upper)
+        ->assertOk()
+        ->assertSee('<link rel="canonical" href="'.url('/meteor-showers/'.$upper).'">', false);
+})->with([
+    'leonids' => ['leo', 'LEO'],
+    'perseids' => ['per', 'PER'],
+    'geminids' => ['gem', 'GEM'],
+]);
 
 it('handles an empty detail honestly', function () {
     fakeMeteorCatalogue(detail: meteorDetailPayload([]));
@@ -150,6 +167,27 @@ it('handles a temporarily unavailable detail honestly', function () {
     fakeMeteorCatalogue(detail: meteorDetailPayload([]), status: 503);
     $this->get('/meteor-showers/GEM')->assertOk()->assertSee('reach the catalogue');
 });
+
+it('treats a successful non-record shower body as unavailable rather than missing', function (string $body) {
+    Cache::flush();
+    Http::preventStrayRequests();
+    Http::fake(function ($request) use ($body) {
+        $path = parse_url($request->url(), PHP_URL_PATH);
+        if (str_contains((string) $path, '/meteor-showers/')) {
+            return Http::response($body, 200, ['Content-Type' => 'application/json']);
+        }
+
+        return Http::response(['status' => 'ok']);
+    });
+
+    $this->get('/meteor-showers/GEM')->assertOk()
+        ->assertSee('reach the catalogue')
+        ->assertDontSee('Lost in space');
+})->with([
+    'invalid json' => ['{'],
+    'json null' => ['null'],
+    'json string' => ['"not-a-record"'],
+]);
 
 it('degrades rather than dropping or rendering a malformed campaign', function (string $field, mixed $value) {
     fakeMeteorCatalogue([array_replace(meteorParameterPayload(), [$field => $value])]);

@@ -6,7 +6,9 @@
 @endphp
 <title>{{ $seo->fullTitle() }}</title>
 <meta name="description" content="{{ $seo->getDescription() }}">
+@if ($seo->publishesCanonical())
 <link rel="canonical" href="{{ $seo->getCanonical() }}">
+@endif
 @if ($seo->isNoindex())
     <meta name="robots" content="noindex, {{ $seo->isNofollow() ? 'nofollow' : 'follow' }}">
 @else
@@ -18,7 +20,9 @@
 <meta property="og:site_name" content="{{ $siteName }}">
 <meta property="og:title" content="{{ $seo->metaTitle() }}">
 <meta property="og:description" content="{{ $seo->getDescription() }}">
+@if ($seo->publishesCanonical())
 <meta property="og:url" content="{{ $seo->getCanonical() }}">
+@endif
 <meta property="og:locale" content="en_GB">
 @if ($image)
     <meta property="og:image" content="{{ $image }}">
