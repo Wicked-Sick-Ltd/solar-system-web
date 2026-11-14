@@ -1,3 +1,4 @@
+@php use App\Support\MeteorShowerPage; @endphp
 <div>
     <x-page-header :title="__('Meteor showers')" :eyebrow="__('Observe & discover')"
         :lead="__('Meteor showers happen when Earth encounters streams of debris. Explore the IAU Meteor Data Center catalogue and the different observation campaigns behind each shower.')" />
@@ -52,9 +53,9 @@
             @endif
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach($results->showers as $shower)
-                    <a href="{{ route('meteor-showers.show', $shower->code) }}" wire:key="meteor-{{ $shower->iauNo }}"
+                    <a href="{{ route('meteor-showers.show', ['code' => MeteorShowerPage::canonicalCode($shower->code)]) }}" wire:key="meteor-{{ $shower->iauNo }}"
                        class="surface block p-5">
-                        <p class="text-xs uppercase tracking-wide" style="color: var(--accent);">{{ $shower->code }} · {{ __('IAU :number', ['number' => $shower->iauNo]) }}</p>
+                        <p class="text-xs uppercase tracking-wide" style="color: var(--accent);">{{ MeteorShowerPage::canonicalCode($shower->code) }} · {{ __('IAU :number', ['number' => $shower->iauNo]) }}</p>
                         <h2 class="mt-2 font-serif text-xl">{{ $shower->name }}</h2>
                         <p class="mt-2 text-sm" style="color: var(--muted);">{{ __(':count matching parameter sets', ['count' => count($shower->parameterSets)]) }}</p>
                     </a>

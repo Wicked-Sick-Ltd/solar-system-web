@@ -33,6 +33,21 @@ belong to the requested IAU identity. An empty
 backend returns the same response for both. The empty state explains this
 limitation without claiming the catalogue is complete or loaded.
 
+## Canonical URL
+
+The catalogue code is the canonical slug, in uppercase (`/meteor-showers/LEO`).
+The hub already links that spelling. Any other case, including
+`/meteor-showers/leo`, is one 301 to the uppercase URL, and the query string
+is kept. The canonical tag and in-page links use the same uppercase URL.
+There is no hreflang. The sitemap index lists `/meteor-showers` with the
+other pages and each shower under `/sitemaps/meteors.xml`.
+
+A shower title uses the catalogue name, the current UTC year when any
+parameter set is annual (otherwise the latest campaign year in the activity
+text), and the fixed phrase “Peak Dates, Best Time to See Them and Where to
+Look”. The description adds the reported peak solar longitude when a set
+supplies one. That longitude is not turned into a calendar date.
+
 ## Detail
 
 `GET /api/v1/meteor-showers/{code}` accepts a shower code or name and returns

@@ -127,6 +127,22 @@ it('still serves the static pages when the catalogue cannot be read', function (
         ->and($pages)->not->toContain('<lastmod>');
 });
 
+it('lists the meteor shower index and every canonical shower url', function () {
+    $index = $this->get('/sitemap.xml')->assertOk()->getContent();
+    expect($index)->toContain('/sitemaps/meteors.xml');
+
+    $pages = $this->get('/sitemaps/pages.xml')->assertOk()->getContent();
+    $meteors = $this->get('/sitemaps/meteors.xml')->assertOk()->getContent();
+    SitemapSchema::assertValid($meteors, 'sitemap.xsd');
+
+    expect($pages)->toContain('<loc>'.url('/meteor-showers').'</loc>')
+        ->and($meteors)->toContain('<loc>'.url('/meteor-showers/LEO').'</loc>')
+        ->and($meteors)->toContain('<loc>'.url('/meteor-showers/GEM').'</loc>')
+        ->and($meteors)->not->toContain('/meteor-showers/gem')
+        ->and($meteors)->toContain('<lastmod>2026-10-01T12:00:00Z</lastmod>')
+        ->and(substr_count($meteors, '<loc>'))->toBe(2);
+});
+
 it('keeps robots.txt pointed at the sitemap index', function () {
     $this->get('/robots.txt')
         ->assertOk()

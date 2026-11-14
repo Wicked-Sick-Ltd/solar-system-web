@@ -220,6 +220,60 @@ it('displays readable citation text while preserving the raw source reference', 
         ->assertDontSee('javascript:alert(1)', escape: false)->assertDontSee('&lt;A', escape: false);
 });
 
+it('redirects any other shower-code case to the uppercase url in one hop', function (string $code, string $query) {
+    fakeMeteorCatalogue(detail: meteorDetailPayload([meteorParameterPayload()]));
+    $suffix = $query === '' ? '' : '?'.$query;
+    $response = $this->get('/meteor-showers/'.$code.$suffix)->assertStatus(301);
+    $response->assertRedirect('/meteor-showers/GEM'.$suffix);
+
+    $this->get('/meteor-showers/GEM'.$suffix)->assertOk();
+})->with([
+    'lowercase' => ['gem', ''],
+    'mixed case keeps the query string' => ['gEm', 'active_on=2026-12-14&established_only=1'],
+]);
+
+it('titles the uppercase shower page, keeps one h1, and self-canonicalises without the query', function () {
+    $this->travelTo(new DateTimeImmutable('2026-11-14T18:20:00Z'));
+    $annual = array_replace(meteorParameterPayload(), [
+        'iau_no' => 13, 'code' => 'LEO', 'name' => 'Leonids', 'activity' => 'annual',
+        'solar_longitude_deg' => 235.1, 'n_members' => 268,
+    ]);
+    $campaign = array_replace(meteorParameterPayload(1), [
+        'iau_no' => 13, 'code' => 'leo', 'name' => 'Leonids', 'activity' => '2001',
+        'solar_longitude_deg' => 236.5, 'n_members' => 9,
+    ]);
+    fakeMeteorCatalogue(detail: [
+        'iau_no' => 13, 'code' => 'LEO', 'name' => 'Leonids',
+        'status_label' => 'single established shower, group',
+        'parameter_sets' => [$annual, $campaign],
+        'parent' => ['id' => 'comet-55p-tempel-tuttle', 'name' => 'Tempel-Tuttle'],
+    ]);
+
+    $this->get('/meteor-showers/leo?active_on=2026-11-17')
+        ->assertStatus(301)
+        ->assertRedirect('/meteor-showers/LEO?active_on=2026-11-17');
+
+    $html = $this->get('/meteor-showers/LEO?active_on=2026-11-17')->assertOk()->getContent();
+    $title = 'Leonids 2026: Peak Dates, Best Time to See Them and Where to Look';
+    $description = 'Leonids 2026: peak dates, the best time to see them and where to look. Reported peak near solar longitude 235.1°. IAU Meteor Data Center measurements.';
+
+    expect($html)->toContain('<title>'.$title.' · '.config('site.name').'</title>')
+        ->toContain('<meta name="description" content="'.$description.'">')
+        ->toContain('<link rel="canonical" href="'.url('/meteor-showers/LEO').'">')
+        ->and(substr_count($html, '<h1'))->toBe(1)
+        ->and($html)->toContain('>Leonids</h1>');
+});
+
+it('links the shower index at the uppercase code', function () {
+    fakeMeteorCatalogue([array_replace(meteorParameterPayload(), [
+        'code' => 'leo', 'name' => 'Leonids', 'iau_no' => 13,
+    ])]);
+
+    $this->get('/meteor-showers')->assertOk()
+        ->assertSee('/meteor-showers/LEO', false)
+        ->assertDontSee('/meteor-showers/leo', false);
+});
+
 it('normalizes accepted checkbox update values before querying the strict API client', function (mixed $value, bool $expected) {
     fakeMeteorCatalogue([meteorParameterPayload()]);
     Livewire::test(MeteorShowers::class)->set('establishedOnly', $value)

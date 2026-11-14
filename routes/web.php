@@ -25,6 +25,7 @@ use App\Http\Controllers\StarterCatalogueController;
 use App\Http\Controllers\SystemsDirectoryController;
 use App\Http\Controllers\TodayRedirectController;
 use App\Http\Controllers\VisibilityAlertController;
+use App\Http\Middleware\CanonicalMeteorShowerCode;
 use App\Http\Middleware\NormalizeOrreryQuery;
 use App\Livewire\AboutPage;
 use App\Livewire\ApiPage;
@@ -123,7 +124,9 @@ Route::get('/galaxy', Galaxy::class)->name('galaxy');
 Route::get('/close-approaches', CloseApproaches::class)->name('close-approaches');
 
 Route::get('/meteor-showers', MeteorShowers::class)->name('meteor-showers.index');
-Route::get('/meteor-showers/{code}', MeteorShowerDetail::class)->name('meteor-showers.show');
+Route::get('/meteor-showers/{code}', MeteorShowerDetail::class)
+    ->middleware(CanonicalMeteorShowerCode::class)
+    ->name('meteor-showers.show');
 
 Route::get('/random', RandomObjectController::class)->name('random');
 

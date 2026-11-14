@@ -8,10 +8,12 @@ use App\Services\Releases\ReleaseCatalog;
 use App\Services\SolarApi\CatalogueContext;
 use App\Services\SolarApi\Data\CatalogueIdentity;
 use App\Services\SolarApi\Data\Exoplanet;
+use App\Services\SolarApi\Data\MeteorCatalogue;
 use App\Services\SolarApi\Data\ObjectDetail;
 use App\Services\SolarApi\Exceptions\SolarApiException;
 use App\Services\SolarApi\Exceptions\SolarApiUnavailableException;
 use App\Services\SolarApi\SolarApiClient;
+use App\Support\MeteorShowerPage;
 use App\Support\ObjectOfTheDay;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
@@ -82,10 +84,16 @@ final class SitemapBuilder
             'systems' => [],
             'releases' => [],
             'today' => $this->today($catalogue),
+            'meteors' => [],
         ];
 
         try {
             $sections['objects'] = $this->objects($catalogue);
+        } catch (SolarApiException) {
+            $complete = false;
+        }
+        try {
+            $sections['meteors'] = $this->meteorShowerUrls($catalogue);
         } catch (SolarApiException) {
             $complete = false;
         }
@@ -305,6 +313,34 @@ final class SitemapBuilder
                 $entries[] = $entry;
             }
         }
+
+        return $entries;
+    }
+
+    /**
+     * One URL per shower, using the uppercase code the hub already links.
+     * The index itself is listed with the other static pages. The catalogue
+     * returns at most {@see MeteorCatalogue::LIMIT} parameter sets and does
+     * not paginate, so this is every shower that response contains.
+     *
+     * @return list<array{loc:string, lastmod:?string, priority:?string}>
+     */
+    private function meteorShowerUrls(?string $lastmod): array
+    {
+        $entries = [];
+        $seen = [];
+        foreach ($this->api->meteorShowers()->showers as $shower) {
+            $code = MeteorShowerPage::canonicalCode($shower->code);
+            if ($code === '' || isset($seen[$code])) {
+                continue;
+            }
+            $seen[$code] = true;
+            $entry = $this->entry(IndexableUrl::forRoute('meteor-showers.show', ['code' => $code]), $lastmod, '0.6');
+            if ($entry !== null) {
+                $entries[] = $entry;
+            }
+        }
+        usort($entries, fn (array $a, array $b): int => $a['loc'] <=> $b['loc']);
 
         return $entries;
     }
