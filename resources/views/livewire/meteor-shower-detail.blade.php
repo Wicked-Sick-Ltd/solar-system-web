@@ -1,4 +1,4 @@
-@php use App\Support\Format; @endphp
+@php use App\Support\Format; use App\Support\MeteorShowerPage; @endphp
 <div>
     <a class="mb-5 inline-block underline" href="{{ route('meteor-showers.index') }}">← {{ __('Meteor showers') }}</a>
     @if($apiDown)
@@ -10,7 +10,7 @@
             {{ __('The shower may be missing, or this backend may not yet support meteor showers. Try the catalogue list or return later.') }}
         </x-empty-state>
     @else
-        <x-page-header :title="$shower->name" :eyebrow="__('IAU :number · :code', ['number' => $shower->iauNo, 'code' => $shower->code])"
+        <x-page-header :title="$shower->name" :eyebrow="__('IAU :number · :code', ['number' => $shower->iauNo, 'code' => MeteorShowerPage::canonicalCode($shower->code)])"
             :lead="__('Measurements from the IAU Meteor Data Center. Each parameter set describes an observation campaign; values and proposed parent bodies may differ between sets.')" />
         <p class="mb-6 text-sm leading-relaxed" style="color: var(--muted);">{{ __('An activity peak is expressed as solar longitude, not a guaranteed calendar date or observing forecast. Radiant coordinates and orbital elements are reported as supplied by the source. Missing values are not reported; these data do not predict an hourly meteor rate.') }}</p>
         @if($shower->parameterSets === [])

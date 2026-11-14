@@ -88,6 +88,7 @@ function fakeSolar(): void
                 'true_anomaly_deg' => 273.6, 'x_au' => 9.4, 'y_au' => 1.1, 'z_au' => -0.39, 'jd' => 2461192.5,
             ]),
             str_contains($path, '/stats') => Http::response(statsPayload()),
+            str_ends_with($path, '/meteor-showers') => Http::response(sitemapMeteorCatalogue()),
             str_contains($path, '/sources') => Http::response(['results' => [
                 ['source_name' => 'JPL SBDB', 'n' => 12002, 'last_seen' => '2026-05-31T20:25:15Z'],
             ]]),
@@ -105,6 +106,37 @@ function fakeSolarDown(): void
     Http::fake(function () {
         throw new ConnectionException('Connection refused');
     });
+}
+
+/**
+ * Two showers, one already uppercase and one lowercase, so sitemap tests can
+ * prove the published URL is the uppercase code.
+ *
+ * @return array{items:list<array<string,mixed>>, count:int}
+ */
+function sitemapMeteorCatalogue(): array
+{
+    $rows = [
+        sitemapMeteorRow('LEO', 'Leonids', 13),
+        sitemapMeteorRow('gem', 'Geminids', 4),
+    ];
+
+    return ['items' => $rows, 'count' => count($rows)];
+}
+
+/** @return array<string, mixed> */
+function sitemapMeteorRow(string $code, string $name, int $iauNo): array
+{
+    return [
+        'iau_no' => $iauNo, 'ad_no' => 0, 'code' => $code, 'name' => $name,
+        'status_code' => 1, 'status_label' => 'established', 'activity' => 'annual',
+        'solar_longitude_deg' => 235.1, 'ra_deg' => 154.0, 'dec_deg' => 22.0,
+        'dra_deg_per_day' => null, 'ddec_deg_per_day' => null, 'vg_km_s' => 70.0,
+        'a_au' => null, 'q_au' => null, 'e' => null, 'peri_deg' => null, 'node_deg' => null,
+        'incl_deg' => null, 'n_members' => 10, 'shower_group' => null, 'parent_body' => null,
+        'parent_object_id' => null, 'technique' => null, 'reference' => null,
+        'submitted_on' => null, 'source' => 'IAU MDC',
+    ];
 }
 
 function statsPayload(): array
