@@ -58,7 +58,9 @@ final class CloseApproachFormat
 
         $minKm = $base / sqrt(self::BRIGHT_ALBEDO);
         $maxKm = $base / sqrt(self::DARK_ALBEDO);
-        if (! is_finite($minKm) || ! is_finite($maxKm) || $maxKm <= 0) {
+        // A positive finite base divided by a positive albedo cannot be <= 0.
+        // It can still overflow to INF when the base is near the float limit.
+        if (! is_finite($minKm) || ! is_finite($maxKm)) {
             return null;
         }
 
