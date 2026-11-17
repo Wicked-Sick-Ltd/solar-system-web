@@ -64,6 +64,19 @@ it('explains when pasted text is not a location', function () {
         ->assertSee('couldn\'t read that');
 });
 
+it('turns away a whitespace-padded paste without stalling the request', function () {
+    $component = Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn']);
+    $started = hrtime(true);
+
+    $component->call('setFromText', '51°30\'26"N'.str_repeat(' ', 50000).'x')
+        ->assertReturned(null)
+        ->assertHasErrors(['text'])
+        ->assertSet('lat', null);
+
+    expect((hrtime(true) - $started) / 1e6)->toBeLessThan(500.0);
+    Http::assertNothingSent();
+});
+
 it('only suggests an available location format after invalid input', function (?string $key) {
     config(['services.what3words.key' => $key]);
     $component = Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])

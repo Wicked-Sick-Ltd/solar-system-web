@@ -29,8 +29,11 @@ final class LocationParser
         if ($text === '' || self::what3words($text) !== null) {
             return null;
         }
+        // The coordinate patterns put optional \s* side by side; a long run of
+        // whitespace left intact would be tried split every way between them.
+        $coordinates = preg_replace('~\s+~u', ' ', $text) ?? '';
 
-        return self::fromUrl($text) ?? self::fromDms($text) ?? self::fromDecimal($text);
+        return self::fromUrl($text) ?? self::fromDms($coordinates) ?? self::fromDecimal($coordinates);
     }
 
     /** The three words of a what3words address (lower-cased, no slashes), or null. */
