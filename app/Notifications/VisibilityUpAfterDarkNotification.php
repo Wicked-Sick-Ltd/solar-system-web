@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\VisibilityAlert;
+use App\Support\MailText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -26,11 +27,14 @@ final class VisibilityUpAfterDarkNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $name = $this->objectName ?: $this->alert->object_id;
+        $name = MailText::inline((string) $this->objectName);
+        if ($name === '') {
+            $name = MailText::inline((string) $this->alert->object_id);
+        }
 
         return (new MailMessage)
             ->subject(__('Solar alert: :name is up after dark', ['name' => $name]))
-            ->greeting(__('Hi :name,', ['name' => $notifiable->name]))
+            ->greeting(__('Hi :name,', ['name' => MailText::inline((string) $notifiable->name)]))
             ->line(__('You asked to be notified when :object is up after dark from :lat, :lon.', [
                 'object' => $name,
                 'lat' => number_format((float) $this->alert->latitude, 2),

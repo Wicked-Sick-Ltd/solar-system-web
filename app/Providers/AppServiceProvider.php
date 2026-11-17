@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\Mailchimp\MailchimpClient;
 use App\Services\SolarApi\SolarApiClient;
 use App\Support\Seo;
+use Illuminate\Mail\Markdown;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,5 +38,9 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        // Values echoed into Markdown mail must stay text: escape brackets and
+        // backslashes so a name cannot become a link or image.
+        Markdown::withSecuredEncoding();
     }
 }
