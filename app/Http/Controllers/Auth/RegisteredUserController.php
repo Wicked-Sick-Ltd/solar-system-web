@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\MailText;
 use App\Support\Seo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,9 +26,11 @@ final class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'not_regex:'.MailText::DISPLAY_NAME_FORBIDDEN],
             'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(10)],
+        ], [
+            'name.not_regex' => __('Your name must be on one line and cannot include [ ] < > or \\.'),
         ]);
 
         $user = User::query()->create($validated);
