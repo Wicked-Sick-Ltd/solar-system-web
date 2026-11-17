@@ -73,8 +73,10 @@ lengths and ECMAScript trimming, including preserving U+0085. Per-document
 canonical limits remain 256 KiB for workspace and 1 MiB for journal. Shared
 fixtures run through both languages, covering emoji limits, whitespace, legacy
 snapshots, aliases, malformed dates, camera dimensions and horizon seam data.
-PHP preserves recognized IANA aliases rather than inventing a new timezone;
-the browser may normalize an equivalent alias through its ICU version.
+PHP preserves recognized IANA aliases rather than inventing a new timezone,
+including a backward spelling such as Asia/Calcutta when the host tzdata
+package only installs the canonical zone. The browser may normalize an
+equivalent alias through its ICU version.
 
 Payloads use Laravel's encrypted array cast in a long-text column; plaintext
 does not appear in the database payload column or model serialization. This is
