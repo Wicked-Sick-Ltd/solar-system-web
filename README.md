@@ -54,6 +54,23 @@ php artisan migrate
 npm run build               # or `npm run dev` for HMR
 ```
 
+## Cloud agent environment
+
+Cursor Cloud Agents bootstrap this repository with `.cursor/install.sh`
+(`install` in `.cursor/environment.json`). The script is idempotent and
+non-interactive. It installs PHP 8.4 and the extensions CI uses, including
+SQLite and Imagick, plus `tzdata-legacy` so tests can resolve older IANA
+names such as `Asia/Calcutta`. It then installs Composer and npm dependencies from the
+lockfiles and runs the Vite build. Pest reads the SQLite `:memory:` database
+from `phpunit.xml`. A local `.env` is copied from `.env.example` when missing
+and is gitignored.
+
+This app has no private Composer packages. If a Flux package (or any other
+`composer.fluxui.dev` dependency) is added, install reads `COMPOSER_AUTH`, or
+`FLUX_USERNAME` and `FLUX_LICENSE_KEY`, and warns by those names when they are
+missing. On each boot, `.cursor/start.sh` prepares the SQLite file and the
+`dev-server` terminal runs `php artisan serve` on port 8000.
+
 ## Public endpoints
 
 - REST API base URL: `https://api.publicuniverse.net/api/v1`
