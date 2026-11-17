@@ -77,3 +77,28 @@ it('uses a measured diameter and otherwise estimates a range from absolute magni
         ->and($ignored->absoluteMagnitudeH)->toBeNull()
         ->and($ignored->diameterKm())->toBeNull();
 });
+
+it('returns no diameter when magnitude underflows or the albedo range overflows', function () {
+    expect(CloseApproachFormat::size(pass(['absolute_magnitude_h' => 2000])))->toBeNull()
+        ->and(CloseApproachFormat::size(pass(['absolute_magnitude_h' => -2000])))->toBeNull();
+
+    // Largest H whose Bowell base is still finite. Dividing by sqrt(0.05)
+    // overflows that base, which is the guard that stays after dropping <= 0.
+    $low = -1600.0;
+    $high = 0.0;
+    for ($i = 0; $i < 60; $i++) {
+        $mid = ($low + $high) / 2;
+        $base = 1329.0 * (10 ** (-0.2 * $mid));
+        if (! is_finite($base)) {
+            $low = $mid;
+        } else {
+            $high = $mid;
+        }
+    }
+
+    $base = 1329.0 * (10 ** (-0.2 * $high));
+
+    expect(is_finite($base))->toBeTrue()
+        ->and(is_finite($base / sqrt(0.05)))->toBeFalse()
+        ->and(CloseApproachFormat::size(pass(['absolute_magnitude_h' => $high])))->toBeNull();
+});
