@@ -204,11 +204,14 @@ it('preserves empty notes and JavaScript whitespace semantics instead of applyin
     $payload['equipmentWorkspace']['equipment'][0]['name'] = "\u{feff}  My telescope\u{00a0}";
     $payload['equipmentWorkspace']['sites'][0]['longitude'] = -1.125;
     $payload['journal']['observations'][0]['timezone'] = 'Asia/Calcutta';
+    $timezone = in_array('Asia/Calcutta', DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC), true)
+        ? 'Asia/Calcutta'
+        : 'Asia/Kolkata';
     syncAs($this, User::factory()->create())->putJson('/account/observing-workspace', syncUpload(0, $payload))->assertOk();
     $this->getJson('/account/observing-workspace')->assertJsonPath('payload.journal.observations.0.notes', '')
         ->assertJsonPath('payload.equipmentWorkspace.equipment.0.name', 'My telescope')
         ->assertJsonPath('payload.equipmentWorkspace.sites.0.longitude', -1.12)
-        ->assertJsonPath('payload.journal.observations.0.timezone', 'Asia/Calcutta');
+        ->assertJsonPath('payload.journal.observations.0.timezone', $timezone);
 });
 
 it('returns generic unavailable on damaged ciphertext without leaking or destroying it', function () {

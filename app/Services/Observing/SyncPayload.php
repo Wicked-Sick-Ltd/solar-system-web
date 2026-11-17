@@ -17,6 +17,11 @@ final class SyncPayload
 
     public const int MAX_REVISION = 9007199254740990;
 
+    /** Browser names dropped from the default zoneinfo, stored as the current zone. */
+    private const array LEGACY_ZONES = [
+        'asia/calcutta' => 'Asia/Kolkata',
+    ];
+
     /** @return array{equipmentWorkspace: array<string,mixed>, journal: array<string,mixed>} */
     public function validate(mixed $value): array
     {
@@ -281,6 +286,10 @@ final class SyncPayload
             if (strcasecmp($value, $zone) === 0) {
                 return in_array($zone, ['Etc/UTC', 'Etc/GMT', 'GMT', 'UCT', 'Universal', 'Zulu'], true) ? 'UTC' : $zone;
             }
+        }
+        $legacy = self::LEGACY_ZONES[strtolower($value)] ?? null;
+        if (is_string($legacy) && in_array($legacy, DateTimeZone::listIdentifiers(), true)) {
+            return $legacy;
         }
 
         throw new InvalidSyncPayload;
