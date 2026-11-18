@@ -57,18 +57,6 @@ it('treats analytics as configured when GA4, Tag Manager, or both are valid', fu
     expect(Analytics::enabled())->toBeTrue()->and(Analytics::measurementId())->toBe('G-TEST1234');
 });
 
-it('reads only an explicit accept cookie as a server opt-in', function () {
-    $accepted = Request::create('/', 'GET', cookies: [Analytics::CONSENT_COOKIE => Analytics::CONSENT_ACCEPTED]);
-    $essential = Request::create('/', 'GET', cookies: [Analytics::CONSENT_COOKIE => 'essential']);
-    $padded = Request::create('/', 'GET', cookies: [Analytics::CONSENT_COOKIE => 'all ']);
-    $missing = Request::create('/');
-
-    expect(Analytics::hasServerOptIn($accepted))->toBeTrue()
-        ->and(Analytics::hasServerOptIn($essential))->toBeFalse()
-        ->and(Analytics::hasServerOptIn($padded))->toBeFalse()
-        ->and(Analytics::hasServerOptIn($missing))->toBeFalse();
-});
-
 it('ships the consent script that Livewire navigation can call', function () {
     expect(Analytics::clientScript())
         ->toContain("var STORAGE = 'pu_cookie_consent'")

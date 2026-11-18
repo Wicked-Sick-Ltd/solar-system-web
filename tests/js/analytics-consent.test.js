@@ -544,9 +544,16 @@ test('localStorage takes precedence over a legacy essential cookie', () => {
     assert.equal(consent[2].analytics_storage, 'granted');
 });
 
+test('a planted legacy cookie cannot record an analytics opt-in', () => {
+    for (const value of ['analytics', 'all']) {
+        const { window } = boot('G-TEST1234', null, '', null, false, { cookie_consent: value });
+        assert.equal(window.publicUniverseAnalytics.read(), null);
+    }
+});
+
 test('essential only expires a legacy cookie_consent=all cookie', () => {
     const accepted = boot('G-TEST1234', null, '', null, false, { cookie_consent: 'all' });
-    assert.equal(accepted.window.publicUniverseAnalytics.read(), 'all');
+    assert.equal(accepted.window.publicUniverseAnalytics.read(), null);
     assert.equal(accepted.jar.has('cookie_consent'), true);
 
     accepted.window.publicUniverseAnalytics.choose('essential');
