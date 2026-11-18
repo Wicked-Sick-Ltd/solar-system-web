@@ -38,18 +38,6 @@ final class Analytics
     public const string REDACTED = 'redacted';
 
     /**
-     * Legacy first-party cookie the server can still read for the no-JavaScript
-     * Tag Manager image. The banner stores the visitor's choice in localStorage
-     * (`pu_cookie_consent`), which this request cannot see, so the image stays
-     * out unless a request still carries cookie_consent=all. It is not encrypted
-     * so that leftover cookie can be read as written.
-     */
-    public const string CONSENT_COOKIE = 'cookie_consent';
-
-    /** The only cookie value that records an explicit analytics opt-in for the noscript image. */
-    public const string CONSENT_ACCEPTED = 'all';
-
-    /**
      * GA4 measurement id from GA4_MEASUREMENT_ID, or null when analytics must not render.
      * Anything that is not a measurement id is treated as unset so it cannot be echoed into HTML.
      */
@@ -87,20 +75,6 @@ final class Analytics
     public static function enabled(): bool
     {
         return self::measurementId() !== null || self::gtmContainerId() !== null;
-    }
-
-    /**
-     * True when this request still carries the legacy cookie_consent=all cookie.
-     * The banner no longer writes that cookie. Anything else, including a missing
-     * cookie, is not a server opt-in. The no-JavaScript Tag Manager image needs
-     * this check: that image cannot run Consent Mode, and the server cannot see
-     * localStorage.
-     */
-    public static function hasServerOptIn(?Request $request = null): bool
-    {
-        $request ??= request();
-
-        return $request->cookie(self::CONSENT_COOKIE) === self::CONSENT_ACCEPTED;
     }
 
     /** First-party consent script. Empty when the file cannot be read. */
