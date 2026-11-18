@@ -277,13 +277,8 @@ final class SyncPayload
         if (! is_string($value) || strlen($value) > 100 || ! preg_match('~^[A-Za-z_]+(?:/[A-Za-z0-9_+\-]+)*$~D', $value)) {
             throw new InvalidSyncPayload;
         }
-        foreach (DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC) as $zone) {
-            if (strcasecmp($value, $zone) === 0) {
-                return in_array($zone, ['Etc/UTC', 'Etc/GMT', 'GMT', 'UCT', 'Universal', 'Zulu'], true) ? 'UTC' : $zone;
-            }
-        }
 
-        throw new InvalidSyncPayload;
+        return IanaTimezone::canonical($value, DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC));
     }
 
     private function instant(mixed $value): string
