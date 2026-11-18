@@ -357,7 +357,7 @@ it('gives container tags the redacted page location before Tag Manager starts', 
         ->and($html)->not->toContain('50.97');
 });
 
-it('omits the no-JavaScript Tag Manager image unless the server can read an accept choice', function () {
+it('never renders the no-JavaScript Tag Manager image', function () {
     config([
         'site.analytics.ga_measurement_id' => null,
         'site.analytics.gtm_container_id' => 'GTM-M8THNDPH',
@@ -370,24 +370,34 @@ it('omits the no-JavaScript Tag Manager image unless the server can read an acce
         ->and($anonymous->getContent())->toContain("})(window,document,'script','dataLayer','GTM-M8THNDPH');")
         ->and($anonymous->getContent())->not->toContain('ns.html');
 
-    // The browser script writes this cookie in the clear. The test client must
-    // do the same, or the server would be reading a value the page never sends.
-    $essential = $this->withUnencryptedCookie(Analytics::CONSENT_COOKIE, 'essential')->get('/')->assertOk();
+    // The browser script still reads and expires a legacy cookie in the clear.
+    $essential = $this->withUnencryptedCookie('cookie_consent', 'essential')->get('/')->assertOk();
     expect($essential->headers->get('Cache-Control'))->toContain('private')->toContain('no-store')
         ->and($essential->headers->get('Vary'))->toContain('Cookie')
         ->and($essential->getContent())->not->toContain('ns.html');
 
-    $accepted = $this->withUnencryptedCookie(Analytics::CONSENT_COOKIE, Analytics::CONSENT_ACCEPTED)->get('/')->assertOk();
-    expect($accepted->headers->get('Cache-Control'))->toContain('private')->toContain('no-store')
-        ->and($accepted->headers->get('Vary'))->toContain('Cookie')
-        ->and($accepted->getContent())->toContain('https://www.googletagmanager.com/ns.html?id=GTM-M8THNDPH')
-        ->and($accepted->getContent())->toMatch('/<body[^>]*>\s*<!-- Google Tag Manager \(noscript\) -->\s*<noscript><iframe src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-M8THNDPH"/');
-
     $this->get('/privacy')
         ->assertOk()
-        ->assertSee('no-JavaScript Tag Manager image is left out')
+        ->assertSee('no-JavaScript Tag Manager image is never loaded')
         ->assertSee('Without JavaScript the banner cannot record a choice')
-        ->assertSee('not stored in a shared cache');
+        ->assertDontSee('which the server can read from the cookie_consent cookie');
+});
+
+it('does not let a planted cookie_consent=all cookie turn on the no-JavaScript Tag Manager image', function () {
+    config([
+        'site.analytics.ga_measurement_id' => null,
+        'site.analytics.gtm_container_id' => 'GTM-M8THNDPH',
+    ]);
+
+    // The site never issues this cookie. A network attacker answering a plain
+    // HTTP request, or a sibling subdomain, can still set it in the clear.
+    foreach (['/', '/privacy', '/planets'] as $path) {
+        $html = $this->withUnencryptedCookie('cookie_consent', 'all')->get($path)->assertOk()->getContent();
+
+        expect($html)->toContain("})(window,document,'script','dataLayer','GTM-M8THNDPH');")
+            ->and($html)->not->toContain('googletagmanager.com/ns.html')
+            ->and($html)->not->toContain('<!-- Google Tag Manager (noscript) -->');
+    }
 });
 
 it('trusts forwarded proxy headers so the analytics page location is https', function () {

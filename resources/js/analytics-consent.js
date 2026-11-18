@@ -321,8 +321,9 @@
 
     function read() {
         // pu_cookie_consent wins when this browser has stored a choice.
-        // Otherwise a legacy cookie_consent=essential still opts out. A
-        // missing or unreadable cookie is not a choice.
+        // Otherwise a legacy cookie_consent=essential still opts out. Any
+        // other cookie value is not a choice: the site no longer writes that
+        // cookie, so a network attacker or sibling subdomain may have set it.
         var stored = null;
         try {
             stored = window.localStorage.getItem(STORAGE);
@@ -333,7 +334,7 @@
             return stored;
         }
 
-        return readLegacyConsentCookie();
+        return readLegacyConsentCookie() === 'essential' ? 'essential' : null;
     }
 
     function expireLegacyConsentCookie() {
@@ -643,7 +644,7 @@
 
     function deny() {
         clearAnalyticsCookies();
-        // A leftover cookie_consent=all would still turn on the noscript image.
+        // A leftover cookie_consent=all must not outlive an explicit opt-out.
         var mayExpireLegacy = readLegacyConsentCookie() !== 'essential';
         try {
             mayExpireLegacy = mayExpireLegacy || window.localStorage.getItem(STORAGE) === 'essential';
