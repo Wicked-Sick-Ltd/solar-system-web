@@ -68,7 +68,9 @@ for this environment: `APP_ENV=local` so `serve.sh`'s plain HTTP server is not
 forced onto HTTPS, `APP_URL=http://127.0.0.1:8000`, and `API_BASE_URL` set to
 `https://api.publicuniverse.net/api/v1` (the public catalogue in
 `CONTRIBUTING.md`). `API_BASE_URL` and `APP_URL` already set in the environment
-are kept. `.env` stays gitignored.
+are kept. Composer and Node downloads are checked against checksums pinned in
+`.cursor/install.sh` before they are executed or extracted. `.env` stays
+gitignored.
 
 This app has no private Composer packages. If a Flux package (or any other
 `composer.fluxui.dev` dependency) is added, install reads `COMPOSER_AUTH`, or

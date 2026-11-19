@@ -190,3 +190,20 @@ it('checks the composer installer before executing it', function () {
     expect($download)->toBeLessThan($verify);
     expect($verify)->toBeLessThan($execute);
 });
+
+it('checks the node tarball before extracting it', function () {
+    $install = file_get_contents(base_path('.cursor/install.sh'));
+    $pin = '1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce';
+
+    expect($install)->toContain('NODE_LINUX_X64_SHA256="'.$pin.'"');
+
+    $download = strpos($install, 'node-v${version}-linux-x64.tar.xz');
+    $verify = strpos($install, 'verify_digest sha256 "${tarball}" "${NODE_LINUX_X64_SHA256}"');
+    $extract = strpos($install, 'sudo tar -xJf "${tarball}"');
+
+    expect($download)->toBeInt();
+    expect($verify)->toBeInt();
+    expect($extract)->toBeInt();
+    expect($download)->toBeLessThan($verify);
+    expect($verify)->toBeLessThan($extract);
+});

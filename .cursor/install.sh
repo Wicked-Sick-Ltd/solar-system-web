@@ -87,9 +87,14 @@ install_node() {
         return 0
     fi
     local version="22.23.4"
-    curl -fsSL "https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz" -o /tmp/node.tar.xz
-    sudo tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1
-    rm -f /tmp/node.tar.xz
+    # SHA256 of node-v22.23.4-linux-x64.tar.xz from that release's SHASUMS256.txt
+    # (checked 2026-11-19). A sum downloaded beside the tarball is not a pin.
+    local tarball="/tmp/node.tar.xz"
+    local NODE_LINUX_X64_SHA256="1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce"
+    curl -fsSL "https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz" -o "${tarball}"
+    verify_digest sha256 "${tarball}" "${NODE_LINUX_X64_SHA256}"
+    sudo tar -xJf "${tarball}" -C /usr/local --strip-components=1
+    rm -f "${tarball}"
     hash -r
 }
 
