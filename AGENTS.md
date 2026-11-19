@@ -24,6 +24,8 @@ Use PHP ^8.4, Node.js (use the version pinned by the project/CI). Run commands f
 - `npm run dev` — run the configured development entry point.
 - `npm run build` — run the configured build.
 
+Cloud agents install from `.cursor/install.sh` (see the README section "Cloud agent environment"). Tests use the SQLite database in `phpunit.xml`.
+
 ## Coding and Testing
 
 Follow `.editorconfig` for indentation, encoding, and line endings. Use Laravel Pint for PHP formatting. Tests use Pest. Keep changes focused and follow existing test filenames. Add regression coverage for behavior changes, using isolated fixtures instead of live customer data. For documentation-only edits, verify commands, local links, and `git diff --check`.

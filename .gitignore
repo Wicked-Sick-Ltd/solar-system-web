@@ -6,7 +6,12 @@
 .phpactor.json
 .phpunit.result.cache
 /.codex
-/.cursor/
+/.cursor/*
+!/.cursor/environment.json
+!/.cursor/agent-env.sh
+!/.cursor/install.sh
+!/.cursor/start.sh
+!/.cursor/serve.sh
 /.idea
 /.nova
 /.phpunit.cache
