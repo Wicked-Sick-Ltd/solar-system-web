@@ -65,3 +65,24 @@ ensure_agent_env() {
 
     mv "${tmp}" .env
 }
+
+# Compare a file to a pinned digest. On mismatch, delete the file and fail
+# before the caller can execute or extract it.
+verify_digest() {
+    local algo="$1"
+    local file="$2"
+    local expected="$3"
+    local actual
+
+    if [[ ! -f "${file}" ]]; then
+        echo "error: missing file for ${algo} check: ${file}" >&2
+        return 1
+    fi
+
+    actual="$("${algo}sum" "${file}" | awk '{print $1}')"
+    if [[ "${actual}" != "${expected}" ]]; then
+        rm -f "${file}"
+        echo "error: ${algo} mismatch for ${file}" >&2
+        return 1
+    fi
+}

@@ -116,3 +116,77 @@ it('does not create an env file when a supplied value contains a newline', funct
         removeCloudAgentFixture($directory);
     }
 });
+
+it('deletes a download whose digest does not match the pin', function () {
+    $directory = cloudAgentFixture();
+    $download = $directory.'/installer.php';
+    file_put_contents($download, "<?php echo \"substituted\";\n");
+
+    try {
+        $process = new Process(
+            [
+                'bash', '-c', 'source "$1" && verify_digest sha384 "$2" "$3"',
+                'bash',
+                base_path('.cursor/agent-env.sh'),
+                $download,
+                'c8b085408188070d5f52bcfe4ecfbee5f727afa458b2573b8eaaf77b3419b0bf2768dc67c86944da1544f06fa544fd47',
+            ],
+            $directory,
+            ['PATH' => getenv('PATH') ?: '/usr/bin:/bin', 'HOME' => $directory],
+        );
+        $process->run();
+
+        expect($process->isSuccessful())->toBeFalse();
+        expect(is_file($download))->toBeFalse();
+    } finally {
+        if (is_file($download)) {
+            unlink($download);
+        }
+        removeCloudAgentFixture($directory);
+    }
+});
+
+it('keeps a download whose digest matches the pin', function () {
+    $directory = cloudAgentFixture();
+    $download = $directory.'/payload.bin';
+    file_put_contents($download, "pinned-bytes\n");
+
+    try {
+        $process = new Process(
+            [
+                'bash', '-c', 'source "$1" && digest="$(sha256sum "$2" | awk \'{print $1}\')" && verify_digest sha256 "$2" "$digest" && test -f "$2"',
+                'bash',
+                base_path('.cursor/agent-env.sh'),
+                $download,
+            ],
+            $directory,
+            ['PATH' => getenv('PATH') ?: '/usr/bin:/bin', 'HOME' => $directory],
+        );
+        $process->run();
+
+        expect($process->getExitCode().$process->getErrorOutput())->toBe('0');
+        expect(is_file($download))->toBeTrue();
+    } finally {
+        if (is_file($download)) {
+            unlink($download);
+        }
+        removeCloudAgentFixture($directory);
+    }
+});
+
+it('checks the composer installer before executing it', function () {
+    $install = file_get_contents(base_path('.cursor/install.sh'));
+    $pin = 'c8b085408188070d5f52bcfe4ecfbee5f727afa458b2573b8eaaf77b3419b0bf2768dc67c86944da1544f06fa544fd47';
+
+    expect($install)->toContain('COMPOSER_INSTALLER_SHA384="'.$pin.'"');
+
+    $download = strpos($install, 'https://getcomposer.org/installer');
+    $verify = strpos($install, 'verify_digest sha384 "${installer}" "${COMPOSER_INSTALLER_SHA384}"');
+    $execute = strpos($install, 'php "${installer}"');
+
+    expect($download)->toBeInt();
+    expect($verify)->toBeInt();
+    expect($execute)->toBeInt();
+    expect($download)->toBeLessThan($verify);
+    expect($verify)->toBeLessThan($execute);
+});

@@ -68,11 +68,16 @@ install_composer() {
     if command -v composer >/dev/null 2>&1; then
         return 0
     fi
-    curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php
-    php /tmp/composer-setup.php --install-dir=/tmp --filename=composer
+    # Pin from https://composer.github.io/installer.sig (checked 2026-11-19).
+    # Fetching the sum at install time would share a trust root with the script.
+    local installer="/tmp/composer-setup.php"
+    local COMPOSER_INSTALLER_SHA384="c8b085408188070d5f52bcfe4ecfbee5f727afa458b2573b8eaaf77b3419b0bf2768dc67c86944da1544f06fa544fd47"
+    curl -fsSL https://getcomposer.org/installer -o "${installer}"
+    verify_digest sha384 "${installer}" "${COMPOSER_INSTALLER_SHA384}"
+    php "${installer}" --install-dir=/tmp --filename=composer
     sudo mv /tmp/composer /usr/local/bin/composer
     sudo chmod 755 /usr/local/bin/composer
-    rm -f /tmp/composer-setup.php
+    rm -f "${installer}"
 }
 
 install_node() {
