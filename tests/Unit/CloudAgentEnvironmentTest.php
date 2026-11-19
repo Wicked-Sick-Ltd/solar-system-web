@@ -15,6 +15,12 @@ function cloudAgentBash(string $script, string $cwd, array $env = []): Process
         array_merge([
             'PATH' => getenv('PATH') ?: '/usr/bin:/bin',
             'HOME' => $cwd,
+            // Pest boots Laravel, which loads .env into this process. Symfony
+            // Process inherits those variables unless the same keys are set
+            // here, so clear the ones the script treats as explicit overrides.
+            'APP_ENV' => '',
+            'APP_URL' => '',
+            'API_BASE_URL' => '',
         ], $env),
     );
     $process->run();
