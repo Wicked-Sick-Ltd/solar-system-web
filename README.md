@@ -62,8 +62,13 @@ non-interactive. It installs PHP 8.4 and the extensions CI uses, including
 SQLite and Imagick, plus `tzdata-legacy` so tests can resolve older IANA
 names such as `Asia/Calcutta`. It then installs Composer and npm dependencies from the
 lockfiles and runs the Vite build. Pest reads the SQLite `:memory:` database
-from `phpunit.xml`. A local `.env` is copied from `.env.example` when missing
-and is gitignored.
+from `phpunit.xml`. A local `.env` is created from `.env.example` only when
+one is missing, and an existing file is left unchanged. A new file is adjusted
+for this environment: `APP_ENV=local` so `serve.sh`'s plain HTTP server is not
+forced onto HTTPS, `APP_URL=http://127.0.0.1:8000`, and `API_BASE_URL` set to
+`https://api.publicuniverse.net/api/v1` (the public catalogue in
+`CONTRIBUTING.md`). `API_BASE_URL` and `APP_URL` already set in the environment
+are kept. `.env` stays gitignored.
 
 This app has no private Composer packages. If a Flux package (or any other
 `composer.fluxui.dev` dependency) is added, install reads `COMPOSER_AUTH`, or

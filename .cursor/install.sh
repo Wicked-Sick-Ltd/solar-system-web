@@ -3,7 +3,11 @@
 # Run from the repository root: bash .cursor/install.sh
 set -euo pipefail
 
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=agent-env.sh
+source "${SCRIPT_DIR}/agent-env.sh"
+
+cd "${SCRIPT_DIR}/.."
 
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
@@ -112,9 +116,7 @@ configure_private_composer_auth() {
 }
 
 prepare_app() {
-    if [[ ! -f .env ]]; then
-        cp .env.example .env
-    fi
+    ensure_agent_env
     if ! grep -q '^APP_KEY=base64:' .env; then
         php artisan key:generate --force --no-interaction --ansi
     fi

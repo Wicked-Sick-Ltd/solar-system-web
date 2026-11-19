@@ -8,6 +8,7 @@
 /.codex
 /.cursor/*
 !/.cursor/environment.json
+!/.cursor/agent-env.sh
 !/.cursor/install.sh
 !/.cursor/start.sh
 !/.cursor/serve.sh
