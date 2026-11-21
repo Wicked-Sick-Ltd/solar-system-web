@@ -1,5 +1,7 @@
 <?php
 
+use App\Sentry\RedactQueryBindings;
+
 /**
  * Sentry Laravel SDK configuration file.
  *
@@ -53,6 +55,12 @@ return [
     // @see: https://docs.sentry.io/platforms/php/guides/laravel/configuration/options/#send_default_pii
     'send_default_pii' => env('SENTRY_SEND_DEFAULT_PII', false),
 
+    // Never attach incoming request bodies (form fields, Livewire payloads) to events.
+    'max_request_body_size' => 'never',
+
+    // Database exception messages embed the bound values; send the SQL with placeholders instead.
+    'before_send' => [RedactQueryBindings::class, 'beforeSend'],
+
     // Configures which data is collected automatically, `null` keeps collecting data based on `send_default_pii`
     'data_collection' => null,
 
@@ -93,7 +101,8 @@ return [
         'command_info' => env('SENTRY_BREADCRUMBS_COMMAND_JOBS_ENABLED', true),
 
         // Capture HTTP client request information as breadcrumbs
-        'http_client_requests' => env('SENTRY_BREADCRUMBS_HTTP_CLIENT_REQUESTS_ENABLED', true),
+        // Off by default: outgoing URLs can carry credentials in the path or query (webhooks, bot tokens, API keys).
+        'http_client_requests' => env('SENTRY_BREADCRUMBS_HTTP_CLIENT_REQUESTS_ENABLED', false),
 
         // Capture send notifications as breadcrumbs
         'notifications' => env('SENTRY_BREADCRUMBS_NOTIFICATIONS_ENABLED', true),
@@ -136,7 +145,8 @@ return [
         'livewire' => env('SENTRY_TRACE_LIVEWIRE_ENABLED', true),
 
         // Capture HTTP client requests as spans
-        'http_client_requests' => env('SENTRY_TRACE_HTTP_CLIENT_REQUESTS_ENABLED', true),
+        // Off by default: outgoing URLs can carry credentials in the path or query (webhooks, bot tokens, API keys).
+        'http_client_requests' => env('SENTRY_TRACE_HTTP_CLIENT_REQUESTS_ENABLED', false),
 
         // Capture where the HTTP client request originated from on the HTTP client request spans
         'http_client_requests_origin' => env('SENTRY_TRACE_HTTP_CLIENT_REQUESTS_ORIGIN_ENABLED', true),
