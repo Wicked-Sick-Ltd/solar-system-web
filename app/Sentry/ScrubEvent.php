@@ -37,7 +37,12 @@ class ScrubEvent
         foreach ($event->getExceptions() as $exception) {
             if (isset($safe[$exception->getType()])) {
                 $exception->setValue($safe[$exception->getType()]);
+
+                continue;
             }
+
+            // HTTP client failures put the outbound URL, query included, in the message.
+            $exception->setValue(self::withoutQuery($exception->getValue()));
         }
 
         // The same messages reach later events as log breadcrumbs when those are enabled.
@@ -49,5 +54,24 @@ class ScrubEvent
         ));
 
         return $event;
+    }
+
+    /**
+     * Drop the query and fragment from absolute and path-only URLs in text.
+     * A lone "?" (SQL placeholders) is left as it is.
+     */
+    private static function withoutQuery(string $value): string
+    {
+        if (! str_contains($value, '?') && ! str_contains($value, '#')) {
+            return $value;
+        }
+
+        $stripped = preg_replace(
+            '~(\b[a-z][a-z0-9+.-]*://[^\s\'"<>?#]+|/[^\s\'"<>?#]*)(?:\?[^\s\'"<>#]*(?:#[^\s\'"<>]*)?|#[^\s\'"<>]*)~i',
+            '$1',
+            $value,
+        );
+
+        return is_string($stripped) ? $stripped : $value;
     }
 }

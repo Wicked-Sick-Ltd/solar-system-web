@@ -118,6 +118,38 @@ class SentryPrivacyTest extends TestCase
         $this->assertStringContainsString('user signed in', $text);
     }
 
+    public function test_outbound_urls_in_exception_text_lose_their_query(): void
+    {
+        $exception = new RuntimeException(
+            'cURL error 28 for https://api.what3words.com/v3/convert-to-coordinates?words=filled.count.soap',
+        );
+        $event = Event::createEvent();
+        $event->setExceptions([new ExceptionDataBag($exception)]);
+
+        $sent = ScrubEvent::beforeSend($event, EventHint::fromArray(['exception' => $exception]));
+
+        $this->assertSame(
+            'cURL error 28 for https://api.what3words.com/v3/convert-to-coordinates',
+            $sent?->getExceptions()[0]->getValue(),
+        );
+    }
+
+    public function test_sampled_transactions_drop_the_request_url(): void
+    {
+        $event = Event::createTransaction();
+        $event->setRequest([
+            'url' => 'https://app.test/reset-password/path-token-1f9a?email=query-secret-77c2',
+            'query_string' => 'email=query-secret-77c2',
+            'method' => 'GET',
+        ]);
+
+        $sent = ScrubEvent::beforeSend($event);
+
+        $this->assertArrayNotHasKey('url', $sent?->getRequest() ?? []);
+        $this->assertArrayNotHasKey('query_string', $sent?->getRequest() ?? []);
+        $this->assertSame('GET', $sent?->getRequest()['method']);
+    }
+
     public function test_other_exception_messages_are_left_alone(): void
     {
         $exception = new RuntimeException('disk full');

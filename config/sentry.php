@@ -58,8 +58,11 @@ return [
     // Never attach incoming request bodies (form fields, Livewire payloads) to events.
     'max_request_body_size' => 'never',
 
-    // Removes the request URL and the values embedded in database exception messages.
+    // Removes the request URL, query strings in exception text, and the values
+    // embedded in database exception messages. Transactions use the same hook
+    // so a sampled trace does not keep the URL the error path drops.
     'before_send' => [ScrubEvent::class, 'beforeSend'],
+    'before_send_transaction' => [ScrubEvent::class, 'beforeSend'],
 
     // Collect nothing from the request, the user, queues or stack frames. `null` would fall back to the
     // SDK's legacy mode, which still sends URLs, query strings and most headers with `send_default_pii` off.
