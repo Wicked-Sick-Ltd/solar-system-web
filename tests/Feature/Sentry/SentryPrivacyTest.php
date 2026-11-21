@@ -39,6 +39,7 @@ class SentryPrivacyTest extends TestCase
     protected function tearDown(): void
     {
         SentrySdk::init();
+        unset($_SERVER['PATH_INFO']);
 
         parent::tearDown();
     }
@@ -66,6 +67,8 @@ class SentryPrivacyTest extends TestCase
         config(['sentry.dsn' => 'https://key@o1.ingest.de.sentry.io/1', 'sentry.transport' => $transport]);
         $this->app->forgetInstance(HubInterface::class);
         $this->app->instance(LaravelRequestFetcher::CONTAINER_PSR7_INSTANCE_KEY, $this->requestCarryingSecrets());
+        // Some server setups pass the raw path here, and the SDK falls back to it for the transaction name.
+        $_SERVER['PATH_INFO'] = '/reset-password/'.self::SECRETS[0];
 
         $hub = $this->app->make(HubInterface::class);
         $hub->captureException($this->failure());

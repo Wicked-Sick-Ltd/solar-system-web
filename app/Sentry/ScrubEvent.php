@@ -7,6 +7,7 @@ use PDOException;
 use Sentry\Breadcrumb;
 use Sentry\Event;
 use Sentry\EventHint;
+use Sentry\Laravel\Integration;
 
 class ScrubEvent
 {
@@ -15,6 +16,13 @@ class ScrubEvent
      */
     public static function beforeSend(Event $event, ?EventHint $hint = null): ?Event
     {
+        // Before a route is matched the SDK names an error event's transaction after PATH_INFO,
+        // the raw path. Use Laravel's own value instead: the matched route, or nothing. A
+        // performance transaction already carries its route name and keeps it.
+        if ((string) $event->getType() !== 'transaction') {
+            $event->setTransaction(Integration::getTransaction());
+        }
+
         // A URL path can itself be a credential (reset, invite and share links). The
         // matched route is still reported as the event's transaction.
         $request = $event->getRequest();
