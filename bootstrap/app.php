@@ -5,8 +5,10 @@ use App\Http\Middleware\PrivateObservingShortlist;
 use App\Http\Middleware\PrivateObservingSync;
 use App\Http\Middleware\SetResponseHeaders;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -51,5 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend([SetResponseHeaders::class, PrivateObservingSync::class, PrivateNightWeather::class, PrivateObservingShortlist::class]);
     })
     // Bind the exception handler. /api is HTML Livewire, not a JSON API.
-    ->withExceptions()
+    ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+    })
     ->create();
