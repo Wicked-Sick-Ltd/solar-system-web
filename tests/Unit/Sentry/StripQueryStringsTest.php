@@ -87,9 +87,9 @@ class StripQueryStringsTest extends TestCase
 
         $sent = StripQueryStrings::beforeSendTransaction($event);
 
-        $this->assertSame('https://publicuniverse.test/api', $sent?->getRequest()['url']);
-        $this->assertArrayNotHasKey('query_string', $sent?->getRequest() ?? []);
-        $this->assertSame('POST', $sent?->getRequest()['method']);
+        $this->assertSame('https://publicuniverse.test/api', $sent->getRequest()['url']);
+        $this->assertArrayNotHasKey('query_string', $sent->getRequest());
+        $this->assertSame('POST', $sent->getRequest()['method']);
     }
 
     public function test_breadcrumb_hook_strips_a_logged_url_and_leaves_other_text(): void
@@ -117,11 +117,11 @@ class StripQueryStringsTest extends TestCase
 
         $this->assertSame(
             'fetched https://api.open-meteo.com/v1/forecast',
-            $url?->getMessage(),
+            $url->getMessage(),
         );
-        $this->assertArrayNotHasKey('http.query', $url?->getMetadata() ?? []);
-        $this->assertSame('/settings', $path?->getMetadata()['url'] ?? null);
-        $this->assertSame('insert into users (email) values (?, ?)', $plain?->getMessage());
+        $this->assertArrayNotHasKey('http.query', $url->getMetadata());
+        $this->assertSame('/settings', $path->getMetadata()['url']);
+        $this->assertSame('insert into users (email) values (?, ?)', $plain->getMessage());
     }
 
     public function test_database_bindings_are_still_removed_on_the_way_out(): void

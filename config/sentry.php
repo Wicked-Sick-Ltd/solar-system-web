@@ -90,8 +90,9 @@ return [
         // Off by default: keys such as weather:open-meteo:… and w3w:reverse:… embed coordinates.
         'cache' => env('SENTRY_BREADCRUMBS_CACHE_ENABLED', false),
 
-        // Capture Livewire components like routes as breadcrumbs
-        'livewire' => env('SENTRY_BREADCRUMBS_LIVEWIRE_ENABLED', true),
+        // Off by default: mount, hydrate, and call breadcrumbs include component
+        // properties and method arguments (observer coordinates, email addresses).
+        'livewire' => env('SENTRY_BREADCRUMBS_LIVEWIRE_ENABLED', false),
 
         // Capture SQL queries as breadcrumbs
         'sql_queries' => env('SENTRY_BREADCRUMBS_SQL_QUERIES_ENABLED', true),

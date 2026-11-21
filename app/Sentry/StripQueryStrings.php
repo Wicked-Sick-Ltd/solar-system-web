@@ -36,7 +36,7 @@ class StripQueryStrings
      * before_send_transaction. Transactions do not carry the exception text
      * the SQL hook rewrites, but they do carry the request URL and spans.
      */
-    public static function beforeSendTransaction(Event $event, ?EventHint $hint = null): ?Event
+    public static function beforeSendTransaction(Event $event, ?EventHint $hint = null): Event
     {
         self::stripEvent($event);
 
@@ -47,7 +47,7 @@ class StripQueryStrings
      * before_breadcrumb. Runs as the breadcrumb is recorded, including log
      * lines that quote an outbound URL.
      */
-    public static function beforeBreadcrumb(Breadcrumb $breadcrumb): ?Breadcrumb
+    public static function beforeBreadcrumb(Breadcrumb $breadcrumb): Breadcrumb
     {
         $message = $breadcrumb->getMessage();
         $strippedMessage = $message === null ? null : self::stripQueriesInText($message);
@@ -91,21 +91,15 @@ class StripQueryStrings
         }
 
         $event->setBreadcrumb(array_map(
-            fn (Breadcrumb $breadcrumb): Breadcrumb => self::beforeBreadcrumb($breadcrumb) ?? $breadcrumb,
+            fn (Breadcrumb $breadcrumb): Breadcrumb => self::beforeBreadcrumb($breadcrumb),
             $event->getBreadcrumbs(),
         ));
 
         foreach ($event->getSpans() as $span) {
-            if ($span instanceof Span) {
-                self::stripSpan($span);
-            }
+            self::stripSpan($span);
         }
 
         foreach ($event->getContexts() as $name => $context) {
-            if (! is_array($context)) {
-                continue;
-            }
-
             $stripped = self::omitQueryKeys(self::stripMap($context));
             if ($stripped !== [] && $stripped !== $context) {
                 $event->setContext($name, $stripped);
@@ -126,7 +120,7 @@ class StripQueryStrings
 
         $updates = [];
         foreach ($span->getData() as $key => $value) {
-            if (is_string($key) && str_starts_with($key, 'flag.evaluation.')) {
+            if (str_starts_with($key, 'flag.evaluation.')) {
                 continue;
             }
 
