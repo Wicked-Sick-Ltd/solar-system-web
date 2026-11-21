@@ -58,7 +58,7 @@ final class CloseApproachFormat
 
         $minKm = $base / sqrt(self::BRIGHT_ALBEDO);
         $maxKm = $base / sqrt(self::DARK_ALBEDO);
-        if (! is_finite($minKm) || ! is_finite($maxKm) || $maxKm <= 0) {
+        if (! is_finite($minKm) || ! is_finite($maxKm)) {
             return null;
         }
 
