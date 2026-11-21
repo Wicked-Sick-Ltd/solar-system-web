@@ -1,6 +1,6 @@
 <?php
 
-use App\Sentry\StripQueryStrings;
+use App\Sentry\ScrubEvent;
 
 /**
  * Sentry Laravel SDK configuration file.
@@ -38,7 +38,7 @@ return [
     'profiles_sample_rate' => env('SENTRY_PROFILES_SAMPLE_RATE') === null ? null : (float) env('SENTRY_PROFILES_SAMPLE_RATE'),
 
     // Only continue incoming traces when the organization IDs are compatible with this SDK instance.
-    'strict_trace_continuation' => env('SENTRY_STRICT_TRACE_CONTINUATION', false),
+    'strict_trace_continuation' => env('SENTRY_STRICT_TRACE_CONTINUATION', true),
 
     // @see: https://docs.sentry.io/platforms/php/guides/laravel/configuration/options/#enable_logs
     'enable_logs' => env('SENTRY_ENABLE_LOGS', false),
@@ -58,17 +58,22 @@ return [
     // Never attach incoming request bodies (form fields, Livewire payloads) to events.
     'max_request_body_size' => 'never',
 
-    // Query strings can carry observer coordinates and what3words addresses.
-    // Strip them on the way out, and reduce database exception text to placeholder SQL.
-    // data_collection stays null below: setting it opts into the SDK's permissive
-    // defaults and would ignore send_default_pii and the sql_bindings flags.
-    // @see https://docs.sentry.io/platforms/php/guides/laravel/data-management/sensitive-data/#scrubbing-data
-    'before_send' => [StripQueryStrings::class, 'beforeSend'],
-    'before_send_transaction' => [StripQueryStrings::class, 'beforeSendTransaction'],
-    'before_breadcrumb' => [StripQueryStrings::class, 'beforeBreadcrumb'],
+    // Removes the request URL and the values embedded in database exception messages.
+    'before_send' => [ScrubEvent::class, 'beforeSend'],
 
-    // Configures which data is collected automatically, `null` keeps collecting data based on `send_default_pii`
-    'data_collection' => null,
+    // Collect nothing from the request, the user, queues or stack frames. `null` would fall back to the
+    // SDK's legacy mode, which still sends URLs, query strings and most headers with `send_default_pii` off.
+    'data_collection' => [
+        'user_info' => false,
+        'cookies' => ['mode' => 'off'],
+        'http_headers' => ['mode' => 'off'],
+        'http_bodies' => [],
+        'url_query_params' => ['mode' => 'off'],
+        'gen_ai' => ['inputs' => false, 'outputs' => false],
+        'database_query_data' => false,
+        'queues' => false,
+        'stack_frame_variables' => false,
+    ],
 
     // @see: https://docs.sentry.io/platforms/php/guides/laravel/configuration/options/#ignore_exceptions
     // 'ignore_exceptions' => [],
@@ -84,14 +89,17 @@ return [
 
     // Breadcrumb specific configuration
     'breadcrumbs' => [
-        // Capture Laravel logs as breadcrumbs
-        'logs' => env('SENTRY_BREADCRUMBS_LOGS_ENABLED', true),
+        // Breadcrumbs that copy application data are off by default: log lines, cache keys, Livewire
+        // component state, Artisan input and outgoing URLs can all carry personal data or credentials.
+        // Turn one on with its env var after checking what this app would put in it.
 
-        // Off by default: keys such as weather:open-meteo:… and w3w:reverse:… embed coordinates.
+        // Capture Laravel logs as breadcrumbs
+        'logs' => env('SENTRY_BREADCRUMBS_LOGS_ENABLED', false),
+
+        // Capture Laravel cache events (hits, writes etc.) as breadcrumbs
         'cache' => env('SENTRY_BREADCRUMBS_CACHE_ENABLED', false),
 
-        // Off by default: mount, hydrate, and call breadcrumbs include component
-        // properties and method arguments (observer coordinates, email addresses).
+        // Capture Livewire components like routes as breadcrumbs
         'livewire' => env('SENTRY_BREADCRUMBS_LIVEWIRE_ENABLED', false),
 
         // Capture SQL queries as breadcrumbs
@@ -105,7 +113,7 @@ return [
         'queue_info' => env('SENTRY_BREADCRUMBS_QUEUE_INFO_ENABLED', true),
 
         // Capture command information as breadcrumbs
-        'command_info' => env('SENTRY_BREADCRUMBS_COMMAND_JOBS_ENABLED', true),
+        'command_info' => env('SENTRY_BREADCRUMBS_COMMAND_JOBS_ENABLED', false),
 
         // Capture HTTP client request information as breadcrumbs
         // Off by default: outgoing URLs can carry credentials in the path or query (webhooks, bot tokens, API keys).
@@ -126,6 +134,9 @@ return [
 
     // Performance monitoring specific configuration
     'tracing' => [
+        // Tracing is off until SENTRY_TRACES_SAMPLE_RATE is set. Cache, Livewire and outgoing-HTTP spans
+        // stay off even then, for the same reason as their breadcrumbs.
+
         // Trace queue jobs as their own transactions (this enables tracing for queue jobs)
         'queue_job_transactions' => env('SENTRY_TRACE_QUEUE_ENABLED', true),
 
@@ -149,7 +160,7 @@ return [
         'views' => env('SENTRY_TRACE_VIEWS_ENABLED', true),
 
         // Capture Livewire components as spans
-        'livewire' => env('SENTRY_TRACE_LIVEWIRE_ENABLED', true),
+        'livewire' => env('SENTRY_TRACE_LIVEWIRE_ENABLED', false),
 
         // Capture HTTP client requests as spans
         // Off by default: outgoing URLs can carry credentials in the path or query (webhooks, bot tokens, API keys).
@@ -161,7 +172,7 @@ return [
         // Define a threshold in milliseconds for HTTP client requests to resolve their origin
         'http_client_requests_origin_threshold_ms' => env('SENTRY_TRACE_HTTP_CLIENT_REQUESTS_ORIGIN_THRESHOLD_MS', 250),
 
-        // Off by default: keys such as weather:open-meteo:… and w3w:reverse:… embed coordinates.
+        // Capture Laravel cache events (hits, writes etc.) as spans
         'cache' => env('SENTRY_TRACE_CACHE_ENABLED', false),
 
         // Capture Redis operations as spans (this enables Redis events in Laravel)
