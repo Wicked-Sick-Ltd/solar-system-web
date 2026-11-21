@@ -21,6 +21,18 @@ class ScrubEvent
         unset($request['url'], $request['query_string']);
         $event->setRequest($request);
 
+        // The tracing middleware stores the raw request path on the transaction
+        // span. That becomes contexts.trace.data.url, separate from request.url.
+        $trace = $event->getContexts()['trace'] ?? null;
+        if (is_array($trace)) {
+            $data = $trace['data'] ?? null;
+            if (is_array($data)) {
+                unset($data['url'], $data['http.url'], $data['url.full'], $data['http.query']);
+                $trace['data'] = $data;
+                $event->setContext('trace', $trace);
+            }
+        }
+
         // Database exception messages carry real values (Laravel inlines the bindings,
         // the driver echoes duplicate keys): send the SQLSTATE code and placeholder SQL.
         $safe = [];

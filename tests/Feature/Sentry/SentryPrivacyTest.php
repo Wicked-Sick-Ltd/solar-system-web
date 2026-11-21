@@ -134,20 +134,43 @@ class SentryPrivacyTest extends TestCase
         );
     }
 
-    public function test_sampled_transactions_drop_the_request_url(): void
+    public function test_sampled_transactions_drop_urls_and_database_bindings(): void
     {
+        $pdo = new PDOException("SQLSTATE[23000]: Duplicate entry 'leak@example.com' for key 'users_email_unique'");
+        $query = new QueryException('mysql', 'insert into users (email, password) values (?, ?)', ['leak@example.com', 'hunter2'], $pdo);
+
         $event = Event::createTransaction();
+        $event->setTransaction('reset-password/{token}');
         $event->setRequest([
             'url' => 'https://app.test/reset-password/path-token-1f9a?email=query-secret-77c2',
             'query_string' => 'email=query-secret-77c2',
             'method' => 'GET',
         ]);
+        $event->setContext('trace', [
+            'span_id' => 'span',
+            'trace_id' => 'trace',
+            'op' => 'http.server',
+            'data' => [
+                'url' => '/reset-password/path-token-1f9a',
+                'http.request.method' => 'GET',
+            ],
+        ]);
+        $event->setBreadcrumb([
+            new Breadcrumb(Breadcrumb::LEVEL_ERROR, Breadcrumb::TYPE_DEFAULT, 'log', $query->getMessage()),
+        ]);
 
-        $sent = ScrubEvent::beforeSend($event);
+        $sent = ScrubEvent::beforeSend($event, EventHint::fromArray(['exception' => $query]));
 
-        $this->assertArrayNotHasKey('url', $sent?->getRequest() ?? []);
-        $this->assertArrayNotHasKey('query_string', $sent?->getRequest() ?? []);
-        $this->assertSame('GET', $sent?->getRequest()['method']);
+        $this->assertNotNull($sent);
+        $this->assertSame('reset-password/{token}', $sent->getTransaction());
+        $this->assertArrayNotHasKey('url', $sent->getRequest());
+        $this->assertArrayNotHasKey('query_string', $sent->getRequest());
+        $this->assertSame('GET', $sent->getRequest()['method']);
+        $this->assertArrayNotHasKey('url', $sent->getContexts()['trace']['data']);
+        $this->assertSame('GET', $sent->getContexts()['trace']['data']['http.request.method']);
+        $this->assertStringNotContainsString('path-token-1f9a', json_encode($sent->getContexts()));
+        $this->assertStringNotContainsString('leak@example.com', (string) $sent->getBreadcrumbs()[0]->getMessage());
+        $this->assertStringNotContainsString('hunter2', (string) $sent->getBreadcrumbs()[0]->getMessage());
     }
 
     public function test_other_exception_messages_are_left_alone(): void
