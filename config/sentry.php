@@ -1,6 +1,6 @@
 <?php
 
-use App\Sentry\RedactQueryBindings;
+use App\Sentry\StripQueryStrings;
 
 /**
  * Sentry Laravel SDK configuration file.
@@ -58,8 +58,14 @@ return [
     // Never attach incoming request bodies (form fields, Livewire payloads) to events.
     'max_request_body_size' => 'never',
 
-    // Database exception messages embed the bound values; send the SQL with placeholders instead.
-    'before_send' => [RedactQueryBindings::class, 'beforeSend'],
+    // Query strings can carry observer coordinates and what3words addresses.
+    // Strip them on the way out, and reduce database exception text to placeholder SQL.
+    // data_collection stays null below: setting it opts into the SDK's permissive
+    // defaults and would ignore send_default_pii and the sql_bindings flags.
+    // @see https://docs.sentry.io/platforms/php/guides/laravel/data-management/sensitive-data/#scrubbing-data
+    'before_send' => [StripQueryStrings::class, 'beforeSend'],
+    'before_send_transaction' => [StripQueryStrings::class, 'beforeSendTransaction'],
+    'before_breadcrumb' => [StripQueryStrings::class, 'beforeBreadcrumb'],
 
     // Configures which data is collected automatically, `null` keeps collecting data based on `send_default_pii`
     'data_collection' => null,
@@ -81,8 +87,8 @@ return [
         // Capture Laravel logs as breadcrumbs
         'logs' => env('SENTRY_BREADCRUMBS_LOGS_ENABLED', true),
 
-        // Capture Laravel cache events (hits, writes etc.) as breadcrumbs
-        'cache' => env('SENTRY_BREADCRUMBS_CACHE_ENABLED', true),
+        // Off by default: keys such as weather:open-meteo:… and w3w:reverse:… embed coordinates.
+        'cache' => env('SENTRY_BREADCRUMBS_CACHE_ENABLED', false),
 
         // Capture Livewire components like routes as breadcrumbs
         'livewire' => env('SENTRY_BREADCRUMBS_LIVEWIRE_ENABLED', true),
@@ -154,8 +160,8 @@ return [
         // Define a threshold in milliseconds for HTTP client requests to resolve their origin
         'http_client_requests_origin_threshold_ms' => env('SENTRY_TRACE_HTTP_CLIENT_REQUESTS_ORIGIN_THRESHOLD_MS', 250),
 
-        // Capture Laravel cache events (hits, writes etc.) as spans
-        'cache' => env('SENTRY_TRACE_CACHE_ENABLED', true),
+        // Off by default: keys such as weather:open-meteo:… and w3w:reverse:… embed coordinates.
+        'cache' => env('SENTRY_TRACE_CACHE_ENABLED', false),
 
         // Capture Redis operations as spans (this enables Redis events in Laravel)
         'redis_commands' => env('SENTRY_TRACE_REDIS_COMMANDS', false),
