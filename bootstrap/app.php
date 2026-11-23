@@ -4,10 +4,11 @@ use App\Http\Middleware\PrivateNightWeather;
 use App\Http\Middleware\PrivateObservingShortlist;
 use App\Http\Middleware\PrivateObservingSync;
 use App\Http\Middleware\SetResponseHeaders;
-use App\Support\Analytics;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -50,11 +51,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Cache-Control win on the cacheable routes (interactive pages keep
         // Livewire's no-store).
         $middleware->prepend([SetResponseHeaders::class, PrivateObservingSync::class, PrivateNightWeather::class, PrivateObservingShortlist::class]);
-        // The consent cookie is written and read by the page script. Leave it
-        // unencrypted so the server can see an explicit "all" before rendering
-        // the no-JavaScript Tag Manager image.
-        $middleware->encryptCookies(except: [Analytics::CONSENT_COOKIE]);
     })
     // Bind the exception handler. /api is HTML Livewire, not a JSON API.
-    ->withExceptions()
+    ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+    })
     ->create();

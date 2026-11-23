@@ -19,8 +19,7 @@ it('matches the browser acceptance contract in shared privacy schema fixtures', 
             expect($result['journal']['observations'][0]['notes'])->toBe("\u{0085}Private\u{0085}");
         }
         if ($case->name === 'IANA alias') {
-            $listed = in_array('Asia/Calcutta', DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC), true);
-            expect($result['journal']['observations'][0]['timezone'])->toBe($listed ? 'Asia/Calcutta' : 'Asia/Kolkata');
+            expect($result['journal']['observations'][0]['timezone'])->toBe('Asia/Calcutta');
         }
     }
 });

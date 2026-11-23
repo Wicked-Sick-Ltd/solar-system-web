@@ -54,6 +54,30 @@ php artisan migrate
 npm run build               # or `npm run dev` for HMR
 ```
 
+## Cloud agent environment
+
+Cursor Cloud Agents bootstrap this repository with `.cursor/install.sh`
+(`install` in `.cursor/environment.json`). The script is idempotent and
+non-interactive. It installs PHP 8.4 and the extensions CI uses, including
+SQLite and Imagick, plus `tzdata-legacy` so tests can resolve older IANA
+names such as `Asia/Calcutta`. It then installs Composer and npm dependencies from the
+lockfiles and runs the Vite build. Pest reads the SQLite `:memory:` database
+from `phpunit.xml`. A local `.env` is created from `.env.example` only when
+one is missing, and an existing file is left unchanged. A new file is adjusted
+for this environment: `APP_ENV=local` so `serve.sh`'s plain HTTP server is not
+forced onto HTTPS, `APP_URL=http://127.0.0.1:8000`, and `API_BASE_URL` set to
+`https://api.publicuniverse.net/api/v1` (the public catalogue in
+`CONTRIBUTING.md`). `API_BASE_URL` and `APP_URL` already set in the environment
+are kept. Composer and Node downloads are checked against checksums pinned in
+`.cursor/install.sh` before they are executed or extracted. `.env` stays
+gitignored.
+
+This app has no private Composer packages. If a Flux package (or any other
+`composer.fluxui.dev` dependency) is added, install reads `COMPOSER_AUTH`, or
+`FLUX_USERNAME` and `FLUX_LICENSE_KEY`, and warns by those names when they are
+missing. On each boot, `.cursor/start.sh` prepares the SQLite file and the
+`dev-server` terminal runs `php artisan serve` on port 8000.
+
 ## Public endpoints
 
 - REST API base URL: `https://api.publicuniverse.net/api/v1`
