@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Livewire\NewsletterSignup;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
+use Livewire\Mechanisms\HandleRequests\HandleRequests;
 
 beforeEach(function () {
     RateLimiter::clear('newsletter:127.0.0.1');
@@ -67,14 +69,22 @@ it('subscribes a valid address with double opt-in and confirms', function () {
     });
 });
 
-it('tells an existing subscriber they are already on the list', function () {
+it('gives an existing subscriber the same "Check your inbox" reply and does not re-subscribe them', function () {
     fakeMailchimp(200, ['status' => 'subscribed']);
 
     Livewire::test(NewsletterSignup::class)
         ->set('email', 'proto@example.com')
         ->call('subscribe')
-        ->assertSet('state', 'subscribed')
-        ->assertSee('already');
+        ->assertSet('state', 'pending')
+        ->assertSee('Check your inbox')
+        ->assertDontSee('already on the list');
+
+    // One add-or-update call that never sets status, so Mailchimp leaves the
+    // confirmed member alone and sends no new confirmation email.
+    Http::assertSentCount(1);
+    Http::assertSent(fn ($request) => $request->method() === 'PUT'
+        && ($request['status_if_new'] ?? null) === 'pending'
+        && ! isset($request['status']));
 });
 
 it('restarts double opt-in for a previously listed address', function (string $existing) {
@@ -171,7 +181,7 @@ it('dispatches a GA4 newsletter_signup browser event only for a new double opt-i
         });
 });
 
-it('sends no newsletter_signup unless a new double opt-in sign-up succeeded', function (int $status, array $body, string $email, string $honeypot, ?string $state) {
+it('sends no newsletter_signup when there is no "Check your inbox" reply', function (int $status, array $body, string $email, string $honeypot, ?string $state) {
     fakeMailchimp($status, $body);
 
     $component = Livewire::test(NewsletterSignup::class)
@@ -186,12 +196,11 @@ it('sends no newsletter_signup unless a new double opt-in sign-up succeeded', fu
     }
     $component->assertNotDispatched('pu-analytics');
 })->with([
-    'already subscribed' => [200, ['status' => 'subscribed'], 'member@example.com', '', 'subscribed'],
     'validation error' => [200, ['status' => 'pending'], 'not-an-email', '', null],
     'mailchimp failure' => [400, ['title' => 'Invalid Resource', 'detail' => 'looks fake or invalid'], 'down@example.com', '', 'error'],
 ]);
 
-it('gives a new sign-up, a repeat pending submission and the honeypot the same response and event', function (array $body, string $honeypot) {
+it('gives a new sign-up, a repeat pending submission, an existing subscriber and the honeypot the same response and event', function (array $body, string $honeypot) {
     fakeMailchimp(200, $body);
 
     Livewire::test(NewsletterSignup::class)
@@ -205,5 +214,95 @@ it('gives a new sign-up, a repeat pending submission and the honeypot the same r
         });
 })->with([
     'new or repeat pending (Mailchimp answers pending for both)' => [['status' => 'pending'], ''],
+    'already subscribed' => [['status' => 'subscribed'], ''],
     'honeypot' => [['status' => 'pending'], 'http://spam.example'],
 ]);
+
+/**
+ * Submit the footer form through Livewire's real update endpoint, from one
+ * shared initial snapshot, and return what a visitor (or a script probing
+ * the list) gets back.
+ *
+ * @param  string  $mailchimpStatus  the member status Mailchimp answers with
+ * @return array{status: int, type: string|null, body: string, json: array<string, mixed>, mailchimp_calls: int}
+ */
+function submitNewsletterOverHttp(string $snapshot, string $mailchimpStatus, string $email, string $honeypot): array
+{
+    RateLimiter::clear('newsletter:127.0.0.1');
+    // A fresh client factory per case: Http::fake() stubs stack, and the
+    // first matching one would otherwise answer every later case.
+    Http::swap(new HttpFactory(app('events')));
+    fakeMailchimp(200, ['status' => $mailchimpStatus]);
+
+    $response = test()->withHeaders(['X-Livewire' => '1'])->postJson(
+        app(HandleRequests::class)->getUpdateUri(),
+        ['components' => [[
+            'snapshot' => $snapshot,
+            'updates' => ['email' => $email, 'website' => $honeypot],
+            'calls' => [['path' => '', 'method' => 'subscribe', 'params' => []]],
+        ]]],
+    );
+
+    $mailchimpCalls = collect(Http::recorded())
+        ->filter(fn (array $pair) => str_contains($pair[0]->url(), 'api.mailchimp.com'))
+        ->count();
+
+    return [
+        'status' => $response->getStatusCode(),
+        'type' => $response->headers->get('Content-Type'),
+        'body' => (string) $response->getContent(),
+        'json' => (array) $response->json(),
+        'mailchimp_calls' => $mailchimpCalls,
+    ];
+}
+
+it('returns byte-identical HTTP responses for new, pending, already-subscribed and honeypot submissions', function () {
+    preg_match('/wire:snapshot="([^"]+)"/', Livewire::mount(NewsletterSignup::class), $m);
+    $snapshot = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5);
+    expect($snapshot)->not->toBe('');
+
+    $email = 'probe@example.com';
+    $cases = [
+        // Mailchimp creates a new member as pending.
+        'new' => submitNewsletterOverHttp($snapshot, 'pending', $email, ''),
+        // An unconfirmed member stays pending (status_if_new is ignored).
+        'pending' => submitNewsletterOverHttp($snapshot, 'pending', $email, ''),
+        // A confirmed member stays subscribed and gets no email.
+        'already subscribed' => submitNewsletterOverHttp($snapshot, 'subscribed', $email, ''),
+        'honeypot' => submitNewsletterOverHttp($snapshot, 'pending', $email, 'http://spam.example'),
+    ];
+
+    $new = $cases['new'];
+    expect($new['status'])->toBe(200)
+        ->and($new['body'])->toContain('Check your inbox')
+        ->and($new['body'])->toContain('newsletter_signup')
+        ->and($new['body'])->not->toContain('already on the list');
+
+    // Same status, content type and body, byte for byte, which also means the
+    // same JSON shape and the same newsletter_signup dispatch.
+    foreach (['pending', 'already subscribed'] as $name) {
+        expect($cases[$name]['status'])->toBe($new['status'], $name)
+            ->and($cases[$name]['type'])->toBe($new['type'], $name)
+            ->and($cases[$name]['body'])->toBe($new['body'], $name);
+    }
+
+    // Same timing class: one Mailchimp round trip whether or not the address
+    // is already on the list.
+    expect(array_map(fn (array $case) => $case['mailchimp_calls'], $cases))
+        ->toBe(['new' => 1, 'pending' => 1, 'already subscribed' => 1, 'honeypot' => 0]);
+
+    // The honeypot request differs only in the hidden field it sent, which
+    // the snapshot echoes back (and so its checksum). Everything else matches.
+    $strip = function (array $json): array {
+        $component = $json['components'][0];
+        $snap = json_decode($component['snapshot'], true);
+        unset($snap['data']['website'], $snap['checksum']);
+        $component['snapshot'] = $snap;
+
+        return ['components' => [$component]] + $json;
+    };
+    $honeypot = $cases['honeypot'];
+    expect($honeypot['status'])->toBe($new['status'])
+        ->and($honeypot['type'])->toBe($new['type'])
+        ->and($strip($honeypot['json']))->toBe($strip($new['json']));
+});
