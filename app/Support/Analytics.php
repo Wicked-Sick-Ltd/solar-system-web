@@ -71,6 +71,39 @@ final class Analytics
         return preg_match('/\AGTM-[A-Z0-9]{4,16}\z/', $id) === 1 ? $id : null;
     }
 
+    /** 'denied' only when ANALYTICS_CONSENT_DEFAULT says so; every other value is 'granted'. */
+    public static function consentDefault(): string
+    {
+        $value = config('site.analytics.consent_default');
+
+        return is_string($value) && strtolower(trim($value)) === 'denied' ? 'denied' : 'granted';
+    }
+
+    /**
+     * Sister-site hosts for outbound_click, lower-cased bare hostnames only.
+     *
+     * @return list<string>
+     */
+    public static function sisterHosts(): array
+    {
+        $hosts = config('site.analytics.sister_hosts');
+        if (! is_array($hosts)) {
+            return [];
+        }
+        $clean = [];
+        foreach ($hosts as $host) {
+            if (! is_string($host)) {
+                continue;
+            }
+            $host = strtolower(trim($host));
+            if (preg_match('/\A(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}\z/', $host) === 1) {
+                $clean[] = $host;
+            }
+        }
+
+        return array_values(array_unique($clean));
+    }
+
     /** Consent UI runs when GA4, Tag Manager, or both are configured. */
     public static function enabled(): bool
     {

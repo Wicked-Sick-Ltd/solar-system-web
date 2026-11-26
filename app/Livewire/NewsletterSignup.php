@@ -41,21 +41,40 @@ final class NewsletterSignup extends Component
         $this->validate(['email' => ['required', 'email:rfc', 'max:254']]);
 
         // Bots that fill the hidden field get a convincing "success" and nothing else.
+        // The response, including the analytics dispatch, matches a real sign-up.
         if ($this->website !== '') {
             $this->state = 'pending';
+            $this->dispatchSignupEvent();
 
             return;
         }
 
         try {
-            $this->state = match ($mailchimp->subscribe($this->email)) {
+            $result = $mailchimp->subscribe($this->email);
+            $this->state = match ($result) {
                 SubscribeResult::Pending => 'pending',
                 SubscribeResult::AlreadySubscribed => 'subscribed',
             };
+            if ($result === SubscribeResult::Pending) {
+                $this->dispatchSignupEvent();
+            }
         } catch (MailchimpException $e) {
             Log::warning('Newsletter signup failed');
             $this->state = 'error';
         }
+    }
+
+    /**
+     * GA4 newsletter_signup (resources/js/analytics-consent.js) for every
+     * "Check your inbox" outcome: a new or repeated double opt-in, and the
+     * honeypot. Sending it for all of them keeps the response identical, so it
+     * cannot reveal whether an address was already pending. Already
+     * subscribed, validation errors and Mailchimp failures send nothing. The
+     * params carry no address or other personal data.
+     */
+    private function dispatchSignupEvent(): void
+    {
+        $this->dispatch('pu-analytics', name: 'newsletter_signup', source: 'footer', method: 'mailchimp_double_opt_in');
     }
 
     public function render(): View

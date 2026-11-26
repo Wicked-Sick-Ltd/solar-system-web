@@ -60,7 +60,7 @@ it('treats analytics as configured when GA4, Tag Manager, or both are valid', fu
 it('ships the consent script that Livewire navigation can call', function () {
     expect(Analytics::clientScript())
         ->toContain("var STORAGE = 'pu_cookie_consent'")
-        ->toContain("return read() !== 'essential'")
+        ->toContain('return !consentDefaultDenied();')
         ->toContain("analytics_storage: 'denied'")
         ->toContain('window.dataLayer.push({')
         ->toContain("window.gtag('set', {")

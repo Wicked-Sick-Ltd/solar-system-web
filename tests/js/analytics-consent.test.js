@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../../resources/js/analytics-consent.js', import.meta.url), 'utf8');
 
-function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scriptAlreadyPresent = false, cookies = null) {
+function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scriptAlreadyPresent = false, cookies = null, meta = {}) {
     const state = {
         id,
         gtm,
@@ -21,6 +21,12 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
         removeItem(key) { storage.delete(key); },
     };
     const document = new EventTarget();
+    const docListeners = [];
+    const addDocumentListener = document.addEventListener.bind(document);
+    document.addEventListener = (type, fn, options) => {
+        docListeners.push({ type, fn });
+        return addDocumentListener(type, fn, options);
+    };
     document.title = 'Mars';
     document.head = { appendChild(node) { scripts.push(node); } };
     document.createElement = () => {
@@ -33,6 +39,8 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
         if (selector === 'meta[name="ga-measurement-id"]') return state.id ? { getAttribute: () => state.id } : null;
         if (selector === 'meta[name="gtm-container-id"]') return state.gtm ? { getAttribute: () => state.gtm } : null;
         if (selector === 'meta[name="ga-page-location"]') return { getAttribute: () => state.page };
+        const named = /^meta\[name="([^"]+)"\]$/.exec(selector);
+        if (named && Object.prototype.hasOwnProperty.call(meta, named[1])) return { getAttribute: () => meta[named[1]] };
         return null;
     };
     Object.defineProperty(document, 'cookie', {
@@ -76,7 +84,21 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
     runInNewContext(source, { window, document, location, URL });
     const commands = () => window.dataLayer.map((entry) => Array.from(entry));
     const pageViews = () => commands().filter((entry) => entry[0] === 'event' && entry[1] === 'page_view');
-    return { state, scripts, jar, storage, document, window, history, historyListeners, commands, pageViews };
+    const events = (name) => commands().filter((entry) => entry[0] === 'event' && entry[1] === name);
+    const click = (attrs, type = 'click', button = 0) => {
+        const anchor = {
+            tagName: 'A',
+            parentNode: null,
+            getAttribute: (key) => (Object.prototype.hasOwnProperty.call(attrs, key) ? attrs[key] : null),
+            hasAttribute: (key) => Object.prototype.hasOwnProperty.call(attrs, key),
+        };
+        const child = { tagName: 'SPAN', parentNode: anchor };
+        docListeners.filter((entry) => entry.type === type).forEach((entry) => entry.fn({ target: child, type, button }));
+    };
+    const emit = (detail) => {
+        historyListeners.filter((entry) => entry.type === 'pu-analytics').forEach((entry) => entry.fn({ detail }));
+    };
+    return { state, scripts, jar, storage, document, window, history, historyListeners, commands, pageViews, events, click, emit };
 }
 
 test('container initialization publishes the redacted page location and disables automatic page views', () => {
@@ -635,4 +657,140 @@ test('a tampered container id does not grant storage on its own', () => {
     window.publicUniverseAnalytics.load();
     assert.equal(scripts.length, 0);
     assert.equal(commands().some((entry) => entry[0] === 'consent' && entry[1] === 'update'), false);
+});
+
+const SISTERS = { 'pu-sister-hosts': 'futwiz.com,pikawiz.com,wickedsick.com' };
+
+test('a denied default sends a cookieless landing page view and does not repeat it on accept', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, { 'ga-consent-default': 'denied' });
+    const defaults = page.commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+
+    assert.equal(defaults[2].analytics_storage, 'denied');
+    assert.equal(defaults[2].ad_storage, 'denied');
+    assert.equal(page.window.__gaCookieless, true);
+    assert.equal(page.window.__gaStorageGranted, undefined);
+    assert.ok(page.commands().some((entry) => entry[0] === 'set' && entry[1] === 'url_passthrough'));
+    assert.equal(page.pageViews().length, 1);
+
+    page.window.publicUniverseAnalytics.choose('analytics');
+    const update = page.commands().filter((entry) => entry[0] === 'consent' && entry[1] === 'update').pop();
+    assert.equal(update[2].analytics_storage, 'granted');
+    assert.equal(page.pageViews().length, 1);
+    assert.equal(page.window.__gaCookieless, false);
+    assert.equal(page.window.__gaStorageGranted, true);
+});
+
+test('a denied default sends nothing after Essential only, and grants a stored accept', () => {
+    const essential = boot('G-TEST1234', null, '', 'essential', false, null, { 'ga-consent-default': 'denied' });
+    assert.equal(essential.pageViews().length, 0);
+    assert.equal(essential.window.__gaCookieless, false);
+
+    const accepted = boot('G-TEST1234', null, '', 'analytics', false, null, { 'ga-consent-default': 'denied' });
+    const defaults = accepted.commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+    assert.equal(defaults[2].analytics_storage, 'granted');
+    assert.equal(accepted.pageViews().length, 1);
+
+    const cookieless = boot('G-TEST1234', null, '', null, false, null, { 'ga-consent-default': 'denied' });
+    cookieless.window.publicUniverseAnalytics.choose('essential');
+    cookieless.click({ href: '/handouts/primary.pdf', download: 'primary.pdf' });
+    assert.equal(cookieless.events('handout_download').length, 0);
+});
+
+test('the default stays granted without the meta tag or with an unknown value', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, { 'ga-consent-default': 'maybe' });
+    const defaults = page.commands().find((entry) => entry[0] === 'consent' && entry[1] === 'default');
+
+    assert.equal(defaults[2].analytics_storage, 'granted');
+    assert.equal(page.window.__gaCookieless, false);
+});
+
+test('handout downloads on this site send handout_download with the file name and no query', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, SISTERS);
+
+    page.click({ href: '/handouts/primary-solar-system.pdf?v=3#x', download: 'primary-solar-system.pdf' });
+    page.click({ href: 'https://publicuniverse.net/higher-education/kepler-third-law/handout' });
+    page.click({ href: 'https://astronomics.com/manual.pdf' });
+    page.click({ href: '/objects/mars' });
+
+    const events = page.events('handout_download');
+    assert.equal(events.length, 2);
+    assert.equal(events[0][2].file_name, 'primary-solar-system.pdf');
+    assert.equal(events[0][2].file_extension, 'pdf');
+    assert.equal(events[0][2].link_url, 'https://publicuniverse.net/handouts/primary-solar-system.pdf');
+    assert.equal(events[1][2].file_name, 'handout');
+    assert.equal(events[0][2].transport_type, 'beacon');
+});
+
+test('clicks to our other sites send outbound_click with the destination', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, SISTERS);
+
+    page.click({ href: 'https://www.futwiz.com/fc27/players?utm_source=pu' });
+    page.click({ href: 'https://shop.pikawiz.com/' });
+    page.click({ href: 'https://notfutwiz.com/' });
+    page.click({ href: 'https://example.org/' });
+    page.click({ href: 'mailto:hello@wickedsick.com' });
+
+    const events = page.events('outbound_click');
+    assert.equal(events.length, 2);
+    assert.equal(events[0][2].destination, 'futwiz.com');
+    assert.equal(events[0][2].link_domain, 'www.futwiz.com');
+    assert.equal(events[0][2].link_url, 'https://www.futwiz.com/fc27/players');
+    assert.equal(events[0][2].outbound, true);
+    assert.equal(events[1][2].destination, 'pikawiz.com');
+});
+
+test('Livewire pu-analytics events send alert_signup and ignore unknown names', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, SISTERS);
+
+    page.emit({ name: 'alert_signup', alert_type: 'visibility', object_id: 'planet-saturn', nested: { lat: 51.5 } });
+    page.emit({ name: 'purchase', value: 10 });
+
+    const events = page.events('alert_signup');
+    assert.equal(events.length, 1);
+    assert.equal(events[0][2].alert_type, 'visibility');
+    assert.equal(events[0][2].object_id, 'planet-saturn');
+    assert.equal(events[0][2].nested, undefined);
+    assert.equal(page.events('purchase').length, 0);
+
+    page.window.publicUniverseAnalytics.choose('essential');
+    page.emit({ name: 'alert_signup', alert_type: 'visibility' });
+    assert.equal(page.events('alert_signup').length, 1);
+});
+
+test('a middle-click counts but a right-click context menu does not', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, SISTERS);
+
+    page.click({ href: '/handouts/primary.pdf', download: 'primary.pdf' }, 'auxclick', 2);
+    page.click({ href: 'https://futwiz.com/' }, 'auxclick', 2);
+    assert.equal(page.events('handout_download').length, 0);
+    assert.equal(page.events('outbound_click').length, 0);
+
+    page.click({ href: '/handouts/primary.pdf', download: 'primary.pdf' }, 'auxclick', 1);
+    page.click({ href: 'https://futwiz.com/' }, 'auxclick', 1);
+    assert.equal(page.events('handout_download').length, 1);
+    assert.equal(page.events('outbound_click').length, 1);
+});
+
+test('newsletter_signup sends only scalar, non-email params and nothing after Essential only', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, SISTERS);
+
+    page.emit({ name: 'newsletter_signup', source: 'footer', method: 'mailchimp_double_opt_in' });
+    const events = page.events('newsletter_signup');
+    assert.equal(events.length, 1);
+    assert.equal(events[0][2].source, 'footer');
+    assert.equal(events[0][2].method, 'mailchimp_double_opt_in');
+    assert.equal(events[0][2].email, undefined);
+    assert.equal(events[0][2].transport_type, 'beacon');
+
+    page.window.publicUniverseAnalytics.choose('essential');
+    page.emit({ name: 'newsletter_signup', source: 'footer' });
+    assert.equal(page.events('newsletter_signup').length, 1);
+
+    const optedOut = boot('G-TEST1234', null, '', 'essential', false, null, SISTERS);
+    optedOut.emit({ name: 'newsletter_signup', source: 'footer' });
+    assert.equal(optedOut.events('newsletter_signup').length, 0);
+
+    const cookieless = boot('G-TEST1234', null, '', null, false, null, { 'ga-consent-default': 'denied' });
+    cookieless.emit({ name: 'newsletter_signup', source: 'footer' });
+    assert.equal(cookieless.events('newsletter_signup').length, 1);
 });

@@ -63,5 +63,18 @@ return [
     'analytics' => [
         'ga_measurement_id' => env('GA4_MEASUREMENT_ID'),
         'gtm_container_id' => env('GTM_CONTAINER_ID', 'GTM-M8THNDPH'),
+        // Consent Mode v2 analytics_storage default for a visitor who has not chosen.
+        // 'granted' (default) relies on the PECR statistical-purposes exception
+        // (Data (Use and Access) Act 2025, in force 5 Feb 2026) with Essential only
+        // as the objection. 'denied' is strict opt-in: gtag.js still loads and sends
+        // cookieless pings until the visitor chooses. Review the privacy copy before
+        // switching. Anything else is treated as 'granted'.
+        'consent_default' => env('ANALYTICS_CONSENT_DEFAULT', 'granted'),
+        // Our other sites. Clicks to these (and their subdomains) send a GA4
+        // outbound_click event with the destination host.
+        'sister_hosts' => array_values(array_filter(array_map('trim', explode(',', (string) env(
+            'ANALYTICS_SISTER_HOSTS',
+            'futwiz.com,pikawiz.com,tcgwiz.com,wickedsick.com',
+        ))))),
     ],
 ];

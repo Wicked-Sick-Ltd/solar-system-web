@@ -1,0 +1,25 @@
+# Public Universe
+
+> Public Universe (publicuniverse.net) is a free, public astronomy reference for the solar system and beyond, run by Wicked Sick Ltd in the UK. It covers planets, moons, dwarf planets, asteroids, comets, exoplanets and their host systems, meteor showers, and what is in the night sky on a given date, built on NASA/JPL, the NASA Exoplanet Archive and the IAU Meteor Data Center. It is for astronomy, not astrology. It was formerly called Solar Field Guide.
+
+## Key sections
+
+- [Meteor showers](https://publicuniverse.net/meteor-showers): hub of IAU Meteor Data Center showers with peak solar longitude, radiant, speed and parent body; each shower page (for example [Geminids](https://publicuniverse.net/meteor-showers/GEM)) has its own data.
+- [Objects](https://publicuniverse.net/objects): catalogue of solar-system bodies, with [planets](https://publicuniverse.net/planets), [dwarf planets](https://publicuniverse.net/dwarf-planets), [asteroids](https://publicuniverse.net/asteroids), [comets](https://publicuniverse.net/comets) and [trans-Neptunian objects](https://publicuniverse.net/tnos).
+- [Exoplanets](https://publicuniverse.net/exoplanets): confirmed exoplanets from the NASA Exoplanet Archive, with discovery method, orbit, size, mass and distance.
+- [Systems](https://publicuniverse.net/systems): exoplanet host stars and their known planetary systems.
+- [Today](https://publicuniverse.net/today): a dated page for each day (/today/YYYY-MM-DD) with what is happening in the sky.
+- [Observe](https://publicuniverse.net/observe): night-sky tools for a location, including a night planner and observing shortlist.
+- [Close approaches](https://publicuniverse.net/close-approaches): upcoming near-Earth object flybys.
+- [Educators](https://publicuniverse.net/educators): free printable A4 handouts for schools, plus [university activities](https://publicuniverse.net/higher-education).
+
+## Data access
+
+- [API](https://publicuniverse.net/api): REST API over the same catalogue, with documentation and examples. Bulk or automated access should use the API with a key; see [fair use](https://publicuniverse.net/fair-use).
+- MCP server: https://api.publicuniverse.net/mcp (Model Context Protocol endpoint for AI assistants; setup in the [plugin guide](https://publicuniverse.net/plugin)).
+
+## Optional
+
+- [Sitemap](https://publicuniverse.net/sitemap.xml)
+- [About](https://publicuniverse.net/about)
+- [Privacy and cookies](https://publicuniverse.net/privacy)

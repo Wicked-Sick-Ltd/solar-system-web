@@ -12,6 +12,10 @@
         <meta name="gtm-container-id" content="{{ $gtmId }}">
     @endif
     <meta name="ga-page-location" content="{{ \App\Support\Analytics::pageLocation() }}">
+    <meta name="ga-consent-default" content="{{ \App\Support\Analytics::consentDefault() }}">
+    @if (\App\Support\Analytics::sisterHosts() !== [])
+        <meta name="pu-sister-hosts" content="{{ implode(',', \App\Support\Analytics::sisterHosts()) }}">
+    @endif
     <script data-cfasync="false">
 @if ($gaId)
 window.__puGtagScriptTag = true;
