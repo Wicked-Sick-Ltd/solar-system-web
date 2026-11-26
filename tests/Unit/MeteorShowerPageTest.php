@@ -14,7 +14,7 @@ it('builds shower titles from the name, the activity year and the reported peak'
     ]);
 
     expect(MeteorShowerPage::title($ursids, $now))
-        ->toBe('Ursids 2026: Peak Dates, Best Time to See Them and Where to Look')
+        ->toBe('Ursid Meteor Shower 2026: Peak Date, Best Time to See It and Where to Look')
         ->and(MeteorShowerPage::description($ursids, $now))->toContain('solar longitude 270.5°')
         ->and(MeteorShowerPage::description($ursids, $now))->not->toContain('271');
 
@@ -54,3 +54,17 @@ function showerRecord(string $code, string $name, array $sets): MeteorShower
         'parameter_sets' => $rows,
     ]);
 }
+
+it('titles an annual -ids shower for the year of its next peak', function () {
+    $quadrantids = showerRecord('QUA', 'Quadrantids', [
+        ['activity' => 'annual', 'solar_longitude_deg' => 283.0, 'n_members' => 1029],
+    ]);
+
+    expect(MeteorShowerPage::title($quadrantids, CarbonImmutable::parse('2026-11-26T10:00:00Z')))
+        ->toBe('Quadrantid Meteor Shower 2027: Peak Date, Best Time to See It and Where to Look')
+        ->and(MeteorShowerPage::title($quadrantids, CarbonImmutable::parse('2027-01-04T05:00:00Z')))
+        ->toContain('2027')
+        ->and(MeteorShowerPage::adjective('Geminids'))->toBe('Geminid')
+        ->and(MeteorShowerPage::adjective('eta Aquariids'))->toBeNull()
+        ->and(MeteorShowerPage::adjective('Alpha Capricornids'))->toBe('Alpha Capricornid');
+});
