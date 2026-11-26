@@ -16,7 +16,11 @@
      role="region" aria-label="{{ __('Cookie consent') }}">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm leading-relaxed" style="color: var(--text); max-width: 60ch;">
+            @if (\App\Support\Analytics::consentDefault() === 'denied')
+                {{ __('Analytics helps us make the site better. May we use anonymous Google Analytics (G-4H1XSCFT9J) cookies to see which planets, missions, and tools people explore most? There is no ad tracking or cross-site profiling. Until you choose, no analytics cookies are set. You can change your mind at any time.') }}
+            @else
             {{ __('Analytics helps us make the site better. We use anonymous Google Analytics (G-4H1XSCFT9J) to see which planets, missions, and tools people explore most. There is no ad tracking or cross-site profiling. You can keep analytics on, or choose essential cookies only, at any time.') }}
+            @endif
             <a class="link-quiet underline" href="{{ route('privacy') }}">{{ __('Privacy & cookies') }}</a>
         </p>
         <div class="flex shrink-0 gap-2">

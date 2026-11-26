@@ -25,7 +25,8 @@ it('lets a signed-in user save and remove one alert for current object and locat
     $component = Livewire::test(SkyObserver::class, ['objectId' => 'planet-saturn'])
         ->call('setLocation', 51.5, -0.12)
         ->call('saveAlert')
-        ->assertSee('Email alert saved');
+        ->assertSee('Email alert saved')
+        ->assertDispatched('pu-analytics', name: 'alert_signup', alert_type: 'visibility', object_id: 'planet-saturn');
 
     expect($user->visibilityAlerts()->count())->toBe(1);
 

@@ -33,7 +33,7 @@ it('exposes the measurement id and loads gtag on every page before any consent c
     expect($html)
         ->toContain('name="ga-measurement-id" content="G-TEST1234"')
         ->toContain("var STORAGE = 'pu_cookie_consent'")
-        ->toContain("return read() !== 'essential'")
+        ->toContain('return !consentDefaultDenied();')
         ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
         ->toContain("window.gtag('config', id")
         ->toContain('window.__puGtagScriptTag = true;')
@@ -45,7 +45,7 @@ it('exposes the measurement id and loads gtag on every page before any consent c
     // the boot sequence sets the consent default and then configures the tag,
     // and that the gtag.js element follows that script.
     $consent = strpos($html, "gtag('consent', 'default'");
-    $boot = strpos($html, 'if (granted && (measurementId() || gtmContainerId()))');
+    $boot = strpos($html, 'if ((granted || cookieless) && (measurementId() || gtmContainerId()))');
     $tag = strpos($html, '<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>');
 
     expect($consent)->toBeInt()
@@ -160,7 +160,7 @@ it('defaults analytics storage to granted unless the visitor chose essential and
     expect($html)
         ->toContain("gtag('consent', 'default'")
         ->toContain("var STORAGE = 'pu_cookie_consent'")
-        ->toContain("return read() !== 'essential'")
+        ->toContain('return !consentDefaultDenied();')
         ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
         ->toContain("analytics_storage: 'granted'")
         ->toContain("analytics_storage: 'denied'")
@@ -292,7 +292,7 @@ it('keeps Consent Mode ahead of Tag Manager when GA4 is configured as well', fun
 
     $html = $this->get('/')->assertOk()->getContent();
     $consent = strpos($html, "gtag('consent', 'default'");
-    $boot = strpos($html, 'if (granted && (measurementId() || gtmContainerId()))');
+    $boot = strpos($html, 'if ((granted || cookieless) && (measurementId() || gtmContainerId()))');
     $gtag = strpos($html, '<script data-cfasync="false" async src="https://www.googletagmanager.com/gtag/js?id=G-TEST1234"></script>');
     $gtm = strpos($html, 'https://www.googletagmanager.com/gtm.js');
 
@@ -527,4 +527,47 @@ it('publishes a privacy policy page', function () {
 it('links the privacy policy from the footer and lists it in the sitemap', function () {
     $this->get('/')->assertSee('href="'.route('privacy').'"', escape: false);
     $this->get('/sitemaps/pages.xml')->assertSee(route('privacy'), escape: false);
+});
+
+it('renders the consent default and sister hosts for the consent script', function () {
+    config([
+        'site.analytics.ga_measurement_id' => 'G-TEST1234',
+        'services.cookieyes.script_id' => null,
+        'site.analytics.sister_hosts' => ['futwiz.com', ' PIKAWIZ.COM ', 'not a host', 'evil.com"><script>'],
+    ]);
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)->toContain('<meta name="ga-consent-default" content="granted">')
+        ->toContain('<meta name="pu-sister-hosts" content="futwiz.com,pikawiz.com">')
+        ->toContain('You can keep analytics on, or choose essential cookies only, at any time.');
+
+    config(['site.analytics.consent_default' => 'DENIED ']);
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)->toContain('<meta name="ga-consent-default" content="denied">')
+        ->toContain('Until you choose, no analytics cookies are set.')
+        ->not->toContain('You can keep analytics on, or choose essential cookies only, at any time.');
+
+    $this->get('/privacy')->assertOk()->assertSee('analytics storage starts denied for every visitor', false);
+
+    config(['site.analytics.consent_default' => 'maybe']);
+    expect(Analytics::consentDefault())->toBe('granted');
+});
+
+it('serves a static llms.txt that points at the key sections, the MCP endpoint and the sitemap', function () {
+    $path = public_path('llms.txt');
+
+    expect(is_file($path))->toBeTrue();
+    $text = (string) file_get_contents($path);
+
+    expect($text)->toStartWith('# Public Universe')
+        ->toContain('https://publicuniverse.net/meteor-showers')
+        ->toContain('https://publicuniverse.net/objects')
+        ->toContain('https://publicuniverse.net/exoplanets')
+        ->toContain('https://publicuniverse.net/systems')
+        ->toContain('https://publicuniverse.net/today')
+        ->toContain('https://api.publicuniverse.net/mcp')
+        ->toContain('https://publicuniverse.net/sitemap.xml')
+        ->and(mb_strlen($text))->toBeLessThan(5000);
 });

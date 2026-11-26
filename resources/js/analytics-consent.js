@@ -66,6 +66,17 @@
         return id && /^GTM-[A-Z0-9]{4,16}$/.test(id) ? id : null;
     }
 
+    // ANALYTICS_CONSENT_DEFAULT, rendered by the layout. 'denied' starts every
+    // visitor who has not chosen with analytics_storage denied (strict opt-in):
+    // gtag.js still loads and sends cookieless pings, and Accept upgrades them.
+    // Anything else keeps the default 'granted' (PECR statistical-purposes
+    // exception, in force since 5 Feb 2026, with Essential only as the objection).
+    function consentDefaultDenied() {
+        var meta = document.querySelector('meta[name="ga-consent-default"]');
+
+        return !!meta && meta.getAttribute('content') === 'denied';
+    }
+
     function pageLocation() {
         // The layout publishes the address gtag may report. Current share
         // tokens live in the fragment (never on this request); leftover ?s=
@@ -550,7 +561,7 @@
         // Essential only clears __gaStorageGranted. Later Livewire navigations
         // still publish the redacted address, but they must not record another
         // analytics page_view for this session.
-        if (!window.__gaLoaded || window.__gaStorageGranted !== true || typeof window.gtag !== 'function') {
+        if (!measuring()) {
             return;
         }
         var page = pageLocation();
@@ -567,9 +578,28 @@
     }
 
     function analyticsStorageGranted() {
-        // Granted unless the visitor explicitly chose essential cookies only.
-        // A missing choice, or any value other than essential, keeps analytics on.
-        return read() !== 'essential';
+        // Essential only always denies. Accept always grants. With no choice,
+        // the configured default decides: granted unless it is 'denied'.
+        var choice = read();
+        if (choice === 'essential') {
+            return false;
+        }
+        if (choice === 'analytics') {
+            return true;
+        }
+
+        return !consentDefaultDenied();
+    }
+
+    function cookielessAllowed() {
+        // Cookieless pings only for a visitor who has not chosen yet under a
+        // denied default. An explicit Essential only sends nothing at all.
+        return consentDefaultDenied() && read() === null;
+    }
+
+    function measuring() {
+        return window.__gaLoaded === true && typeof window.gtag === 'function'
+            && (window.__gaStorageGranted === true || window.__gaCookieless === true);
     }
 
     function configureMeasurement() {
@@ -625,10 +655,14 @@
         if (!id && !gtm) {
             return;
         }
-        var alreadyGrantedHit = window.__gaLoaded === true && window.__gaStorageGranted === true;
+        // A cookieless landing hit under a denied default already counted this
+        // page; Consent Mode joins it up once storage is granted.
+        var alreadyGrantedHit = window.__gaLoaded === true
+            && (window.__gaStorageGranted === true || window.__gaCookieless === true);
         window.gtag('consent', 'update', {
             analytics_storage: 'granted',
         });
+        window.__gaCookieless = false;
         window.__gaStorageGranted = true;
         if (alreadyGrantedHit) {
             return;
@@ -656,6 +690,7 @@
         }
         // Stops sendPageView(), including the livewire:navigated listener.
         window.__gaStorageGranted = false;
+        window.__gaCookieless = false;
         if (typeof window.gtag !== 'function') {
             return;
         }
@@ -694,11 +729,13 @@
         wait_for_update: 500,
     });
     window.gtag('set', 'ads_data_redaction', true);
+    var cookieless = !granted && cookielessAllowed();
     if (!granted) {
         window.gtag('set', 'url_passthrough', true);
     } else {
         window.__gaStorageGranted = true;
     }
+    window.__gaCookieless = cookieless;
     installHistoryPublisher();
     publishPageLocation();
     // gtag.js still loads when the visitor has opted out. Page views, including
@@ -707,12 +744,128 @@
     if (measurementId()) {
         configureMeasurement();
     }
-    if (granted && (measurementId() || gtmContainerId())) {
+    if ((granted || cookieless) && (measurementId() || gtmContainerId())) {
         window.__gaLoaded = true;
         sendPageView();
     }
+    installEventTracking();
+
+    // GA4 events: handout_download, outbound_click (to sister sites) and
+    // alert_signup. Sent under the same rule as page views. Link URLs are
+    // reduced to origin and path so no query string or fragment leaves.
+    var EVENT_NAMES = ['alert_signup', 'handout_download', 'outbound_click'];
+
+    function sendEvent(name, params) {
+        if (EVENT_NAMES.indexOf(name) === -1 || !measuring()) {
+            return false;
+        }
+        var payload = { page_location: pageLocation(), transport_type: 'beacon' };
+        Object.keys(params || {}).forEach(function (key) {
+            var value = params[key];
+            if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                payload[key] = typeof value === 'string' ? value.slice(0, 100) : value;
+            }
+        });
+        window.gtag('event', name, payload);
+
+        return true;
+    }
+
+    function sisterHosts() {
+        var meta = document.querySelector('meta[name="pu-sister-hosts"]');
+        var value = meta && meta.getAttribute('content');
+
+        return value ? value.split(',').map(function (host) { return host.trim().toLowerCase(); }).filter(Boolean) : [];
+    }
+
+    function sisterHost(hostname) {
+        var host = String(hostname || '').toLowerCase().replace(/^www\./, '');
+        var hosts = sisterHosts();
+        for (var i = 0; i < hosts.length; i++) {
+            if (host === hosts[i] || host.slice(-(hosts[i].length + 1)) === '.' + hosts[i]) {
+                return hosts[i];
+            }
+        }
+
+        return null;
+    }
+
+    function anchorFor(node) {
+        var depth = 0;
+        while (node && depth < 12) {
+            if (node.tagName && String(node.tagName).toUpperCase() === 'A' && typeof node.getAttribute === 'function' && node.getAttribute('href')) {
+                return node;
+            }
+            node = node.parentNode;
+            depth++;
+        }
+
+        return null;
+    }
+
+    function trackLink(event) {
+        var anchor = anchorFor(event && event.target);
+        if (!anchor) {
+            return;
+        }
+        var url;
+        try {
+            url = new URL(anchor.getAttribute('href'), location.href);
+        } catch (error) {
+            return;
+        }
+        if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+            return;
+        }
+        var linkUrl = url.origin + url.pathname;
+        if (url.origin === location.origin) {
+            var path = url.pathname;
+            var file = path.split('/').pop() || '';
+            var hasDownload = typeof anchor.hasAttribute === 'function' && anchor.hasAttribute('download');
+            if (hasDownload || /\.pdf$/i.test(path) || /^\/higher-education\/[a-z-]+\/handout$/.test(path)) {
+                sendEvent('handout_download', {
+                    file_name: file,
+                    file_extension: (file.match(/\.([a-z0-9]+)$/i) || [null, ''])[1].toLowerCase(),
+                    link_url: linkUrl,
+                });
+            }
+
+            return;
+        }
+        var destination = sisterHost(url.hostname);
+        if (destination) {
+            sendEvent('outbound_click', {
+                destination: destination,
+                link_domain: url.hostname.toLowerCase(),
+                link_url: linkUrl,
+                outbound: true,
+            });
+        }
+    }
+
+    function installEventTracking() {
+        if (window.__puEventTracking) {
+            return;
+        }
+        window.__puEventTracking = true;
+        // Capture phase, so wire:navigate and download handlers cannot stop it.
+        document.addEventListener('click', trackLink, true);
+        document.addEventListener('auxclick', trackLink, true);
+        // Livewire components call $this->dispatch('pu-analytics', name: ..., ...).
+        window.addEventListener('pu-analytics', function (event) {
+            var detail = (event && event.detail) || {};
+            var params = {};
+            Object.keys(detail).forEach(function (key) {
+                if (key !== 'name') {
+                    params[key] = detail[key];
+                }
+            });
+            sendEvent(String(detail.name || ''), params);
+        });
+    }
 
     window.publicUniverseAnalytics = {
+        event: sendEvent,
         choose: choose,
         load: load,
         pageLocation: pageLocation,

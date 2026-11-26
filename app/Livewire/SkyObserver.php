@@ -159,6 +159,8 @@ final class SkyObserver extends Component
 
         $this->resetErrorBag('alert');
         $this->alertSaved = true;
+        // GA4 alert_signup (resources/js/analytics-consent.js). The object only, never the location.
+        $this->dispatch('pu-analytics', name: 'alert_signup', alert_type: 'visibility', object_id: $this->objectId);
     }
 
     public function removeAlert(): void

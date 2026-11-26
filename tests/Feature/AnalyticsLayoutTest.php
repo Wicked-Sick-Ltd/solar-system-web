@@ -18,7 +18,7 @@ it('leads the built-in banner with the analytics explanation and grants storage 
 
     expect($html)
         ->toContain("var STORAGE = 'pu_cookie_consent'")
-        ->toContain("return read() !== 'essential'")
+        ->toContain('return !consentDefaultDenied();')
         ->toContain("analytics_storage: granted ? 'granted' : 'denied'")
         ->toContain("analytics_storage: 'denied'")
         ->toContain('localStorage.getItem(STORAGE)')
@@ -62,7 +62,7 @@ it('renders CookieYes ahead of gtag and hides the built-in banner when a script 
         ->and($gtag)->toBeInt()
         ->and($cookieyes)->toBeLessThan($gtag)
         ->and($html)->not->toContain('id="cookie-banner"')
-        ->and($html)->toContain("return read() !== 'essential'");
+        ->and($html)->toContain('return !consentDefaultDenied();');
 });
 
 it('keeps the built-in banner when the CookieYes script id is empty', function () {
