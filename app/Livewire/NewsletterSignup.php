@@ -6,7 +6,6 @@ namespace App\Livewire;
 
 use App\Services\Mailchimp\MailchimpClient;
 use App\Services\Mailchimp\MailchimpException;
-use App\Services\Mailchimp\SubscribeResult;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -24,7 +23,10 @@ final class NewsletterSignup extends Component
     /** Honeypot — hidden from humans, filled by bots. */
     public string $website = '';
 
-    /** idle | pending | subscribed | error */
+    /**
+     * idle | pending | error. An already-confirmed address also ends in
+     * pending: the form must not tell anyone who is on the list.
+     */
     public string $state = 'idle';
 
     public function subscribe(MailchimpClient $mailchimp): void
@@ -50,14 +52,14 @@ final class NewsletterSignup extends Component
         }
 
         try {
-            $result = $mailchimp->subscribe($this->email);
-            $this->state = match ($result) {
-                SubscribeResult::Pending => 'pending',
-                SubscribeResult::AlreadySubscribed => 'subscribed',
-            };
-            if ($result === SubscribeResult::Pending) {
-                $this->dispatchSignupEvent();
-            }
+            // SubscribeResult::Pending and ::AlreadySubscribed get the same
+            // "Check your inbox" response, event included, so the reply never
+            // says whether the address is already on the list. Mailchimp's
+            // add-or-update call leaves a confirmed member as it is and sends
+            // it no email.
+            $mailchimp->subscribe($this->email);
+            $this->state = 'pending';
+            $this->dispatchSignupEvent();
         } catch (MailchimpException $e) {
             Log::warning('Newsletter signup failed');
             $this->state = 'error';
@@ -66,10 +68,11 @@ final class NewsletterSignup extends Component
 
     /**
      * GA4 newsletter_signup (resources/js/analytics-consent.js) for every
-     * "Check your inbox" outcome: a new or repeated double opt-in, and the
-     * honeypot. Sending it for all of them keeps the response identical, so it
-     * cannot reveal whether an address was already pending. Already
-     * subscribed, validation errors and Mailchimp failures send nothing. The
+     * "Check your inbox" outcome: a new or repeated double opt-in, an address
+     * that is already confirmed, and the honeypot. The event travels in the
+     * Livewire response, so leaving it out for any of them would change the
+     * response and reveal whether the address was already pending or
+     * subscribed. Validation errors and Mailchimp failures send nothing. The
      * params carry no address or other personal data.
      */
     private function dispatchSignupEvent(): void

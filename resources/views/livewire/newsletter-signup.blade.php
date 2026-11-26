@@ -9,10 +9,8 @@
     @if ($state === 'pending')
         <p class="text-sm" role="status" style="color: var(--text);">
             <strong style="color: var(--accent);">{{ __('Check your inbox.') }}</strong>
-            {{ __('We\'ve sent a confirmation link — nothing happens until you click it.') }}
+            {{ __('If this address still needs confirming, we\'ve sent a confirmation link — nothing happens until you click it.') }}
         </p>
-    @elseif ($state === 'subscribed')
-        <p class="text-sm" role="status" style="color: var(--text);">{{ __('You\'re already on the list — thank you.') }}</p>
     @else
         <form id="newsletter-form" class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-start" wire:submit="subscribe">
             <div class="sm:w-72">
