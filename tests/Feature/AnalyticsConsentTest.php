@@ -549,7 +549,24 @@ it('renders the consent default and sister hosts for the consent script', functi
         ->toContain('Until you choose, no analytics cookies are set.')
         ->not->toContain('You can keep analytics on, or choose essential cookies only, at any time.');
 
-    $this->get('/privacy')->assertOk()->assertSee('analytics storage starts denied for every visitor', false);
+    // One consistent storage rule for denied: no unconditional "granted"
+    // wording next to it, and a saved Accept analytics choice still applies.
+    $this->get('/privacy')->assertOk()
+        ->assertSee('if you have not made a choice, analytics storage (analytics_storage) is denied until you choose', false)
+        ->assertSee('a saved &quot;Accept analytics&quot; grants analytics storage straight away on later visits', false)
+        ->assertSee('analytics cookies stay off until you accept them', false)
+        ->assertDontSee('is granted unless you choose', false)
+        ->assertDontSee('is enabled by default', false)
+        ->assertDontSee('analytics stays on unless', false)
+        ->assertDontSee('keeps analytics storage granted', false)
+        ->assertDontSee('for every visitor', false);
+
+    config(['site.analytics.consent_default' => 'granted']);
+    $this->get('/privacy')->assertOk()
+        ->assertSee('is granted unless you choose', false)
+        ->assertSee('is enabled by default', false)
+        ->assertDontSee('is denied until you choose', false)
+        ->assertDontSee('analytics cookies stay off until you accept them', false);
 
     config(['site.analytics.consent_default' => 'maybe']);
     expect(Analytics::consentDefault())->toBe('granted');
