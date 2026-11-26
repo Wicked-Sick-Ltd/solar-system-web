@@ -18,5 +18,8 @@ it('matches the browser acceptance contract in shared privacy schema fixtures', 
         if (str_starts_with($case->name, 'U0085')) {
             expect($result['journal']['observations'][0]['notes'])->toBe("\u{0085}Private\u{0085}");
         }
+        if ($case->name === 'IANA alias') {
+            expect($result['journal']['observations'][0]['timezone'])->toBe('Asia/Calcutta');
+        }
     }
 });
