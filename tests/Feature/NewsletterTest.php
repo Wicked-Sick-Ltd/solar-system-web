@@ -158,3 +158,36 @@ it('resubscribes an unsubscribed member by requesting pending status explicitly'
     Http::assertSentCount(2);
     Http::assertSent(fn ($r) => $r->method() === 'PUT' && ($r['status'] ?? null) === 'pending');
 });
+
+it('dispatches a GA4 newsletter_signup browser event only for a new double opt-in sign-up', function () {
+    fakeMailchimp();
+
+    Livewire::test(NewsletterSignup::class)
+        ->set('email', 'ga4@example.com')
+        ->call('subscribe')
+        ->assertSet('state', 'pending')
+        ->assertDispatched('pu-analytics', function (string $event, array $params): bool {
+            return $params === ['name' => 'newsletter_signup', 'source' => 'footer', 'method' => 'mailchimp_double_opt_in'];
+        });
+});
+
+it('sends no newsletter_signup unless a new double opt-in sign-up succeeded', function (int $status, array $body, string $email, string $honeypot, ?string $state) {
+    fakeMailchimp($status, $body);
+
+    $component = Livewire::test(NewsletterSignup::class)
+        ->set('email', $email)
+        ->set('website', $honeypot)
+        ->call('subscribe');
+
+    if ($state === null) {
+        $component->assertHasErrors(['email']);
+    } else {
+        $component->assertSet('state', $state);
+    }
+    $component->assertNotDispatched('pu-analytics');
+})->with([
+    'already subscribed' => [200, ['status' => 'subscribed'], 'member@example.com', '', 'subscribed'],
+    'validation error' => [200, ['status' => 'pending'], 'not-an-email', '', null],
+    'honeypot' => [200, ['status' => 'pending'], 'bot@example.com', 'http://spam.example', 'pending'],
+    'mailchimp failure' => [400, ['title' => 'Invalid Resource', 'detail' => 'looks fake or invalid'], 'down@example.com', '', 'error'],
+]);

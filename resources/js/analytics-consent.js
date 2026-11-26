@@ -750,10 +750,10 @@
     }
     installEventTracking();
 
-    // GA4 events: handout_download, outbound_click (to sister sites) and
-    // alert_signup. Sent under the same rule as page views. Link URLs are
+    // GA4 events: handout_download, outbound_click (to sister sites),
+    // alert_signup and newsletter_signup. Sent under the same rule as page views. Link URLs are
     // reduced to origin and path so no query string or fragment leaves.
-    var EVENT_NAMES = ['alert_signup', 'handout_download', 'outbound_click'];
+    var EVENT_NAMES = ['alert_signup', 'handout_download', 'newsletter_signup', 'outbound_click'];
 
     function sendEvent(name, params) {
         if (EVENT_NAMES.indexOf(name) === -1 || !measuring()) {

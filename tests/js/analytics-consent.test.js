@@ -770,3 +770,27 @@ test('a middle-click counts but a right-click context menu does not', () => {
     assert.equal(page.events('handout_download').length, 1);
     assert.equal(page.events('outbound_click').length, 1);
 });
+
+test('newsletter_signup sends only scalar, non-email params and nothing after Essential only', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, SISTERS);
+
+    page.emit({ name: 'newsletter_signup', source: 'footer', method: 'mailchimp_double_opt_in' });
+    const events = page.events('newsletter_signup');
+    assert.equal(events.length, 1);
+    assert.equal(events[0][2].source, 'footer');
+    assert.equal(events[0][2].method, 'mailchimp_double_opt_in');
+    assert.equal(events[0][2].email, undefined);
+    assert.equal(events[0][2].transport_type, 'beacon');
+
+    page.window.publicUniverseAnalytics.choose('essential');
+    page.emit({ name: 'newsletter_signup', source: 'footer' });
+    assert.equal(page.events('newsletter_signup').length, 1);
+
+    const optedOut = boot('G-TEST1234', null, '', 'essential', false, null, SISTERS);
+    optedOut.emit({ name: 'newsletter_signup', source: 'footer' });
+    assert.equal(optedOut.events('newsletter_signup').length, 0);
+
+    const cookieless = boot('G-TEST1234', null, '', null, false, null, { 'ga-consent-default': 'denied' });
+    cookieless.emit({ name: 'newsletter_signup', source: 'footer' });
+    assert.equal(cookieless.events('newsletter_signup').length, 1);
+});

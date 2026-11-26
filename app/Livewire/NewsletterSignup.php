@@ -48,10 +48,17 @@ final class NewsletterSignup extends Component
         }
 
         try {
-            $this->state = match ($mailchimp->subscribe($this->email)) {
+            $result = $mailchimp->subscribe($this->email);
+            $this->state = match ($result) {
                 SubscribeResult::Pending => 'pending',
                 SubscribeResult::AlreadySubscribed => 'subscribed',
             };
+            // GA4 newsletter_signup (resources/js/analytics-consent.js), only for a
+            // new double opt-in sign-up. Already subscribed, validation errors,
+            // the honeypot and Mailchimp failures send nothing. No address or PII.
+            if ($result === SubscribeResult::Pending) {
+                $this->dispatch('pu-analytics', name: 'newsletter_signup', source: 'footer', method: 'mailchimp_double_opt_in');
+            }
         } catch (MailchimpException $e) {
             Log::warning('Newsletter signup failed');
             $this->state = 'error';
