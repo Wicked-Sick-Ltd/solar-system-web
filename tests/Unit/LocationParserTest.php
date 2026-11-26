@@ -53,6 +53,33 @@ it('returns null for anything it cannot read', function (string $text) {
     '51.51, -0.13, 12',                         // three numbers
 ]);
 
+it('still reads coordinates with irregular whitespace', function (string $text) {
+    expect(LocationParser::parse($text))->toBe(['lat' => 51.51, 'lon' => -0.13]);
+})->with([
+    "51.51 ,\t -0.13",
+    "51.51\n\n-0.13",
+    "lat :  51.51   lon:\t-0.13",
+    'N  51.51    W  0.13',
+    "51°30'26\"N  ,  0°07'39\"W",
+    "51 ° 30 ′ 26 ″ N \t 0 ° 07 ′ 39 ″ W",
+]);
+
+it('rejects whitespace-padded fragments without backtracking through the padding', function (string $text) {
+    preg_match('~~', '');
+    $started = hrtime(true);
+
+    expect(LocationParser::parse($text))->toBeNull()
+        ->and(preg_last_error_msg())->toBe('No error')
+        ->and((hrtime(true) - $started) / 1e6)->toBeLessThan(250.0);
+})->with([
+    'number then spaces' => ['51'.str_repeat(' ', 100).'x'],
+    'number then kilobytes of spaces' => ['51'.str_repeat(' ', 5000).'x'],
+    'labelled number then tabs' => ['lat 51'.str_repeat("\t", 5000).'lon'],
+    'number and comma then spaces' => ['51,'.str_repeat(' ', 5000).'x'],
+    'DMS then spaces' => ['51°30\'26"N'.str_repeat(' ', 50000).'x'],
+    'DMS then spaces, comma, spaces' => ['51°30\'26"N'.str_repeat(' ', 25000).','.str_repeat(' ', 25000).'x'],
+]);
+
 it('recognises what3words addresses with or without the slashes', function (string $text, ?string $words) {
     expect(LocationParser::what3words($text))->toBe($words);
 })->with([
