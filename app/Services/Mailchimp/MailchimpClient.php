@@ -45,6 +45,10 @@ final readonly class MailchimpClient
 
         $hash = md5(strtolower(trim($email)));
         $url = sprintf('https://%s.api.mailchimp.com/3.0/lists/%s/members/%s', $this->dataCentre(), $this->audienceId, $hash);
+        // The PUT below is idempotent and answers "pending" for a brand-new
+        // member and for one that was already pending alike, so read the
+        // status first to tell a new sign-up from a repeat submission.
+        $prior = $this->memberStatus($url);
 
         $response = $this->putMember($url, [
             'email_address' => $email,
@@ -70,7 +74,7 @@ final readonly class MailchimpClient
 
         return match ($status) {
             'subscribed' => SubscribeResult::AlreadySubscribed,
-            'pending' => SubscribeResult::Pending,
+            'pending' => $prior === 'pending' ? SubscribeResult::AlreadyPending : SubscribeResult::Pending,
             default => throw new MailchimpException((string) ($response->json('detail') ?? 'Mailchimp rejected the request.')),
         };
     }
@@ -84,6 +88,26 @@ final readonly class MailchimpClient
         $host = parse_url((string) config('app.url'), PHP_URL_HOST);
 
         return is_string($host) && $host !== '' ? $host : 'solar';
+    }
+
+    /**
+     * Current audience status for the member URL, or null when the address is
+     * not on the list (404) or the lookup fails. A failed lookup never blocks
+     * the sign-up itself; it only means a repeat cannot be told apart.
+     */
+    private function memberStatus(string $url): ?string
+    {
+        try {
+            $response = Http::withBasicAuth('anystring', (string) $this->apiKey)
+                ->acceptJson()
+                ->timeout(8)
+                ->get($url, ['fields' => 'status']);
+        } catch (ConnectionException) {
+            return null;
+        }
+        $status = $response->successful() ? $response->json('status') : null;
+
+        return is_string($status) ? $status : null;
     }
 
     /**

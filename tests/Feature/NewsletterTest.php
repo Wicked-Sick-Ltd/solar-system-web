@@ -16,12 +16,34 @@ beforeEach(function () {
 });
 
 /** Stub Mailchimp only: fakeSolar()'s catch-all would otherwise answer first. */
-function fakeMailchimp(int $status = 200, array $body = ['status' => 'pending']): void
+function fakeMailchimp(int $status = 200, array $body = ['status' => 'pending'], ?string $existing = null): void
 {
-    Http::fake([
-        'https://us21.api.mailchimp.com/3.0/lists/aud42/members/*' => Http::response($body, $status),
-        '*' => Http::response(['results' => []]),
-    ]);
+    fakeMailchimpSequence([[$body, $status]], $existing);
+}
+
+/**
+ * Mailchimp member lookups (GET) answer $existing, or 404 when the address is
+ * not on the list. PUTs answer the given responses in order, repeating the last.
+ *
+ * @param  list<array{0: array<string, mixed>, 1: int}>  $puts
+ */
+function fakeMailchimpSequence(array $puts, ?string $existing = null): void
+{
+    $index = 0;
+    Http::fake(function ($request) use (&$index, $puts, $existing) {
+        if (! str_starts_with($request->url(), 'https://us21.api.mailchimp.com/3.0/lists/aud42/members/')) {
+            return Http::response(['results' => []]);
+        }
+        if ($request->method() === 'GET') {
+            return $existing === null
+                ? Http::response(['status' => 404, 'title' => 'Resource Not Found'], 404)
+                : Http::response(['status' => $existing]);
+        }
+        [$body, $status] = $puts[min($index, count($puts) - 1)];
+        $index++;
+
+        return Http::response($body, $status);
+    });
 }
 
 it('hides the signup form entirely when Mailchimp is not configured', function () {
@@ -78,12 +100,7 @@ it('tells an existing subscriber they are already on the list', function () {
 });
 
 it('restarts double opt-in for a previously listed address', function (string $existing) {
-    Http::fake([
-        'https://us21.api.mailchimp.com/3.0/lists/aud42/members/*' => Http::sequence()
-            ->push(['status' => $existing])
-            ->push(['status' => 'pending']),
-        '*' => Http::response(['results' => []]),
-    ]);
+    fakeMailchimpSequence([[['status' => $existing], 200], [['status' => 'pending'], 200]], $existing);
 
     Livewire::test(NewsletterSignup::class)
         ->set('email', 'proto@example.com')
@@ -143,19 +160,15 @@ it('rate-limits repeated attempts from one address', function () {
 });
 
 it('resubscribes an unsubscribed member by requesting pending status explicitly', function () {
-    Http::fake([
-        'https://us21.api.mailchimp.com/3.0/lists/aud42/members/*' => Http::sequence()
-            ->push(['status' => 'unsubscribed'], 200)
-            ->push(['status' => 'pending'], 200),
-        '*' => Http::response(['results' => []]),
-    ]);
+    fakeMailchimpSequence([[['status' => 'unsubscribed'], 200], [['status' => 'pending'], 200]], 'unsubscribed');
 
     Livewire::test(NewsletterSignup::class)
         ->set('email', 'proto@example.com')
         ->call('subscribe')
         ->assertSet('state', 'pending');
 
-    Http::assertSentCount(2);
+    Http::assertSentCount(3);
+    Http::assertSent(fn ($r) => $r->method() === 'GET');
     Http::assertSent(fn ($r) => $r->method() === 'PUT' && ($r['status'] ?? null) === 'pending');
 });
 
@@ -171,8 +184,8 @@ it('dispatches a GA4 newsletter_signup browser event only for a new double opt-i
         });
 });
 
-it('sends no newsletter_signup unless a new double opt-in sign-up succeeded', function (int $status, array $body, string $email, string $honeypot, ?string $state) {
-    fakeMailchimp($status, $body);
+it('sends no newsletter_signup unless a new double opt-in sign-up succeeded', function (int $status, array $body, string $email, string $honeypot, ?string $state, ?string $existing = null) {
+    fakeMailchimp($status, $body, $existing);
 
     $component = Livewire::test(NewsletterSignup::class)
         ->set('email', $email)
@@ -189,5 +202,33 @@ it('sends no newsletter_signup unless a new double opt-in sign-up succeeded', fu
     'already subscribed' => [200, ['status' => 'subscribed'], 'member@example.com', '', 'subscribed'],
     'validation error' => [200, ['status' => 'pending'], 'not-an-email', '', null],
     'honeypot' => [200, ['status' => 'pending'], 'bot@example.com', 'http://spam.example', 'pending'],
+    'already pending (repeat submission)' => [200, ['status' => 'pending'], 'again@example.com', '', 'pending', 'pending'],
     'mailchimp failure' => [400, ['title' => 'Invalid Resource', 'detail' => 'looks fake or invalid'], 'down@example.com', '', 'error'],
 ]);
+
+it('counts a lapsed member restarting double opt-in as a new newsletter_signup', function () {
+    fakeMailchimpSequence([[['status' => 'unsubscribed'], 200], [['status' => 'pending'], 200]], 'unsubscribed');
+
+    Livewire::test(NewsletterSignup::class)
+        ->set('email', 'back@example.com')
+        ->call('subscribe')
+        ->assertSet('state', 'pending')
+        ->assertSee('Check your inbox')
+        ->assertDispatched('pu-analytics', name: 'newsletter_signup', source: 'footer');
+});
+
+it('still subscribes when the member lookup fails', function () {
+    Http::fake(function ($request) {
+        if ($request->method() === 'GET') {
+            return Http::response(['title' => 'Internal Server Error'], 500);
+        }
+
+        return Http::response(['status' => 'pending']);
+    });
+
+    Livewire::test(NewsletterSignup::class)
+        ->set('email', 'lookup@example.com')
+        ->call('subscribe')
+        ->assertSet('state', 'pending')
+        ->assertDispatched('pu-analytics', name: 'newsletter_signup');
+});
