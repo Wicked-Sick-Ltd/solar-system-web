@@ -804,6 +804,11 @@
     }
 
     function trackLink(event) {
+        // auxclick also fires for the right button when a context menu opens;
+        // only a middle-click (open in a new tab) counts.
+        if (event && event.type === 'auxclick' && event.button !== 1) {
+            return;
+        }
         var anchor = anchorFor(event && event.target);
         if (!anchor) {
             return;

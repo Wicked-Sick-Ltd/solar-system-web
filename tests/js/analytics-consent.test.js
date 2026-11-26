@@ -85,7 +85,7 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
     const commands = () => window.dataLayer.map((entry) => Array.from(entry));
     const pageViews = () => commands().filter((entry) => entry[0] === 'event' && entry[1] === 'page_view');
     const events = (name) => commands().filter((entry) => entry[0] === 'event' && entry[1] === name);
-    const click = (attrs) => {
+    const click = (attrs, type = 'click', button = 0) => {
         const anchor = {
             tagName: 'A',
             parentNode: null,
@@ -93,7 +93,7 @@ function boot(id = 'G-TEST1234', gtm = null, referrer = '', consent = null, scri
             hasAttribute: (key) => Object.prototype.hasOwnProperty.call(attrs, key),
         };
         const child = { tagName: 'SPAN', parentNode: anchor };
-        docListeners.filter((entry) => entry.type === 'click').forEach((entry) => entry.fn({ target: child }));
+        docListeners.filter((entry) => entry.type === type).forEach((entry) => entry.fn({ target: child, type, button }));
     };
     const emit = (detail) => {
         historyListeners.filter((entry) => entry.type === 'pu-analytics').forEach((entry) => entry.fn({ detail }));
@@ -755,4 +755,18 @@ test('Livewire pu-analytics events send alert_signup and ignore unknown names', 
     page.window.publicUniverseAnalytics.choose('essential');
     page.emit({ name: 'alert_signup', alert_type: 'visibility' });
     assert.equal(page.events('alert_signup').length, 1);
+});
+
+test('a middle-click counts but a right-click context menu does not', () => {
+    const page = boot('G-TEST1234', null, '', null, false, null, SISTERS);
+
+    page.click({ href: '/handouts/primary.pdf', download: 'primary.pdf' }, 'auxclick', 2);
+    page.click({ href: 'https://futwiz.com/' }, 'auxclick', 2);
+    assert.equal(page.events('handout_download').length, 0);
+    assert.equal(page.events('outbound_click').length, 0);
+
+    page.click({ href: '/handouts/primary.pdf', download: 'primary.pdf' }, 'auxclick', 1);
+    page.click({ href: 'https://futwiz.com/' }, 'auxclick', 1);
+    assert.equal(page.events('handout_download').length, 1);
+    assert.equal(page.events('outbound_click').length, 1);
 });
