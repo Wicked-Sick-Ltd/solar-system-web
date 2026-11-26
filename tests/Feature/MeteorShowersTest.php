@@ -299,7 +299,7 @@ it('titles the uppercase shower page, keeps one h1, and self-canonicalises witho
         ->assertRedirect('/meteor-showers/LEO?active_on=2026-11-17');
 
     $html = $this->get('/meteor-showers/LEO?active_on=2026-11-17')->assertOk()->getContent();
-    $title = 'Leonids 2026: Peak Dates, Best Time to See Them and Where to Look';
+    $title = 'Leonid Meteor Shower 2026: Peak Date, Best Time to See It and Where to Look';
     $description = 'Leonids 2026: peak dates, the best time to see them and where to look. Reported peak near solar longitude 235.1°. IAU Meteor Data Center measurements.';
 
     expect($html)->toContain('<title>'.$title.' · '.config('site.name').'</title>')
@@ -326,3 +326,26 @@ it('normalizes accepted checkbox update values before querying the strict API cl
     Http::assertSent(fn ($request) => str_contains($request->url(), '/meteor-showers')
         && $request['established_only'] === ($expected ? 'true' : 'false'));
 })->with([[1, true], ['1', true], [0, false], ['0', false]]);
+
+it('shows the UK viewing section above the parameter sets with FAQPage data', function () {
+    $this->travelTo(new DateTimeImmutable('2026-11-26T10:00:00Z'));
+    fakeMeteorCatalogue(detail: meteorDetailPayload([array_replace(meteorParameterPayload(5), [
+        'solar_longitude_deg' => 262.0, 'ra_deg' => 113.5, 'dec_deg' => 32.3, 'n_members' => 4895,
+    ])]));
+
+    $html = $this->get('/meteor-showers/GEM')->assertOk()->getContent();
+
+    expect($html)->toContain('When and where to see it from the UK')
+        ->toContain('What time is the Geminid meteor shower tonight in the UK?')
+        ->toContain('"@type":"FAQPage"')
+        ->toContain('<title>Geminid Meteor Shower 2026: Peak Date, Best Time to See It and Where to Look')
+        ->and(strpos($html, 'data-testid="meteor-uk-viewing"'))->toBeLessThan(strpos($html, 'Parameter set 5'));
+});
+
+it('renders configured copy notes for the shower', function () {
+    $this->travelTo(new DateTimeImmutable('2026-11-26T10:00:00Z'));
+    config(['meteor_viewing.showers.GEM.notes' => ['A hand-written note.']]);
+    fakeMeteorCatalogue(detail: meteorDetailPayload([meteorParameterPayload()]));
+
+    $this->get('/meteor-showers/GEM')->assertOk()->assertSee('A hand-written note.');
+});

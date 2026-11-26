@@ -7,6 +7,9 @@
     @else
         <x-page-header :title="$shower->name" :eyebrow="__('IAU :number · :code', ['number' => $shower->iauNo, 'code' => MeteorShowerPage::canonicalCode($shower->code)])"
             :lead="__('Measurements from the IAU Meteor Data Center. Each parameter set describes an observation campaign; values and proposed parent bodies may differ between sets.')" />
+        @if($viewing)
+            <x-meteor-uk-viewing :viewing="$viewing" :faq="$viewingFaq" :copy="$viewingCopy" />
+        @endif
         <p class="mb-6 text-sm leading-relaxed" style="color: var(--muted);">{{ __('An activity peak is expressed as solar longitude, not a guaranteed calendar date or observing forecast. Radiant coordinates and orbital elements are reported as supplied by the source. Missing values are not reported; these data do not predict an hourly meteor rate.') }}</p>
         @if($shower->parameterSets === [])
             <x-empty-state :title="__('No parameter sets supplied')">{{ __('This record contains no campaign measurements in the current backend response.') }}</x-empty-state>
