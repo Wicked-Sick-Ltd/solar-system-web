@@ -27,7 +27,7 @@ final class MeteorShowerPage
     public static function title(MeteorShower $shower, ?CarbonImmutable $now = null): string
     {
         $adjective = self::adjective($shower->name);
-        if ($adjective !== null && self::isAnnual($shower) && self::peakSolarLongitude($shower) !== null) {
+        if ($adjective !== null && self::annualPeakSet($shower) !== null) {
             return __(':adjective Meteor Shower :year: Peak Date, Best Time to See It and Where to Look', [
                 'adjective' => $adjective,
                 'year' => (string) self::year($shower, $now),
@@ -62,7 +62,7 @@ final class MeteorShowerPage
         if (self::isAnnual($shower)) {
             // An annual shower is titled for its next peak, so a January
             // shower read in November already carries the coming year.
-            $peak = self::peakSolarLongitude($shower);
+            $peak = self::annualPeakSet($shower)?->measurements['solar_longitude_deg'];
             if ($peak !== null) {
                 return (int) UkMeteorViewing::nextSolarLongitude($peak, self::clock($now)->subDay())->format('Y');
             }
@@ -77,12 +77,20 @@ final class MeteorShowerPage
 
     public static function peakSolarLongitude(MeteorShower $shower): ?float
     {
-        /** @var list<array{index:int, set:MeteorParameterSet, longitude:float}> $withPeak */
+        return self::peakSet($shower)?->measurements['solar_longitude_deg'];
+    }
+
+    /**
+     * The parameter set whose peak the page reports: annual sets first, then
+     * the most members, then catalogue order. Only sets with a peak count.
+     */
+    public static function peakSet(MeteorShower $shower): ?MeteorParameterSet
+    {
+        /** @var list<array{index:int, set:MeteorParameterSet}> $withPeak */
         $withPeak = [];
         foreach ($shower->parameterSets as $index => $set) {
-            $longitude = $set->measurements['solar_longitude_deg'] ?? null;
-            if ($longitude !== null) {
-                $withPeak[] = ['index' => $index, 'set' => $set, 'longitude' => $longitude];
+            if (($set->measurements['solar_longitude_deg'] ?? null) !== null) {
+                $withPeak[] = ['index' => $index, 'set' => $set];
             }
         }
         if ($withPeak === []) {
@@ -95,14 +103,20 @@ final class MeteorShowerPage
         ));
         $pool = $annual !== [] ? $annual : $withPeak;
         usort($pool, static function (array $left, array $right): int {
-            /** @var array{index:int, set:MeteorParameterSet, longitude:float} $left */
-            /** @var array{index:int, set:MeteorParameterSet, longitude:float} $right */
             $byMembers = ($right['set']->members ?? -1) <=> ($left['set']->members ?? -1);
 
             return $byMembers !== 0 ? $byMembers : $left['index'] <=> $right['index'];
         });
 
-        return $pool[0]['longitude'];
+        return $pool[0]['set'];
+    }
+
+    /** The reported peak set when it is an annual one, so a next peak can be predicted from it. */
+    public static function annualPeakSet(MeteorShower $shower): ?MeteorParameterSet
+    {
+        $set = self::peakSet($shower);
+
+        return $set !== null && self::activityIsAnnual($set->activity) ? $set : null;
     }
 
     /** "Geminids" becomes "Geminid", for "Geminid meteor shower". Null when the name is not an -ids plural. */

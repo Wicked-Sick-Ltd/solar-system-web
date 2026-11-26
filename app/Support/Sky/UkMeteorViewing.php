@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support\Sky;
 
-use App\Services\SolarApi\Data\MeteorParameterSet;
 use App\Services\SolarApi\Data\MeteorShower;
 use App\Support\Flyby\LowPrecisionEphemeris;
 use App\Support\Format;
@@ -78,7 +77,10 @@ final class UkMeteorViewing
      */
     public static function forShower(MeteorShower $shower, ?DateTimeInterface $now = null): ?array
     {
-        $set = self::peakSet($shower);
+        // Only an annual set predicts a next peak. A campaign-only record
+        // (activity "2002/2006") gets no UK section, and the set is never
+        // swapped for another one to find a radiant.
+        $set = MeteorShowerPage::annualPeakSet($shower);
         if ($set === null) {
             return null;
         }
@@ -89,32 +91,12 @@ final class UkMeteorViewing
             return null;
         }
 
-        $now = DateTimeImmutable::createFromInterface($now ?? new DateTimeImmutable)->setTimezone(new DateTimeZone('UTC'));
+        // The application clock, so the title year and this section agree under travelTo().
+        $now = DateTimeImmutable::createFromInterface($now ?? CarbonImmutable::now())->setTimezone(new DateTimeZone('UTC'));
         $peak = self::nextSolarLongitude($longitude, $now->modify('-1 day'));
-
         $window = self::window($peak, $longitude, $ra, $dec);
 
         return $window === null ? null : ['ad_no' => $set->adNo] + $window;
-    }
-
-    /** The annual, best-supported parameter set: the same one the page title reports. */
-    public static function peakSet(MeteorShower $shower): ?MeteorParameterSet
-    {
-        $longitude = MeteorShowerPage::peakSolarLongitude($shower);
-        if ($longitude === null) {
-            return null;
-        }
-        $candidates = array_values(array_filter(
-            $shower->parameterSets,
-            static fn (MeteorParameterSet $set): bool => $set->measurements['solar_longitude_deg'] === $longitude
-                && $set->measurements['ra_deg'] !== null && $set->measurements['dec_deg'] !== null,
-        ));
-        if ($candidates === []) {
-            return null;
-        }
-        usort($candidates, static fn (MeteorParameterSet $a, MeteorParameterSet $b): int => ($b->members ?? -1) <=> ($a->members ?? -1));
-
-        return $candidates[0];
     }
 
     /** First instant at or after $from when the Sun's J2000 ecliptic longitude equals $longitude. */
@@ -264,12 +246,30 @@ final class UkMeteorViewing
         $first = $dark[0];
         $last = $dark[array_key_last($dark)];
 
-        $best = array_values(array_filter($dark, static fn (array $s): bool => $s['alt'] >= self::MIN_RADIANT_ALTITUDE));
         $highest = $dark[0];
         foreach ($dark as $sample) {
             if ($sample['alt'] > $highest['alt']) {
                 $highest = $sample;
             }
+        }
+        // Best window: the unbroken run of dark samples with the radiant at
+        // least 30 degrees up that contains its highest point. A radiant that
+        // dips below 30 degrees and climbs again makes two runs, not one.
+        $best = [];
+        $run = [];
+        foreach ($dark as $sample) {
+            if ($sample['alt'] >= self::MIN_RADIANT_ALTITUDE) {
+                $run[] = $sample;
+
+                continue;
+            }
+            if ($run !== []) {
+                $best = self::preferRun($best, $run, $highest['jd']);
+                $run = [];
+            }
+        }
+        if ($run !== []) {
+            $best = self::preferRun($best, $run, $highest['jd']);
         }
 
         $moonPool = $best !== [] ? $best : $dark;
@@ -307,6 +307,24 @@ final class UkMeteorViewing
             'ra_deg' => $ra,
             'dec_deg' => $dec,
         ];
+    }
+
+    /**
+     * @param  list<array{jd: float, sun: float, alt: float, az: float}>  $current
+     * @param  non-empty-list<array{jd: float, sun: float, alt: float, az: float}>  $candidate
+     * @return list<array{jd: float, sun: float, alt: float, az: float}>
+     */
+    private static function preferRun(array $current, array $candidate, float $highestJd): array
+    {
+        $contains = static fn (array $run): bool => $run !== [] && $run[0]['jd'] <= $highestJd && $run[array_key_last($run)]['jd'] >= $highestJd;
+        if ($contains($candidate)) {
+            return $candidate;
+        }
+        if ($contains($current)) {
+            return $current;
+        }
+
+        return count($candidate) > count($current) ? $candidate : $current;
     }
 
     /** @param list<array{jd: float}> $spell */

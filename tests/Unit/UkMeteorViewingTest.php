@@ -6,6 +6,7 @@ use App\Services\SolarApi\Data\MeteorShower;
 use App\Support\Format;
 use App\Support\MeteorShowerPage;
 use App\Support\Sky\UkMeteorViewing;
+use Carbon\CarbonImmutable;
 
 /** Mirrors the live IAU MDC parameter sets the hub reports for GEM and QUA (annual, most members). */
 function ukViewingShower(string $code, string $name, float $longitude, float $ra, float $dec): MeteorShower
@@ -92,4 +93,54 @@ it('labels nights, directions and Moon phases in plain UK English', function () 
         ->and(UkMeteorViewing::moonPhaseName(0.23, true))->toBe('waxing crescent')
         ->and(UkMeteorViewing::moonPhaseName(0.99, false))->toBe('full')
         ->and(UkMeteorViewing::moonPhaseName(0.7, false))->toBe('waning gibbous');
+});
+
+it('gives a campaign-only record no UK section and never swaps in another set for the radiant', function () {
+    $row = static fn (int $adNo, string $activity, float $lon, ?float $ra, int $members) => [
+        'iau_no' => 9, 'ad_no' => $adNo, 'code' => 'EXA', 'name' => 'Exampleids', 'activity' => $activity,
+        'solar_longitude_deg' => $lon, 'ra_deg' => $ra, 'dec_deg' => $ra === null ? null : 20.0, 'n_members' => $members,
+    ];
+    $campaignOnly = MeteorShower::fromArray(['iau_no' => 9, 'code' => 'EXA', 'name' => 'Exampleids', 'parameter_sets' => [
+        $row(0, '2002/2006', 120.0, 100.0, 50),
+    ]]);
+    $annualWithoutRadiant = MeteorShower::fromArray(['iau_no' => 9, 'code' => 'EXA', 'name' => 'Exampleids', 'parameter_sets' => [
+        $row(0, 'annual', 120.0, null, 50),
+        $row(1, '2002/2006', 120.0, 100.0, 900),
+    ]]);
+    $annualAndBiggerCampaign = MeteorShower::fromArray(['iau_no' => 9, 'code' => 'EXA', 'name' => 'Exampleids', 'parameter_sets' => [
+        $row(0, 'annual', 120.0, 100.0, 50),
+        $row(1, '2002/2006', 120.0, 200.0, 900),
+    ]]);
+    $now = new DateTimeImmutable('2026-11-26T10:00:00Z');
+
+    expect(UkMeteorViewing::forShower($campaignOnly, $now))->toBeNull()
+        ->and(MeteorShowerPage::title($campaignOnly, CarbonImmutable::parse('2026-11-26')))->toStartWith('Exampleids 2006')
+        ->and(UkMeteorViewing::forShower($annualWithoutRadiant, $now))->toBeNull()
+        ->and(UkMeteorViewing::forShower($annualAndBiggerCampaign, $now)['ad_no'])->toBe(0)
+        ->and(UkMeteorViewing::forShower($annualAndBiggerCampaign, $now)['ra_deg'])->toBe(100.0);
+});
+
+it('keeps the best window to one unbroken run with the radiant at least 30 degrees up', function () {
+    // A circumpolar radiant (RA 270, Dec +60) in December dips to about 21 degrees between two runs.
+    $viewing = UkMeteorViewing::forShower(ukViewingShower('XMP', 'Exampleids', 262.0, 270.0, 60.0), new DateTimeImmutable('2026-11-26T10:00:00Z'));
+    $start = $viewing['best_start_local']->getTimestamp();
+    $end = $viewing['best_end_local']->getTimestamp();
+
+    expect($start)->toBeLessThan($end);
+    for ($t = $start; $t <= $end; $t += 300) {
+        [$alt] = UkMeteorViewing::altAz(270.0, 60.0, 2440587.5 + $t / 86400);
+        expect($alt)->toBeGreaterThanOrEqual(29.9);
+    }
+    expect($start > $viewing['dark_start_local']->getTimestamp() || $end < $viewing['dark_end_local']->getTimestamp())->toBeTrue();
+});
+
+it('follows the application clock when no time is given', function () {
+    CarbonImmutable::setTestNow('2027-02-01T12:00:00Z');
+    try {
+        $viewing = UkMeteorViewing::forShower(ukViewingShower('GEM', 'Geminids', 262.0, 113.5, 32.3));
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+
+    expect($viewing['peak_local']->format('Y-m-d'))->toBe('2027-12-14');
 });
